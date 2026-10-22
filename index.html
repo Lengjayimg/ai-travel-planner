@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Wayfind - Premium AI-Powered Travel Planner. Transform your travel ideas into personalized, optimized itineraries with smart budget tracking and seamless coordination." />
+  <title>Wayfind — AI-Powered Travel Planner</title>
+  
+  <!-- Favicon using SVG Compass -->
+  <link rel="icon" type="image/png" href="Logo for Light Mode.png" />
+  
+  <!-- Phosphor Icons Font Stylesheets & CDN Fallback -->
+  <link rel="stylesheet" href="phosphor-icons/Fonts/regular/style.css" />
+  <link rel="stylesheet" href="phosphor-icons/Fonts/fill/style.css" />
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+</head>
+<body>
+
+  <!-- ==========================================================================
+       SITE HEADER / NAVIGATION
+       ========================================================================== -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <!-- Brand Logo -->
+      <a href="#landing" class="brand-logo" data-route="landing">
+        <div class="brand-icon-wrapper">
+          <img src="Logo for Light Mode.png" alt="Wayfind Compass Logo" class="brand-icon-img" />
+        </div>
+        <span class="brand-name">WAYFIND</span>
+      </a>
+
+      <!-- Desktop Navigation Links -->
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="#features" class="nav-link" data-route="features">Features</a></li>
+          <li><a href="#how-it-works" class="nav-link" data-route="how-it-works">How It Works</a></li>
+          <li><a href="#destinations" class="nav-link" data-route="destinations">Destinations</a></li>
+          <li><a href="#planner" class="nav-link" data-route="planner">Trip Planner</a></li>
+          <li><a href="#saved-trips" class="nav-link" data-route="saved-trips">My Trips</a></li>
+          <li><a href="#dashboard" class="nav-link" data-route="dashboard">Dashboard</a></li>
+        </ul>
+      </nav>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <!-- Theme Toggle (Dark / Light) -->
+        <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Dark/Light Mode" aria-label="Toggle Theme">
+          <i class="ph ph-moon" aria-hidden="true"></i>
+        </button>
+
+        <!-- Sign In Button -->
+        <button class="btn btn-ghost btn-sm" onclick="openModal('signInModal')">Sign In</button>
+
+        <!-- Primary CTA -->
+        <a href="#planner" class="btn btn-primary btn-sm" data-route="planner">
+          <span>Get Started</span>
+          <i class="ph ph-arrow-right icon-sm" aria-hidden="true"></i>
+        </a>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Open Navigation Menu">
+          <i class="ph ph-list" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       VIEW 1: PUBLIC LANDING PAGE (data-view="landing")
+       ========================================================================== -->
+  <main class="view-container active-view" data-view="landing">
+    
+    <!-- --- Hero Section --- -->
+    <section class="section hero-section">
+      <div class="container">
+        <div class="hero-grid">
+          
+          <!-- Hero Left Column: Narrative & CTAs -->
+          <div class="hero-content">
+            <div class="hero-badge">
+              <i class="ph ph-sparkle icon-sm sparkle" aria-hidden="true"></i>
+              <span>Next-Generation Travel Intelligence</span>
+            </div>
+
+            <h1 class="hero-title">
+              Your Next Journey, <br />
+              <span class="highlight-text">Thoughtfully Planned.</span>
+            </h1>
+
+            <p class="hero-description">
+              Turn your travel ideas into personalized itineraries with an AI-powered planner that brings your destinations, daily activities, and budget together in one calm, seamless experience.
+            </p>
+
+            <div class="hero-cta-group">
+              <a href="#planner" class="btn btn-primary btn-lg" data-route="planner">
+                <span>Start Planning</span>
+                <i class="ph ph-sparkle icon-sm" aria-hidden="true"></i>
+              </a>
+              <a href="#how-it-works" class="btn btn-secondary btn-lg" data-route="how-it-works">
+                <span>Explore How It Works</span>
+              </a>
+            </div>
+
+            <div class="hero-trust-row">
+              <div class="trust-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                <span>Zero Research Overload</span>
+              </div>
+              <div class="trust-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                <span>Dynamic Budget Tracking</span>
+              </div>
+              <div class="trust-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                <span>Offline Accessible</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hero Right Column: Realistic Interactive Planner Preview -->
+          <div class="hero-visual">
+            <div class="hero-preview-wrapper">
+              
+              <!-- Floating AI Insight Chip -->
+              <div class="floating-ai-chip">
+                <i class="ph ph-sparkle icon-sm" aria-hidden="true"></i>
+                <span>Abuja Weather: 28°C Clear & Mild</span>
+              </div>
+
+              <!-- Main Hero Card (Abuja 4-Day Showcase) -->
+              <div class="hero-main-card">
+                <div class="hero-card-img-wrapper">
+                  <img src="https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?auto=format&fit=crop&w=800&q=80" alt="Abuja Scenic Lake and Monolith" class="hero-card-img" />
+                  <div class="hero-card-img-overlay">
+                    <h4>Abuja: Art & Nature Escape</h4>
+                    <p>4 Days / 3 Nights • 2 Adults • Curated Plan</p>
+                  </div>
+                </div>
+
+                <div class="hero-card-body">
+                  <div class="hero-itinerary-preview-list">
+                    <div class="hero-preview-item">
+                      <div class="hero-preview-item-left">
+                        <span class="hero-time-pill">10:30 AM</span>
+                        <span class="hero-preview-item-title">Airport Arrival & Scenic Transfer</span>
+                      </div>
+                      <span class="badge badge-green">Transit</span>
+                    </div>
+
+                    <div class="hero-preview-item">
+                      <div class="hero-preview-item-left">
+                        <span class="hero-time-pill">1:45 PM</span>
+                        <span class="hero-preview-item-title">Authentic Lunch at Nkoyo</span>
+                      </div>
+                      <span class="badge badge-ai">Curated</span>
+                    </div>
+
+                    <div class="hero-preview-item">
+                      <div class="hero-preview-item-left">
+                        <span class="hero-time-pill">4:00 PM</span>
+                        <span class="hero-preview-item-title">Kayaking Sunset at Jabi Lake</span>
+                      </div>
+                      <span class="badge badge-green">Leisure</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Floating Budget Summary Chip -->
+              <div class="floating-budget-chip">
+                <div class="budget-chip-icon"><i class="ph ph-wallet icon-md" aria-hidden="true"></i></div>
+                <div class="budget-chip-text">
+                  <span>Estimated Total Budget</span>
+                  <strong>₦310,000 (~$365 USD)</strong>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- --- Quick Trip Planning Panel (Live interactive form) --- -->
+    <section class="section" style="padding-top: 0; padding-bottom: 60px;">
+      <div class="container">
+        <div class="quick-planner-card">
+          <form id="quickTripForm" class="planner-form-grid">
+            
+            <div class="form-group">
+              <label class="form-label" for="quickFormDestination">Destination</label>
+              <div class="form-input-wrapper">
+                <i class="ph ph-map-pin form-input-icon" aria-hidden="true"></i>
+                <input type="text" id="quickFormDestination" class="form-control" value="Abuja, Nigeria" placeholder="e.g. Abuja, Lagos, Nairobi" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="quickFormDates">Travel Dates</label>
+              <div class="form-input-wrapper">
+                <i class="ph ph-calendar-blank form-input-icon" aria-hidden="true"></i>
+                <input type="text" id="quickFormDates" class="form-control" value="Nov 12 – Nov 15, 2026" placeholder="Select dates" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="quickFormBudget">Est. Budget</label>
+              <div class="form-input-wrapper">
+                <i class="ph ph-wallet form-input-icon" aria-hidden="true"></i>
+                <select id="quickFormBudget" class="form-control">
+                  <option value="moderate" selected>$300 – $600 (₦350k)</option>
+                  <option value="budget">$150 – $300 (₦200k)</option>
+                  <option value="luxury">$600+ (₦700k+)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="quickFormStyle">Travel Style</label>
+              <div class="form-input-wrapper">
+                <i class="ph ph-sliders-horizontal form-input-icon" aria-hidden="true"></i>
+                <select id="quickFormStyle" class="form-control">
+                  <option value="culture" selected>Culture & Nature</option>
+                  <option value="vacation">Relaxed Vacation</option>
+                  <option value="adventure">Active Adventure</option>
+                  <option value="foodie">Culinary Explorer</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="height: 50px;">
+              <span>Generate My Trip</span>
+              <i class="ph ph-sparkle icon-sm" aria-hidden="true"></i>
+            </button>
+
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- --- How It Works Section --- -->
+    <section class="section" id="how-it-works">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Effortless Flow</span>
+          <h2>How Wayfind Works</h2>
+          <p>Three intuitive steps to transform fragmented travel research into an organized, stress-free daily itinerary.</p>
+        </div>
+
+        <div class="steps-grid">
+          
+          <div class="step-card">
+            <span class="step-number">01</span>
+            <h3>Tell us where you want to go</h3>
+            <p>Share your target destination, travel dates, preferred budget, and personal travel vibe—from serene nature walks to cultural gallery hopping.</p>
+            <div class="step-visual-box">
+              <i class="ph ph-sliders-horizontal icon-sm" aria-hidden="true"></i>
+              <span>Custom Preferences: Solo, Couple, or Friends</span>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <span class="step-number">02</span>
+            <h3>Let AI organize your schedule</h3>
+            <p>Our travel engine cross-references opening hours, scenic transit times, weather conditions, and verified local favorites into balanced daily blocks.</p>
+            <div class="step-visual-box">
+              <i class="ph ph-lightning icon-sm" aria-hidden="true"></i>
+              <span>Algorithmic Routing: No backtracking</span>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <span class="step-number">03</span>
+            <h3>Customize, save, and enjoy</h3>
+            <p>Stay entirely in control. Easily swap activities, tweak time slots, share with travel companions via QR code or WhatsApp, and take your plan offline.</p>
+            <div class="step-visual-box">
+              <i class="ph ph-download-simple icon-sm" aria-hidden="true"></i>
+              <span>One-Tap Offline Sync & PDF Export</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- --- Core Features Section --- -->
+    <section class="section" id="features" style="background: var(--color-bg-secondary);">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Engineered for Travelers</span>
+          <h2>Intelligent Features for Mindful Journeys</h2>
+          <p>Every tool is designed to save hours of manual research without compromising human spontaneity.</p>
+        </div>
+
+        <div class="features-grid">
+          
+          <div class="feature-card">
+            <div class="feature-icon-wrapper"><i class="ph ph-compass icon-xl" aria-hidden="true"></i></div>
+            <h3>AI-Generated Itineraries</h3>
+            <p>Receive fully sequenced day-by-day schedules with realistic travel durations, morning-to-night pacing, and buffer times.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrapper"><i class="ph ph-wallet icon-xl" aria-hidden="true"></i></div>
+            <h3>Smart Budget Estimation</h3>
+            <p>Transparent cost breakdowns categorized across lodging, transport, dining, and admission fees with real-time currency conversions.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrapper"><i class="ph ph-arrows-clockwise icon-xl" aria-hidden="true"></i></div>
+            <h3>Fluid Customization</h3>
+            <p>Drag, drop, add, or swap activities instantly with smart AI alternatives that fit your current day schedule without disrupting flow.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrapper"><i class="ph ph-chat-circle-dots icon-xl" aria-hidden="true"></i></div>
+            <h3>AI Travel Companion</h3>
+            <p>An on-demand conversational assistant to ask natural questions, change evening bookings, or discover the top local jollof spots.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrapper"><i class="ph ph-share-network icon-xl" aria-hidden="true"></i></div>
+            <h3>QR & WhatsApp Sharing</h3>
+            <p>Share complete interactive trip links with companions nearby via custom QR codes or directly via WhatsApp and exportable PDF files.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrapper"><i class="ph ph-sun-dim icon-xl" aria-hidden="true"></i></div>
+            <h3>Light & Dark Visual Harmony</h3>
+            <p>Thoughtfully engineered visual themes tailored to reduce glare during late-night planning sessions and outdoor daytime travel.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- --- Product Preview Section (Desktop Dashboard Composition) --- -->
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Interactive Preview</span>
+          <h2>The Wayfind Travel Command Center</h2>
+          <p>Designed with editorial restraint: clear visual hierarchy, accessible tap targets, and distraction-free layouts.</p>
+        </div>
+
+        <div class="product-preview-container">
+          <div class="preview-browser-frame">
+            
+            <div class="preview-browser-bar">
+              <div class="browser-dots">
+                <span class="browser-dot" style="background: #E57373;"></span>
+                <span class="browser-dot" style="background: #FDD835;"></span>
+                <span class="browser-dot" style="background: #8DB48E;"></span>
+              </div>
+              <div class="browser-url-pill">wayfind.travel/app/itinerary/abuja-explorer</div>
+              <div style="font-size: 0.8rem; color: var(--color-text-muted); display: inline-flex; align-items: center; gap: 4px;"><i class="ph-fill ph-circle text-soft-green icon-xs" aria-hidden="true"></i> Sync Active</div>
+            </div>
+
+            <div class="preview-layout-grid">
+              
+              <!-- Sidebar Preview -->
+              <div class="preview-sidebar">
+                <div style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: var(--color-primary); margin-bottom: 12px;">Active Itinerary</div>
+                <h4 style="font-size: 1.15rem; margin-bottom: 6px;">Abuja Capital Retreat</h4>
+                <p style="font-size: 0.82rem; margin-bottom: 16px;">Nov 12 – 15, 2026 • 4 Days</p>
+
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <div style="padding: 8px 12px; background: var(--color-surface); border-radius: var(--radius-sm); border: 1px solid var(--color-border); font-size: 0.82rem; font-weight: 600;">Day 1: Arrival & Jabi Lake</div>
+                  <div style="padding: 8px 12px; background: transparent; font-size: 0.82rem; color: var(--color-text-muted);">Day 2: Thought Pyramid Art</div>
+                  <div style="padding: 8px 12px; background: transparent; font-size: 0.82rem; color: var(--color-text-muted);">Day 3: Gurara Falls Nature</div>
+                  <div style="padding: 8px 12px; background: transparent; font-size: 0.82rem; color: var(--color-text-muted);">Day 4: Usman Dam & Return</div>
+                </div>
+              </div>
+
+              <!-- Main Content Timeline Preview -->
+              <div class="preview-main-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                  <h4 style="font-size: 1.1rem;">Day 1 Timeline</h4>
+                  <span class="badge badge-ai"><i class="ph ph-sparkle icon-sm" aria-hidden="true"></i> AI Pacing Optimized</span>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                  <div style="padding: 12px; background: var(--color-bg); border-radius: var(--radius-md); border: 1px solid var(--color-border); display: flex; justify-content: space-between; font-size: 0.88rem;">
+                    <span><i class="ph ph-clock icon-sm" aria-hidden="true" style="margin-right: 6px;"></i>10:30 AM — Nnamdi Azikiwe Airport Arrival</span>
+                    <span style="font-weight: 600;">₦18,000</span>
+                  </div>
+                  <div style="padding: 12px; background: var(--color-bg); border-radius: var(--radius-md); border: 1px solid var(--color-border); display: flex; justify-content: space-between; font-size: 0.88rem;">
+                    <span><i class="ph ph-clock icon-sm" aria-hidden="true" style="margin-right: 6px;"></i>1:45 PM — Lunch at Nkoyo (Jollof & Grills)</span>
+                    <span style="font-weight: 600;">₦16,000</span>
+                  </div>
+                  <div style="padding: 12px; background: var(--color-bg); border-radius: var(--radius-md); border: 1px solid var(--color-border); display: flex; justify-content: space-between; font-size: 0.88rem;">
+                    <span><i class="ph ph-clock icon-sm" aria-hidden="true" style="margin-right: 6px;"></i>4:00 PM — Jabi Lake Boat Club Kayaking</span>
+                    <span style="font-weight: 600;">₦12,000</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Panel Preview -->
+              <div class="preview-right-panel">
+                <div style="font-size: 0.85rem; font-weight: 600; color: var(--color-text-headline); margin-bottom: 12px;">Budget Allocation</div>
+                <div style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--color-primary-dark); margin-bottom: 16px;">₦310,000</div>
+                
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem;">
+                  <div>Lodging: 46% (₦144,000)</div>
+                  <div style="height: 6px; background: var(--color-bg-secondary); border-radius: 3px; overflow: hidden;"><div style="width: 46%; height: 100%; background: #3B4A20;"></div></div>
+                  <div>Dining: 24% (₦74,000)</div>
+                  <div style="height: 6px; background: var(--color-bg-secondary); border-radius: 3px; overflow: hidden;"><div style="width: 24%; height: 100%; background: #5A7E64;"></div></div>
+                  <div>Transit: 16% (₦51,000)</div>
+                  <div style="height: 6px; background: var(--color-bg-secondary); border-radius: 3px; overflow: hidden;"><div style="width: 16%; height: 100%; background: #8DB48E;"></div></div>
+                </div>
+
+                <div style="margin-top: 24px;">
+                  <a href="#itinerary" class="btn btn-primary btn-sm btn-full" data-route="itinerary">Explore Live Plan</a>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- --- Destination Inspiration Section --- -->
+    <section class="section" id="destinations" style="background: var(--color-bg-secondary);">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Curated Escapes</span>
+          <h2>Explore Destinations</h2>
+          <p>Discover hand-curated itineraries across Nigeria and beyond, verified for authentic cultural resonance and scenic tranquility.</p>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div class="destinations-filter-row">
+          <button class="filter-pill active" data-filter="all" onclick="renderDestinations('all')">All Destinations</button>
+          <button class="filter-pill" data-filter="abuja" onclick="renderDestinations('abuja')">Abuja, Nigeria</button>
+          <button class="filter-pill" data-filter="lagos" onclick="renderDestinations('lagos')">Lagos, Nigeria</button>
+          <button class="filter-pill" data-filter="obudu" onclick="renderDestinations('obudu')">Cross River / Obudu</button>
+          <button class="filter-pill" data-filter="cape-town" onclick="renderDestinations('cape-town')">Cape Town</button>
+        </div>
+
+        <!-- Dynamic Destinations Grid -->
+        <div class="destinations-grid" id="destinationsGrid">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </section>
+
+    <!-- --- AI Personalization Transformation Section --- -->
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Behind the Algorithm</span>
+          <h2>From Inputs to Effortless Organization</h2>
+          <p>See how your constraints are synthesized into balanced, human-friendly daily schedules.</p>
+        </div>
+
+        <div class="ai-transformation-box">
+          <div class="transformation-grid">
+            
+            <!-- Left: User Raw Inputs -->
+            <div class="transformation-card">
+              <h4>1. Your Travel Inputs</h4>
+              <div class="trans-input-item">
+                <i class="ph ph-map-pin icon-sm" aria-hidden="true"></i>
+                <span>Destination: <strong>Abuja, Nigeria</strong></span>
+              </div>
+              <div class="trans-input-item">
+                <i class="ph ph-calendar-blank icon-sm" aria-hidden="true"></i>
+                <span>Duration: <strong>4 Days (Thursday – Sunday)</strong></span>
+              </div>
+              <div class="trans-input-item">
+                <i class="ph ph-wallet icon-sm" aria-hidden="true"></i>
+                <span>Budget: <strong>Moderate (₦350,000 Target)</strong></span>
+              </div>
+              <div class="trans-input-item">
+                <i class="ph ph-compass icon-sm" aria-hidden="true"></i>
+                <span>Interests: <strong>Art galleries, Waterside sunset, Waterfalls</strong></span>
+              </div>
+              <div class="trans-input-item">
+                <i class="ph ph-users icon-sm" aria-hidden="true"></i>
+                <span>Companions: <strong>Couple / Partner</strong></span>
+              </div>
+            </div>
+
+            <!-- Middle: Synthesis Arrow -->
+            <div class="transformation-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              <span>AI Routing & Contextual Logic</span>
+            </div>
+
+            <!-- Right: Organized Itinerary Output -->
+            <div class="transformation-card" style="background: var(--color-surface); border: 1px solid var(--color-primary-light);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0;">2. Structured Daily Output</h4>
+                <span class="badge badge-green">Zero Friction</span>
+              </div>
+              <div class="trans-input-item" style="background: var(--color-bg-secondary);">
+                <i class="ph ph-sun icon-sm" aria-hidden="true"></i>
+                <span><strong>Morning:</strong> Arrive ABV <i class="ph ph-arrow-right icon-xs" aria-hidden="true"></i> Checked-in Fraser Suites</span>
+              </div>
+              <div class="trans-input-item" style="background: var(--color-bg-secondary);">
+                <i class="ph ph-fork-knife icon-sm" aria-hidden="true"></i>
+                <span><strong>Afternoon:</strong> Lunch at Nkoyo <i class="ph ph-arrow-right icon-xs" aria-hidden="true"></i> Thought Pyramid</span>
+              </div>
+              <div class="trans-input-item" style="background: var(--color-bg-secondary);">
+                <i class="ph ph-waves icon-sm" aria-hidden="true"></i>
+                <span><strong>Golden Hour:</strong> Jabi Lake Kayak (Calculated Sunset 5:45 PM)</span>
+              </div>
+              <div class="trans-input-item" style="background: var(--color-bg-secondary);">
+                <i class="ph ph-chart-pie icon-sm" aria-hidden="true"></i>
+                <span><strong>Cost Intelligence:</strong> Day Total: ₦68,000 (Within Daily Limit)</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- --- Final CTA Section --- -->
+    <section class="section final-cta-section">
+      <div class="container">
+        <div class="final-cta-box">
+          <h2>Your Next Adventure Starts with a Plan.</h2>
+          <p>Spend less time comparing endless open tabs and more time discovering unforgettable experiences across Nigeria and the world.</p>
+          <a href="#planner" class="btn btn-primary btn-lg" style="background: #FFFFFF; color: #3B4A20;" data-route="planner">
+            <span>Start Planning Your Trip Now</span>
+            <i class="ph ph-arrow-right icon-sm" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- --- Site Footer --- -->
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-top">
+          
+          <div class="footer-brand">
+            <div class="brand-logo" style="margin-bottom: 12px;">
+              <div class="brand-icon-wrapper">
+                <img src="Logo for Light Mode.png" alt="Wayfind Compass" class="brand-icon-img" />
+              </div>
+              <span class="brand-name">WAYFIND</span>
+            </div>
+            <p>An intelligent, minimalist travel planning tool helping travelers create optimized itineraries, track budgets, and explore with confidence.</p>
+          </div>
+
+          <div class="footer-col">
+            <h5>Product</h5>
+            <ul>
+              <li><a href="#planner" data-route="planner">Trip Planner</a></li>
+              <li><a href="#itinerary" data-route="itinerary">Abuja Showcase Plan</a></li>
+              <li><a href="#how-it-works" data-route="how-it-works">How It Works</a></li>
+              <li><a href="#features" data-route="features">Features</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h5>Destinations</h5>
+            <ul>
+              <li><a href="#destinations" onclick="renderDestinations('abuja')">Abuja, Nigeria</a></li>
+              <li><a href="#destinations" onclick="renderDestinations('lagos')">Lagos, Nigeria</a></li>
+              <li><a href="#destinations" onclick="renderDestinations('obudu')">Obudu Mountain</a></li>
+              <li><a href="#destinations" onclick="renderDestinations('cape-town')">Cape Town</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h5>Company & Legal</h5>
+            <ul>
+              <li><a href="#profile" data-route="profile">Profile & Settings</a></li>
+              <li><a href="javascript:void(0)" onclick="showToast('Terms of Service demonstration placeholder.')">Terms of Service</a></li>
+              <li><a href="javascript:void(0)" onclick="showToast('Privacy Policy demonstration placeholder.')">Privacy Policy</a></li>
+              <li><a href="javascript:void(0)" onclick="showToast('Contact: hello@wayfind.travel')">Contact Support</a></li>
+            </ul>
+          </div>
+
+        </div>
+
+        <div class="footer-bottom">
+          <span>Wayfind©2026. All Rights Reserved. Designed by Nanle Joseph Lengya.</span>
+          <span>Minimalist & Elegant Travel Design System</span>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- ==========================================================================
+       VIEW 2: IN-APP DASHBOARD (data-view="dashboard")
+       ========================================================================== -->
+  <div class="view-container" data-view="dashboard">
+    <div class="container section">
+      
+      <div class="app-header-bar">
+        <div class="app-title-group">
+          <h2>Welcome back, Anabel</h2>
+          <p>Here's your current travel hub and active itinerary status.</p>
+        </div>
+        <div class="app-actions-group">
+          <a href="#planner" class="btn btn-primary btn-sm" data-route="planner">
+            <i class="ph ph-sparkle icon-sm" aria-hidden="true"></i>
+            <span>Plan A New Trip</span>
+          </a>
+          <button class="btn btn-secondary btn-sm" onclick="openShareModal()">
+            <i class="ph ph-share-network icon-sm" aria-hidden="true"></i> Share Plan
+          </button>
+        </div>
+      </div>
+
+      <!-- App Sub-navigation Tabs -->
+      <div class="app-tabs-nav">
+        <button class="app-tab-btn active" onclick="window.location.hash = 'dashboard'">
+          <i class="ph ph-chart-bar icon-sm" aria-hidden="true"></i> Dashboard
+        </button>
+        <button class="app-tab-btn" onclick="window.location.hash = 'itinerary'">
+          <i class="ph ph-map-trifold icon-sm" aria-hidden="true"></i> Active Itinerary
+        </button>
+        <button class="app-tab-btn" onclick="window.location.hash = 'saved-trips'">
+          <i class="ph ph-bookmark-simple icon-sm" aria-hidden="true"></i> My Trips
+        </button>
+        <button class="app-tab-btn" onclick="window.location.hash = 'profile'">
+          <i class="ph ph-gear-six icon-sm" aria-hidden="true"></i> Profile & Settings
+        </button>
+      </div>
+
+      <div class="dashboard-grid">
+        
+        <!-- Main Column: Active Trip Card & Upcoming -->
+        <div>
+          <div class="active-trip-banner">
+            <div class="active-trip-cover">
+              <img id="dashActiveCover" src="https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?auto=format&fit=crop&w=1200&q=80" alt="Active Trip Cover" />
+              <div class="active-trip-cover-overlay">
+                <div>
+                  <span class="badge badge-green" style="margin-bottom: 8px;">Active Itinerary</span>
+                  <h3 id="dashActiveTitle" style="color: #FFFFFF; font-size: 1.6rem;">Abuja: Capital Art & Nature Retreat</h3>
+                  <p id="dashActiveDates" style="color: rgba(255, 255, 255, 0.85); font-size: 0.9rem;">Abuja, Nigeria • Nov 12 – 15, 2026</p>
+                </div>
+                <a href="#itinerary" class="btn btn-primary btn-sm" data-route="itinerary">
+                  <span>View Details</span>
+                  <i class="ph ph-arrow-right icon-sm" aria-hidden="true"></i>
+                </a>
+              </div>
+            </div>
+
+            <div class="active-trip-details">
+              <div class="stat-pills-row">
+                <div class="stat-pill">
+                  <span><i class="ph ph-clock icon-sm" aria-hidden="true"></i> Duration:</span>
+                  <strong>4 Days / 3 Nights</strong>
+                </div>
+                <div class="stat-pill">
+                  <span><i class="ph ph-users icon-sm" aria-hidden="true"></i> Travelers:</span>
+                  <strong>2 Adults</strong>
+                </div>
+                <div class="stat-pill">
+                  <span><i class="ph ph-wallet icon-sm" aria-hidden="true"></i> Budget:</span>
+                  <strong>₦310,000 (~$365)</strong>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="openQRCodeModal()">
+                <i class="ph ph-qr-code icon-sm" aria-hidden="true"></i> Show QR Code
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Discovery Widget -->
+          <div class="card-solid" style="padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h4>Recommended Experiences Near Abuja</h4>
+              <a href="#destinations" style="font-size: 0.85rem; font-weight: 600; color: var(--color-primary);" data-route="destinations">View All</a>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+              <div style="background: var(--color-bg-secondary); padding: 14px; border-radius: var(--radius-md);">
+                <strong>Jabi Boat Club</strong>
+                <p style="font-size: 0.8rem; margin: 4px 0;">Scenic paddle-boarding & lakeside dining.</p>
+                <span class="badge badge-green" style="font-size: 0.75rem;">15 mins away</span>
+              </div>
+              <div style="background: var(--color-bg-secondary); padding: 14px; border-radius: var(--radius-md);">
+                <strong>Thought Pyramid Art</strong>
+                <p style="font-size: 0.8rem; margin: 4px 0;">Premier contemporary African art exhibitions.</p>
+                <span class="badge badge-green" style="font-size: 0.75rem;">Wuse 2</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Planner Shortcuts & AI Companion Prompt -->
+        <div>
+          <div class="card-solid" style="padding: 24px; margin-bottom: 24px;">
+            <h4 style="margin-bottom: 12px;">AI Assistant Quick Actions</h4>
+            <p style="font-size: 0.88rem; margin-bottom: 16px;">Talk to your travel assistant anytime to rebalance schedules or discover dining.</p>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <button class="btn btn-secondary btn-sm" style="justify-content: flex-start;" onclick="store.toggleChatbot()">
+                <i class="ph ph-chat-circle-dots icon-sm" aria-hidden="true"></i> "Where is the best jollof in Abuja?"
+              </button>
+              <button class="btn btn-secondary btn-sm" style="justify-content: flex-start;" onclick="store.toggleChatbot()">
+                <i class="ph ph-clock icon-sm" aria-hidden="true"></i> "Swap Gurara Falls time"
+              </button>
+              <button class="btn btn-secondary btn-sm" style="justify-content: flex-start;" onclick="store.toggleChatbot()">
+                <i class="ph ph-cloud-sun icon-sm" aria-hidden="true"></i> "Check weather forecast"
+              </button>
+            </div>
+          </div>
+
+          <div class="card-solid" style="padding: 24px;">
+            <h4 style="margin-bottom: 12px;">Travel Profile Snapshot</h4>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+              <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--color-primary-dark); color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700;">AJ</div>
+              <div>
+                <strong>Anabel Jones</strong>
+                <span style="display: block; font-size: 0.82rem; color: var(--color-text-muted);">Freelance Creator • Lagos</span>
+              </div>
+            </div>
+            <a href="#profile" class="btn btn-ghost btn-sm btn-full" data-route="profile">
+              <span>Manage Account Settings</span>
+              <i class="ph ph-arrow-right icon-sm" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       VIEW 3: TRIP PLANNER FORM (data-view="planner")
+       ========================================================================== -->
+  <div class="view-container" data-view="planner">
+    <div class="container section">
+      
+      <div class="app-header-bar">
+        <div class="app-title-group">
+          <h2>Plan Your Next Trip</h2>
+          <p>Tell us your parameters and let our intelligent engine craft your tailored schedule.</p>
+        </div>
+        <div class="app-actions-group">
+          <a href="#dashboard" class="btn btn-ghost btn-sm" data-route="dashboard">Cancel</a>
+        </div>
+      </div>
+
+      <div class="planner-wizard-card">
+        <form id="fullPlannerForm">
+          
+          <!-- 1. Destination -->
+          <div class="wizard-section">
+            <h4 class="wizard-section-title"><i class="ph ph-map-pin icon-sm" aria-hidden="true"></i> Destination</h4>
+            <div class="form-input-wrapper">
+              <i class="ph ph-map-pin form-input-icon" aria-hidden="true"></i>
+              <input type="text" id="wizardDestination" class="form-control" value="Abuja, Nigeria" placeholder="Enter city or country" required />
+            </div>
+            <span style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 6px; display: block;">Popular: Abuja, Lagos, Obudu Plateau, Nairobi, Cape Town</span>
+          </div>
+
+          <!-- 2. Dates -->
+          <div class="wizard-section">
+            <h4 class="wizard-section-title"><i class="ph ph-calendar-blank icon-sm" aria-hidden="true"></i> Travel Dates</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-input-wrapper">
+                <i class="ph ph-airplane-takeoff form-input-icon" aria-hidden="true"></i>
+                <input type="text" class="form-control" value="11/12/2026" placeholder="Start Date (MM/DD/YYYY)" required />
+              </div>
+              <div class="form-input-wrapper">
+                <i class="ph ph-airplane-landing form-input-icon" aria-hidden="true"></i>
+                <input type="text" class="form-control" value="11/15/2026" placeholder="End Date (MM/DD/YYYY)" required />
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Budget Range Slider -->
+          <div class="wizard-section">
+            <h4 class="wizard-section-title"><i class="ph ph-wallet icon-sm" aria-hidden="true"></i> Target Budget (USD / NGN Equivalent)</h4>
+            <div class="budget-slider-wrapper">
+              <div class="slider-val-display">
+                <span>Total Trip Budget Allocation</span>
+                <span class="slider-val-box" id="wizardBudgetVal">$365</span>
+              </div>
+              <input type="range" id="wizardBudgetSlider" class="range-slider-input" min="100" max="1500" step="25" value="365" />
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--color-text-muted); margin-top: 8px;">
+                <span>$100 (Backpacker)</span>
+                <span>$500 (Comfortable)</span>
+                <span>$1,500+ (Luxury)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Travel Companion -->
+          <div class="wizard-section">
+            <h4 class="wizard-section-title"><i class="ph ph-users icon-sm" aria-hidden="true"></i> Who are you traveling with?</h4>
+            <div class="choice-chips-grid single-select">
+              <span class="choice-chip">Solo Explorer</span>
+              <span class="choice-chip active">With Partner / Couple</span>
+              <span class="choice-chip">Family with Kids</span>
+              <span class="choice-chip">Group of Friends</span>
+            </div>
+          </div>
+
+          <!-- 5. Interests & Travel Styles -->
+          <div class="wizard-section">
+            <h4 class="wizard-section-title"><i class="ph ph-compass icon-sm" aria-hidden="true"></i> Travel Interests & Moods</h4>
+            <div class="choice-chips-grid">
+              <span class="choice-chip active">Art & Contemporary Galleries</span>
+              <span class="choice-chip active">Scenic Nature & Waterfalls</span>
+              <span class="choice-chip active">Local Culinary Delicacies</span>
+              <span class="choice-chip">Aesthetic Sunset Cocktails</span>
+              <span class="choice-chip">Historical Architecture</span>
+              <span class="choice-chip">Lakeside Water Sports</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 40px; display: flex; justify-content: flex-end; gap: 14px;">
+            <a href="#dashboard" class="btn btn-secondary" data-route="dashboard">Back</a>
+            <button type="submit" class="btn btn-primary btn-lg">
+              <span>Generate Personalized Itinerary</span>
+              <i class="ph ph-sparkle icon-sm" aria-hidden="true"></i>
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       VIEW 4: AI GENERATION LOADING STATE (data-view="generating")
+       ========================================================================== -->
+  <div class="view-container" data-view="generating">
+    <div class="container section">
+      
+      <div class="ai-generation-overlay">
+        
+        <div class="ai-pulse-compass">
+          <img src="Logo for Light Mode.png" alt="Generating Compass" class="brand-icon-img" />
+        </div>
+
+        <h2 style="font-size: 2rem; margin-bottom: 8px;">Synthesizing Your Abuja Itinerary</h2>
+        <p style="max-width: 480px; margin-bottom: 24px;">Our AI engine is checking gallery schedules, sunset times at Jabi Lake, and calculating transport routes...</p>
+
+        <div class="generation-step-tracker">
+          <div class="gen-step-item active" id="genStep1">
+            <div class="gen-step-icon">1</div>
+            <span>Analyzing traveler profile and preferences</span>
+          </div>
+          <div class="gen-step-item" id="genStep2">
+            <div class="gen-step-icon">2</div>
+            <span>Optimizing scenic routes across Abuja & Gurara Falls</span>
+          </div>
+          <div class="gen-step-item" id="genStep3">
+            <div class="gen-step-icon">3</div>
+            <span>Allocating lodging, dining, and admission costs</span>
+          </div>
+          <div class="gen-step-item" id="genStep4">
+            <div class="gen-step-icon">4</div>
+            <span>Finalizing custom 4-day travel companion file</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       VIEW 5: GENERATED ITINERARY VIEW (data-view="itinerary")
+       ========================================================================== -->
+  <div class="view-container" data-view="itinerary">
+    <div class="container section">
+      
+      <!-- Top Action Bar -->
+      <div class="app-header-bar">
+        <div class="app-title-group">
+          <h2>Abuja: Capital Art & Nature Retreat</h2>
+          <p>4 Days / 3 Nights • Nov 12 – 15, 2026 • 2 Adults • Curated Plan</p>
+        </div>
+        <div class="app-actions-group">
+          <button class="btn btn-secondary btn-sm" onclick="openAddActivityModal()">
+            <i class="ph ph-plus icon-sm" aria-hidden="true"></i> Add Activity
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="openShareModal()">
+            <i class="ph ph-share-network icon-sm" aria-hidden="true"></i> Share
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="openSaveSuccessModal()">
+            <i class="ph ph-bookmark-simple icon-sm" aria-hidden="true"></i> Save Trip
+          </button>
+        </div>
+      </div>
+
+      <!-- Customization Notice Banner -->
+      <div class="customize-controls-banner">
+        <div>
+          <strong><i class="ph ph-sparkle icon-sm" aria-hidden="true"></i> Live Itinerary Editor:</strong>
+          <span style="font-size: 0.88rem; color: var(--color-text-muted); margin-left: 6px;">
+            Click <strong>"Swap"</strong> to view AI-recommended alternatives or the trash icon to remove stops. Total budget updates automatically.
+          </span>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="openQRCodeModal()">
+          <i class="ph ph-qr-code icon-sm" aria-hidden="true"></i> Scan QR Code
+        </button>
+      </div>
+
+      <!-- Itinerary Layout Grid -->
+      <div class="itinerary-layout">
+        
+        <!-- Left Column: Day Tab Navigation & Activities Feed -->
+        <div>
+          <div class="days-tab-nav" id="itineraryDaysNav">
+            <!-- Rendered by JS -->
+          </div>
+
+          <h3 id="itineraryActiveDayTitle" style="margin-bottom: 20px; font-size: 1.35rem;">Day 1: Arrival & Lakeside Unwind</h3>
+
+          <!-- Vertical Dotted Timeline Feed -->
+          <div class="timeline-feed" id="itineraryTimelineFeed">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Right Column: Budget Breakdown Sidebar -->
+        <div>
+          <div class="budget-summary-panel" id="itineraryBudgetBreakdown">
+            <!-- Rendered by JS -->
+          </div>
+
+          <div class="card-solid" style="padding: 24px; margin-top: 24px;">
+            <h4 style="margin-bottom: 8px;">Need quick changes?</h4>
+            <p style="font-size: 0.88rem; margin-bottom: 14px;">Ask your AI companion to swap times, find halal or vegan food, or suggest quiet spots.</p>
+            <button class="btn btn-primary btn-sm btn-full" onclick="store.toggleChatbot()">
+              <i class="ph ph-chat-circle-dots icon-sm" aria-hidden="true"></i> Open AI Companion
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       VIEW 6: SAVED TRIPS COLLECTION (data-view="saved-trips")
+       ========================================================================== -->
+  <div class="view-container" data-view="saved-trips">
+    <div class="container section">
+      
+      <div class="app-header-bar">
+        <div class="app-title-group">
+          <h2>My Saved Trips</h2>
+          <p>Access your past journeys, upcoming adventures, and downloaded offline itineraries.</p>
+        </div>
+        <div class="app-actions-group">
+          <a href="#planner" class="btn btn-primary btn-sm" data-route="planner">
+            <i class="ph ph-plus icon-sm" aria-hidden="true"></i> Create New Trip
+          </a>
+        </div>
+      </div>
+
+      <div class="saved-trips-grid" id="savedTripsGrid">
+        <!-- Rendered dynamically by JS -->
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       VIEW 7: PROFILE & SETTINGS (data-view="profile")
+       ========================================================================== -->
+  <div class="view-container" data-view="profile">
+    <div class="container section">
+      
+      <div class="app-header-bar">
+        <div class="app-title-group">
+          <h2>Profile & App Preferences</h2>
+          <p>Manage your account, visual themes, accessibility settings, and data.</p>
+        </div>
+      </div>
+
+      <div class="settings-section-card">
+        <h4 style="margin-bottom: 20px;">Traveler Profile</h4>
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 58px; height: 58px; border-radius: 50%; background: var(--color-primary-dark); color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 700;">AJ</div>
+            <div>
+              <h3 style="font-size: 1.3rem; margin-bottom: 2px;">Anabel Jones</h3>
+              <p style="font-size: 0.88rem; color: var(--color-text-muted);">anabel.jones@travel.ng • Lagos, Nigeria</p>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="showToast('Profile editing simulation.', 'ph-pencil-simple')">
+            <i class="ph ph-pencil-simple icon-sm" aria-hidden="true"></i> Edit Profile
+          </button>
+        </div>
+      </div>
+
+      <!-- App Preferences (Matches Screen 15) -->
+      <div class="settings-section-card">
+        <h4 style="margin-bottom: 16px;">App Preferences</h4>
+        
+        <!-- Dark Mode Switch -->
+        <div class="settings-row">
+          <div>
+            <strong>Dark Theme Mode</strong>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">Switch between daylight soft sage and night charcoal forest theme.</p>
+          </div>
+          <label class="switch-toggle">
+            <input type="checkbox" id="settingsThemeSwitch" onchange="store.toggleTheme()" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Push Notifications -->
+        <div class="settings-row">
+          <div>
+            <strong>Trip Alerts & Reminders</strong>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">Receive flight check-in alerts and real-time weather notifications.</p>
+          </div>
+          <label class="switch-toggle">
+            <input type="checkbox" checked onchange="showToast('Notification preference saved.', 'ph-bell')" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- Currency -->
+        <div class="settings-row">
+          <div>
+            <strong>Display Currency</strong>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">Choose your default financial reporting currency.</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="store.toggleCurrency()">Toggle NGN (₦) / USD ($)</button>
+        </div>
+
+        <!-- High-contrast / Accessibility -->
+        <div class="settings-row">
+          <div>
+            <strong>High-Contrast & Large Touch Targets</strong>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">Enhanced readability mode meeting WCAG AAA specifications.</p>
+          </div>
+          <label class="switch-toggle">
+            <input type="checkbox" checked onchange="showToast('Accessibility profile enabled.', 'ph-eye')" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+      </div>
+
+      <!-- Account Actions -->
+      <div class="settings-section-card">
+        <h4 style="margin-bottom: 16px;">Account Security</h4>
+        <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+          <button class="btn btn-secondary btn-sm" onclick="showToast('Password reset link sent to anabel.jones@travel.ng', 'ph-lock-key')">
+            <i class="ph ph-lock-key icon-sm" aria-hidden="true"></i> Change Password
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="showToast('Session logged out.', 'ph-sign-out')">
+            <i class="ph ph-sign-out icon-sm" aria-hidden="true"></i> Log Out
+          </button>
+          <button class="btn btn-ghost btn-sm" style="color: var(--color-error);" onclick="showToast('Account deletion protection enabled.', 'ph-trash')">
+            <i class="ph ph-trash icon-sm" aria-hidden="true"></i> Delete Account
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       AI TRAVEL COMPANION CHATBOT (FLOATING WIDGET)
+       ========================================================================== -->
+  <aside class="ai-chatbot-widget" id="aiChatbotWidget">
+    
+    <!-- Floating Trigger Pill -->
+    <button class="chatbot-toggle-pill" id="chatbotTogglePill" aria-label="Open AI Travel Companion">
+      <i class="ph ph-sparkle icon-sm" aria-hidden="true"></i>
+      <span>AI Travel Companion</span>
+    </button>
+
+    <!-- Chat Window Container -->
+    <div class="chatbot-window">
+      
+      <div class="chatbot-header">
+        <div class="chatbot-header-info">
+          <span class="chatbot-status-dot"></span>
+          <strong>Wayfind Assistant</strong>
+        </div>
+        <button class="modal-close-btn" id="closeChatbotBtn" style="position: static;" aria-label="Close Assistant">
+          <i class="ph ph-x" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <!-- Messages Stream -->
+      <div class="chatbot-messages-stream" id="chatbotMessagesStream">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Quick Action Chips -->
+      <div class="chatbot-quick-chips">
+        <button class="chat-quick-chip" data-prompt="Where is the best jollof in Abuja?">
+          <i class="ph ph-fork-knife icon-sm" aria-hidden="true"></i> Best Jollof Spot
+        </button>
+        <button class="chat-quick-chip" data-prompt="Swap Nike Art Gallery visit to Saturday">
+          <i class="ph ph-paint-brush icon-sm" aria-hidden="true"></i> Swap Art Gallery
+        </button>
+        <button class="chat-quick-chip" data-prompt="What should I know about Gurara Falls?">
+          <i class="ph ph-waves icon-sm" aria-hidden="true"></i> Gurara Falls Info
+        </button>
+        <button class="chat-quick-chip" data-prompt="Check total trip budget estimate">
+          <i class="ph ph-wallet icon-sm" aria-hidden="true"></i> Budget Breakdown
+        </button>
+      </div>
+
+      <!-- Chat Input Field -->
+      <div class="chatbot-input-bar">
+        <input type="text" id="chatInput" placeholder="Ask anything about Abuja or your plan..." />
+        <button class="btn btn-primary btn-sm btn-icon-only" id="sendChatBtn" aria-label="Send message">
+          <i class="ph-fill ph-paper-plane-right" aria-hidden="true"></i>
+        </button>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- ==========================================================================
+       MODALS: AUTHENTICATION, ADD ACTIVITY, SHARE & QR CODE
+       ========================================================================== -->
+
+  <!-- Sign In Modal -->
+  <div class="modal-backdrop" id="signInModal">
+    <div class="modal-dialog">
+      <button class="modal-close-btn" aria-label="Close modal"><i class="ph ph-x" aria-hidden="true"></i></button>
+      <h3 style="margin-bottom: 6px;">Welcome Back</h3>
+      <p style="font-size: 0.9rem; margin-bottom: 24px;">Sign in to continue planning your journeys.</p>
+
+      <form onsubmit="event.preventDefault(); closeAllModals(); showToast('Welcome back, Anabel!', 'ph-user-circle');">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" value="anabel.jones@travel.ng" required />
+        </div>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-control" value="••••••••••••" required />
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" style="margin-bottom: 16px;">Sign In</button>
+      </form>
+
+      <div style="text-align: center; font-size: 0.88rem; color: var(--color-text-muted);">
+        Don't have an account? <a href="#" id="toSignUpLink" style="color: var(--color-primary-dark); font-weight: 600;">Sign Up</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sign Up Modal -->
+  <div class="modal-backdrop" id="signUpModal">
+    <div class="modal-dialog">
+      <button class="modal-close-btn" aria-label="Close modal"><i class="ph ph-x" aria-hidden="true"></i></button>
+      <h3 style="margin-bottom: 6px;">Create An Account</h3>
+      <p style="font-size: 0.9rem; margin-bottom: 24px;">Start planning your next thoughtful adventure.</p>
+
+      <form onsubmit="event.preventDefault(); closeAllModals(); showToast('Account created successfully!', 'ph-check-circle');">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label">Full Name</label>
+          <input type="text" class="form-control" placeholder="e.g. Anabel Jones" required />
+        </div>
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" placeholder="your@email.com" required />
+        </div>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-control" placeholder="Create a strong password" required />
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" style="margin-bottom: 16px;">Sign Up</button>
+      </form>
+
+      <div style="text-align: center; font-size: 0.88rem; color: var(--color-text-muted);">
+        Already have an account? <a href="#" id="toSignInLink" style="color: var(--color-primary-dark); font-weight: 600;">Sign In</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Activity Modal -->
+  <div class="modal-backdrop" id="addActivityModal">
+    <div class="modal-dialog">
+      <button class="modal-close-btn" aria-label="Close modal"><i class="ph ph-x" aria-hidden="true"></i></button>
+      <h3 style="margin-bottom: 6px;">Add New Activity</h3>
+      <p style="font-size: 0.9rem; margin-bottom: 20px;">Schedule an additional stop into your selected day.</p>
+
+      <form id="addActivityForm">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label">Activity Name</label>
+          <input type="text" id="newActTitle" class="form-control" placeholder="e.g. Sunset drinks at Fraser Poolside" required />
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+          <div class="form-group">
+            <label class="form-label">Time</label>
+            <input type="text" id="newActTime" class="form-control" placeholder="e.g. 5:30 PM" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select id="newActCategory" class="form-control">
+              <option value="Activity">Activity</option>
+              <option value="Food">Food & Dining</option>
+              <option value="Culture">Culture</option>
+              <option value="Nature">Nature</option>
+              <option value="Transport">Transport</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label">Location in Abuja</label>
+          <input type="text" id="newActLocation" class="form-control" placeholder="e.g. Maitama / Jabi / Wuse 2" required />
+        </div>
+        <div class="form-group" style="margin-bottom: 24px;">
+          <label class="form-label">Estimated Cost (NGN ₦)</label>
+          <input type="number" id="newActCost" class="form-control" value="8000" placeholder="e.g. 8000" required />
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+          <button type="button" class="btn btn-secondary btn-full" onclick="closeAllModals()">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-full">Add To Schedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Share Itinerary Sheet Modal -->
+  <div class="modal-backdrop" id="shareSheetModal">
+    <div class="modal-dialog">
+      <button class="modal-close-btn" aria-label="Close modal"><i class="ph ph-x" aria-hidden="true"></i></button>
+      <h3 style="margin-bottom: 6px;">Share Your Trip</h3>
+      <p style="font-size: 0.9rem; margin-bottom: 20px;">Send this curated Abuja itinerary to travel companions or export as a file.</p>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+        <input type="text" readonly value="https://wayfind.travel/trips/abuja-art-nature-001" class="form-control" style="background: var(--color-bg-secondary);" />
+        <button class="btn btn-secondary" onclick="copyTripLink()">
+          <i class="ph ph-copy icon-sm" aria-hidden="true"></i> Copy
+        </button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+        <button class="btn btn-secondary" onclick="showToast('Itinerary PDF exported!', 'ph-file-pdf')">
+          <i class="ph ph-file-pdf icon-sm" aria-hidden="true"></i> Export PDF
+        </button>
+        <button class="btn btn-secondary" onclick="openQRCodeModal()">
+          <i class="ph ph-qr-code icon-sm" aria-hidden="true"></i> Show QR Code
+        </button>
+      </div>
+
+      <div style="font-size: 0.85rem; font-weight: 600; text-align: center; margin-bottom: 12px;">Direct Share</div>
+      <div class="social-share-row">
+        <button class="social-share-btn" title="Share via WhatsApp" aria-label="Share via WhatsApp" onclick="shareOnWhatsApp()">
+          <i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>
+        </button>
+        <button class="social-share-btn" title="Telegram" aria-label="Share via Telegram" onclick="showToast('Shared via Telegram', 'ph-telegram-logo')">
+          <i class="ph-fill ph-telegram-logo" aria-hidden="true"></i>
+        </button>
+        <button class="social-share-btn" title="Bluetooth Nearby" aria-label="Share via Bluetooth" onclick="showToast('Nearby Bluetooth discovery activated', 'ph-bluetooth')">
+          <i class="ph ph-bluetooth" aria-hidden="true"></i>
+        </button>
+        <button class="social-share-btn" title="Share on X" aria-label="Share on X" onclick="showToast('Opening X / Twitter share', 'ph-x-logo')">
+          <i class="ph-fill ph-x-logo" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Code Modal -->
+  <div class="modal-backdrop" id="qrCodeModal">
+    <div class="modal-dialog" style="text-align: center;">
+      <button class="modal-close-btn" aria-label="Close modal"><i class="ph ph-x" aria-hidden="true"></i></button>
+      <h3 style="margin-bottom: 6px;">Scan Trip QR Code</h3>
+      <p style="font-size: 0.9rem; margin-bottom: 16px;">To share with people nearby, let them scan this code with their phone camera.</p>
+
+      <div class="qr-card-container">
+        <canvas id="qrCanvas"></canvas>
+      </div>
+
+      <button class="btn btn-primary btn-sm" onclick="showToast('QR Code image downloaded to device.', 'ph-download-simple')">
+        <i class="ph ph-download-simple icon-sm" aria-hidden="true"></i> Download QR Code
+      </button>
+    </div>
+  </div>
+
+  <!-- Save Trip Success Modal -->
+  <div class="modal-backdrop" id="saveSuccessModal">
+    <div class="modal-dialog" style="text-align: center;">
+      <button class="modal-close-btn" aria-label="Close modal"><i class="ph ph-x" aria-hidden="true"></i></button>
+      <div class="success-icon-badge"><i class="ph-fill ph-check-circle" aria-hidden="true"></i></div>
+      <h3 style="margin-bottom: 8px;">Trip Saved Successfully</h3>
+      <p style="font-size: 0.92rem; color: var(--color-text-muted); margin-bottom: 24px;">
+        Your Abuja 4-day plan has been synchronized to your account and is available anytime under <strong>'My Trips'</strong>, even when offline.
+      </p>
+
+      <div style="display: flex; gap: 12px;">
+        <button class="btn btn-secondary btn-full" onclick="closeAllModals()">Close</button>
+        <button class="btn btn-primary btn-full" onclick="closeAllModals(); window.location.hash = 'saved-trips';">Go to My Trips</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="js/data.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
