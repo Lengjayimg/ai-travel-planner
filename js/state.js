@@ -102,6 +102,22 @@ class WayfindStore {
     this.notify();
   }
 
+  mergeProfileData(profile) {
+    if (!profile || !this.state.user.isLoggedIn) return;
+    if (profile.full_name) {
+      this.state.user.name = profile.full_name;
+      this.state.user.avatarText = profile.full_name
+        .split(' ')
+        .filter(Boolean)
+        .map(n => n[0].toUpperCase())
+        .slice(0, 2)
+        .join('') || 'TR';
+    }
+    if (profile.location) this.state.user.location = profile.location;
+    if (profile.travel_style) this.state.user.travelStyle = profile.travel_style;
+    this.notify();
+  }
+
   setTheme(theme) {
     this.state.theme = theme;
     localStorage.setItem('wayfind_theme', theme);

@@ -99,25 +99,83 @@ const authService = {
   },
 
   /**
+   * Fetch profile record from public.profiles
+   */
+  async getProfile(userId) {
+    if (!supabaseClient || !userId) return null;
+    try {
+      const { data, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      if (error) return null;
+      return data;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  /**
+   * Update profile record in public.profiles and auth metadata
+   */
+  async updateProfile(userId, updates) {
+    if (!supabaseClient || !userId) return null;
+    
+    // Update public.profiles row
+    const { data, error } = await supabaseClient
+      .from('profiles')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    // Also update auth user_metadata if full_name is changed
+    if (updates.full_name) {
+      await supabaseClient.auth.updateUser({
+        data: { full_name: updates.full_name }
+      }).catch(() => {});
+    }
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
    * Listen to auth state transitions and keep application store in sync
    */
   init(store) {
     if (!supabaseClient) return;
 
+    const syncSessionUser = async (user) => {
+      if (!user) {
+        if (store) store.setUser(null);
+        return;
+      }
+      if (store) store.setUser(user);
+      
+      // Attempt to load rich profile from public.profiles
+      try {
+        const profile = await this.getProfile(user.id);
+        if (profile && store && typeof store.mergeProfileData === 'function') {
+          store.mergeProfileData(profile);
+        }
+      } catch (err) {
+        console.warn('Profiles table sync skipped:', err.message);
+      }
+    };
+
     // Check existing session on boot
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user && store) {
-        store.setUser(session.user);
-      }
+      syncSessionUser(session?.user);
     });
 
     // Subscribe to state changes (SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED, USER_UPDATED)
     supabaseClient.auth.onAuthStateChange((event, session) => {
-      if (session?.user && store) {
-        store.setUser(session.user);
-      } else if (store) {
-        store.setUser(null);
-      }
+      syncSessionUser(session?.user);
     });
   }
 };

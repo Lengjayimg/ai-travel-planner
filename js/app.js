@@ -509,6 +509,54 @@ function setupModals() {
       openModal('signInModal');
     });
   }
+
+  // Edit Profile Form Submit
+  const editProfileForm = document.getElementById('editProfileForm');
+  if (editProfileForm) {
+    editProfileForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const user = store.getState().user;
+      const submitBtn = document.getElementById('editProfileSubmitBtn');
+      const errBox = document.getElementById('editProfileError');
+      const newName = document.getElementById('editProfileName').value.trim();
+      const newLoc = document.getElementById('editProfileLocation').value.trim();
+      const newStyle = document.getElementById('editProfileTravelStyle').value.trim();
+
+      if (!newName) return;
+
+      const origText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="ph ph-circle-notch icon-sm" style="animation: spin 0.8s linear infinite;" aria-hidden="true"></i> <span>Saving...</span>`;
+
+      try {
+        if (user && user.isLoggedIn && window.authService) {
+          await window.authService.updateProfile(user.id, {
+            full_name: newName,
+            location: newLoc,
+            travel_style: newStyle
+          });
+        }
+        // Update local state in store
+        store.mergeProfileData({
+          full_name: newName,
+          location: newLoc,
+          travel_style: newStyle
+        });
+        closeAllModals();
+        showToast('Profile updated successfully!', 'ph-check-circle');
+      } catch (err) {
+        if (errBox) {
+          errBox.textContent = err.message || 'Failed to update profile.';
+          errBox.style.display = 'block';
+        } else {
+          showToast(err.message || 'Failed to update profile', 'ph-warning-circle');
+        }
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = origText;
+      }
+    });
+  }
 }
 
 function openModal(modalId) {
@@ -521,6 +569,25 @@ function openModal(modalId) {
 
 function closeAllModals() {
   document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('active'));
+}
+
+function openEditProfileModal() {
+  const user = store.getState().user;
+  const nameInput = document.getElementById('editProfileName');
+  const locInput = document.getElementById('editProfileLocation');
+  const styleInput = document.getElementById('editProfileTravelStyle');
+  const errBox = document.getElementById('editProfileError');
+
+  if (errBox) {
+    errBox.style.display = 'none';
+    errBox.textContent = '';
+  }
+
+  if (nameInput) nameInput.value = user.name || '';
+  if (locInput) locInput.value = user.location || '';
+  if (styleInput) styleInput.value = user.travelStyle || 'Art & Culture Explorer';
+
+  openModal('editProfileModal');
 }
 
 function openAddActivityModal() {

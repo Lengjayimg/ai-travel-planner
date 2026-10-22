@@ -999,7 +999,7 @@
               <p id="profileEmail" style="font-size: 0.88rem; color: var(--color-text-muted);">anabel.jones@travel.ng</p>
             </div>
           </div>
-          <button class="btn btn-secondary btn-sm" onclick="showToast('Profile editing simulation.', 'ph-pencil-simple')">
+          <button class="btn btn-secondary btn-sm" onclick="openEditProfileModal()">
             <i class="ph ph-pencil-simple icon-sm" aria-hidden="true"></i> Edit Profile
           </button>
         </div>
@@ -1193,6 +1193,34 @@
       <div style="text-align: center; font-size: 0.88rem; color: var(--color-text-muted);">
         Already have an account? <a href="#" id="toSignInLink" style="color: var(--color-primary-dark); font-weight: 600;">Sign In</a>
       </div>
+    </div>
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div class="modal-backdrop" id="editProfileModal">
+    <div class="modal-dialog">
+      <button class="modal-close-btn" aria-label="Close modal"><i class="ph ph-x" aria-hidden="true"></i></button>
+      <h3 style="margin-bottom: 6px;">Edit Traveler Profile</h3>
+      <p style="font-size: 0.9rem; margin-bottom: 20px;">Update your personal travel details.</p>
+
+      <form id="editProfileForm">
+        <div id="editProfileError" style="display: none; padding: 10px 14px; background: rgba(214, 106, 106, 0.12); border: 1px solid var(--color-error); border-radius: var(--radius-sm); color: var(--color-error); font-size: 0.85rem; margin-bottom: 14px; text-align: left;"></div>
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="editProfileName">Full Name</label>
+          <input type="text" id="editProfileName" class="form-control" placeholder="e.g. Anabel Jones" required />
+        </div>
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="editProfileLocation">Home Base / Location</label>
+          <input type="text" id="editProfileLocation" class="form-control" placeholder="e.g. Lagos, Nigeria" />
+        </div>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label class="form-label" for="editProfileTravelStyle">Travel Style</label>
+          <input type="text" id="editProfileTravelStyle" class="form-control" placeholder="e.g. Art & Culture Explorer" />
+        </div>
+        <button type="submit" id="editProfileSubmitBtn" class="btn btn-primary btn-full" style="margin-bottom: 12px;">
+          <span>Save Changes</span>
+        </button>
+      </form>
     </div>
   </div>
 
