@@ -889,8 +889,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   padding: 16px 0;
   border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.settings-row > div:first-child {
+  flex: 1;
+  min-width: 0;
 }
 
 .settings-row:last-child {
@@ -902,6 +908,7 @@
   display: inline-block;
   width: 48px;
   height: 26px;
+  flex-shrink: 0;
 }
 
 .switch-toggle input {
@@ -937,6 +944,28 @@ input:checked + .toggle-slider {
 
 input:checked + .toggle-slider:before {
   transform: translateX(22px);
+}
+
+@media (max-width: 640px) {
+  .settings-row {
+    padding: 14px 0;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .settings-row > div:first-child {
+    flex: 1 1 200px;
+  }
+
+  .settings-row .switch-toggle {
+    margin-left: auto;
+  }
+
+  .settings-row select {
+    width: 100% !important;
+    min-width: 100% !important;
+    margin-top: 6px;
+  }
 }
 
 /* ==========================================================================
@@ -1060,4 +1089,302 @@ input:checked + .toggle-slider:before {
 .btn-social-auth svg,
 .btn-social-auth i {
   flex-shrink: 0;
+}
+
+/* ==========================================================================
+   HEADER ACTIVE USER AVATAR & HOVER PROFILE MENU
+   ========================================================================== */
+.header-user-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.header-profile-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.header-avatar-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.header-avatar-btn:hover {
+  transform: scale(1.06);
+}
+
+.header-avatar-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.avatar-circle-sm {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-primary-dark);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.82rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border: 1.5px solid var(--color-border);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatar-circle-md {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-primary-dark);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1.5px solid var(--color-border);
+}
+
+/* Floating Profile Menu on Hover & Focus */
+.header-profile-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 250px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-floating);
+  padding: 14px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: all var(--transition-fast);
+  z-index: 1000;
+}
+
+.header-profile-dropdown:hover .header-profile-menu,
+.header-profile-dropdown:focus-within .header-profile-menu,
+.header-profile-dropdown.open .header-profile-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.profile-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+}
+
+.profile-menu-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.profile-menu-info strong {
+  font-size: 0.92rem;
+  color: var(--color-text-headline);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-menu-info span {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-menu-divider {
+  height: 1px;
+  background: var(--color-border-subtle);
+  margin: 4px 0 8px 0;
+}
+
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-headline);
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.profile-menu-item:hover {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-dark);
+}
+
+.profile-menu-item.logout-item {
+  color: var(--color-error);
+}
+
+.profile-menu-item.logout-item:hover {
+  background: rgba(214, 106, 106, 0.12);
+  color: var(--color-error);
+}
+
+/* ==========================================================================
+   CARTOON AVATAR PICKER
+   ========================================================================== */
+.cartoon-avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  margin-top: 10px;
+}
+
+@media (max-width: 640px) {
+  .cartoon-avatar-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+}
+
+.cartoon-avatar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 6px;
+  background: var(--color-bg-light);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.cartoon-avatar-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.cartoon-avatar-item.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.cartoon-avatar-img {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: var(--shadow-sm);
+}
+
+.cartoon-avatar-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-headline);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   HIGH-CONTRAST & LARGE TOUCH TARGETS (WCAG AAA SPECIFICATION)
+   ========================================================================== */
+html.high-contrast-mode {
+  --color-text-body: #000000;
+  --color-text-headline: #000000;
+  --color-border: #000000;
+  --color-border-subtle: #444444;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: 0 0 0 2px #000000;
+  --shadow-floating: 0 0 0 2px #000000;
+}
+
+html.high-contrast-mode[data-theme="dark"] {
+  --color-text-body: #FFFFFF;
+  --color-text-headline: #FFFFFF;
+  --color-border: #FFFFFF;
+  --color-border-subtle: #BBBBBB;
+  --color-surface: #0a0e0a;
+  --color-bg-light: #000000;
+  --shadow-lg: 0 0 0 2px #FFFFFF;
+  --shadow-floating: 0 0 0 2px #FFFFFF;
+}
+
+/* Large Touch Targets: Min 48px on all interactive elements */
+html.high-contrast-mode button,
+html.high-contrast-mode .btn,
+html.high-contrast-mode .nav-link,
+html.high-contrast-mode .form-control,
+html.high-contrast-mode .choice-chip,
+html.high-contrast-mode .filter-chip,
+html.high-contrast-mode .theme-toggle-btn,
+html.high-contrast-mode .switch-toggle,
+html.high-contrast-mode .password-toggle-btn,
+html.high-contrast-mode .header-avatar-btn {
+  min-height: 48px !important;
+  min-width: 48px !important;
+}
+
+html.high-contrast-mode .btn {
+  font-weight: 700 !important;
+  border-width: 2px !important;
+  letter-spacing: 0.02em !important;
+}
+
+html.high-contrast-mode .card,
+html.high-contrast-mode .card-solid,
+html.high-contrast-mode .feature-card,
+html.high-contrast-mode .destination-card,
+html.high-contrast-mode .settings-section-card,
+html.high-contrast-mode .modal-dialog {
+  border: 2px solid var(--color-border) !important;
+}
+
+html.high-contrast-mode a:focus-visible,
+html.high-contrast-mode button:focus-visible,
+html.high-contrast-mode input:focus-visible,
+html.high-contrast-mode select:focus-visible {
+  outline: 3px solid #E9C46A !important;
+  outline-offset: 3px !important;
+}
+
+html.high-contrast-mode .switch-toggle {
+  width: 58px !important;
+  height: 32px !important;
+}
+
+html.high-contrast-mode .toggle-slider:before {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+html.high-contrast-mode input:checked + .toggle-slider:before {
+  transform: translateX(26px) !important;
 }

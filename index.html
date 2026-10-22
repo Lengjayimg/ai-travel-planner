@@ -54,11 +54,39 @@
           <i class="ph ph-moon" aria-hidden="true"></i>
         </button>
 
-        <!-- Sign In Button / User Menu -->
-        <button class="btn btn-ghost btn-sm" id="headerAuthBtn" onclick="openModal('signInModal')">
-          <i class="ph ph-user-circle icon-sm" aria-hidden="true"></i>
-          <span id="headerAuthBtnText">Sign In</span>
-        </button>
+        <!-- Header User Wrapper: Sign In Button OR Active User Avatar Dropdown -->
+        <div class="header-user-wrapper" id="headerUserWrapper">
+          <!-- Shown when Logged Out -->
+          <button class="btn btn-ghost btn-sm" id="headerAuthBtn" onclick="openModal('signInModal')">
+            <i class="ph ph-user-circle icon-sm" aria-hidden="true"></i>
+            <span id="headerAuthBtnText">Sign In</span>
+          </button>
+
+          <!-- Shown when Logged In: Circular Avatar & Hover Dropdown -->
+          <div class="header-profile-dropdown" id="headerProfileDropdown" style="display: none;">
+            <button class="header-avatar-btn" id="headerAvatarBtn" aria-label="Account menu" aria-haspopup="true">
+              <span class="avatar-circle-sm" id="headerAvatarInitials">AJ</span>
+            </button>
+            <div class="header-profile-menu" id="headerProfileMenu">
+              <div class="profile-menu-header">
+                <div class="avatar-circle-md" id="menuAvatarInitials">AJ</div>
+                <div class="profile-menu-info">
+                  <strong id="menuUserName">Anabel Jones</strong>
+                  <span id="menuUserEmail">anabel.jones@travel.ng</span>
+                </div>
+              </div>
+              <div class="profile-menu-divider"></div>
+              <a href="#profile" class="profile-menu-item" id="menuManageAccountLink">
+                <i class="ph ph-gear-six icon-sm" aria-hidden="true"></i>
+                <span>Manage your account</span>
+              </a>
+              <button type="button" class="profile-menu-item logout-item" id="menuLogoutBtn" onclick="authService.signOut()">
+                <i class="ph ph-sign-out icon-sm" aria-hidden="true"></i>
+                <span>Log Out</span>
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- Primary CTA -->
         <a href="#planner" class="btn btn-primary btn-sm" id="headerGetStartedBtn" onclick="handleStartPlanningAction(event)" data-route="planner">
@@ -991,17 +1019,39 @@
 
       <div class="settings-section-card">
         <h4 style="margin-bottom: 20px;">Traveler Profile</h4>
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 22px;">
           <div style="display: flex; align-items: center; gap: 16px;">
-            <div id="profileAvatar" style="width: 58px; height: 58px; border-radius: 50%; background: var(--color-primary-dark); color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 700;">AJ</div>
+            <div id="profileAvatar" style="width: 64px; height: 64px; border-radius: 50%; background: var(--color-primary-dark); color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 700; overflow: hidden; border: 2px solid var(--color-border); flex-shrink: 0;">AJ</div>
             <div>
               <h3 id="profileName" style="font-size: 1.3rem; margin-bottom: 2px;">Anabel Jones</h3>
               <p id="profileEmail" style="font-size: 0.88rem; color: var(--color-text-muted);">anabel.jones@travel.ng</p>
             </div>
           </div>
           <button class="btn btn-secondary btn-sm" onclick="openEditProfileModal()">
-            <i class="ph ph-pencil-simple icon-sm" aria-hidden="true"></i> Edit Profile
+            <i class="ph ph-pencil-simple icon-sm" aria-hidden="true"></i> Edit Details
           </button>
+        </div>
+
+        <!-- Profile Picture & Cartoon Avatar Picker -->
+        <div class="avatar-selection-section" style="padding-top: 18px; border-top: 1px solid var(--color-border-subtle);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+            <div>
+              <strong style="font-size: 0.95rem; display: block;">Profile Avatar & Photo</strong>
+              <span style="font-size: 0.82rem; color: var(--color-text-muted);">Pick an illustrated travel cartoon avatar or upload your photo</span>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <label class="btn btn-secondary btn-sm" style="cursor: pointer; font-size: 0.82rem; padding: 6px 14px;">
+                <i class="ph ph-upload-simple icon-sm" aria-hidden="true"></i> Upload Photo
+                <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="handleAvatarFileUpload(event)" />
+              </label>
+              <button type="button" class="btn btn-ghost btn-sm" style="font-size: 0.82rem; padding: 6px 12px;" onclick="resetAvatarToInitials()">
+                <i class="ph ph-arrows-counter-clockwise icon-sm" aria-hidden="true"></i> Use Initials
+              </button>
+            </div>
+          </div>
+
+          <!-- Cartoon Avatars Grid -->
+          <div class="cartoon-avatar-grid" id="cartoonAvatarGrid"></div>
         </div>
       </div>
 
@@ -1028,7 +1078,7 @@
             <p style="font-size: 0.85rem; color: var(--color-text-muted);">Receive flight check-in alerts and real-time weather notifications.</p>
           </div>
           <label class="switch-toggle">
-            <input type="checkbox" checked onchange="showToast('Notification preference saved.', 'ph-bell')" />
+            <input type="checkbox" id="settingsAlertsSwitch" checked onchange="showToast('Notification preference saved.', 'ph-bell')" />
             <span class="toggle-slider"></span>
           </label>
         </div>
@@ -1037,19 +1087,32 @@
         <div class="settings-row">
           <div>
             <strong>Display Currency</strong>
-            <p style="font-size: 0.85rem; color: var(--color-text-muted);">Choose your default financial reporting currency.</p>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">Select your default financial reporting currency for the entire website.</p>
           </div>
-          <button class="btn btn-secondary btn-sm" onclick="store.toggleCurrency()">Toggle NGN (₦) / USD ($)</button>
+          <select id="settingsCurrencySelect" class="form-control" style="width: auto; min-width: 220px; font-weight: 600;" onchange="store.setCurrency(this.value)">
+            <option value="NGN">Nigerian Naira (₦ NGN)</option>
+            <option value="USD">US Dollar ($ USD)</option>
+            <option value="EUR">Euro (€ EUR)</option>
+            <option value="GBP">British Pound (£ GBP)</option>
+            <option value="CAD">Canadian Dollar (CA$ CAD)</option>
+            <option value="AUD">Australian Dollar (A$ AUD)</option>
+            <option value="JPY">Japanese Yen (¥ JPY)</option>
+            <option value="ZAR">South African Rand (R ZAR)</option>
+            <option value="GHS">Ghanaian Cedi (GH₵ GHS)</option>
+            <option value="KES">Kenyan Shilling (KSh KES)</option>
+            <option value="AED">UAE Dirham (AED)</option>
+            <option value="CHF">Swiss Franc (CHF)</option>
+          </select>
         </div>
 
         <!-- High-contrast / Accessibility -->
         <div class="settings-row">
           <div>
             <strong>High-Contrast & Large Touch Targets</strong>
-            <p style="font-size: 0.85rem; color: var(--color-text-muted);">Enhanced readability mode meeting WCAG AAA specifications.</p>
+            <p style="font-size: 0.85rem; color: var(--color-text-muted);">Enhanced readability mode meeting WCAG AAA specifications across the entire website.</p>
           </div>
           <label class="switch-toggle">
-            <input type="checkbox" checked onchange="showToast('Accessibility profile enabled.', 'ph-eye')" />
+            <input type="checkbox" id="settingsAccessibilitySwitch" onchange="store.setAccessibility(this.checked)" />
             <span class="toggle-slider"></span>
           </label>
         </div>

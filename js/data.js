@@ -396,5 +396,90 @@ const WAYFIND_DATA = {
       reply: "Abuja typically enjoys warm tropical weather with sunny mornings. The dry season (November to March) offers clear blue skies and pleasant evening breezes—ideal for outdoor walking around Millennium Park and kayaking on Jabi Lake."
     }
   ],
-  defaultChatbotReply: "I'm your **Wayfind AI Travel Companion**! I can adapt your itinerary in real time, swap activities, find hidden culinary spots, or check estimated budgets for your trip in Abuja or beyond. How may I assist your journey?"
+  defaultChatbotReply: "I'm your **Wayfind AI Travel Companion**! I can adapt your itinerary in real time, swap activities, find hidden culinary spots, or check estimated budgets for your trip in Abuja or beyond. How may I assist your journey?",
+
+  // --- Travel Cartoon Avatars for User Profiles (High-DPI Inline SVGs) ---
+  cartoonAvatars: [
+    {
+      id: "avatar-explorer",
+      name: "Explorer",
+      role: "Safari Adventurer",
+      url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><circle cx='60' cy='60' r='58' fill='%23F4A261'/><circle cx='60' cy='62' r='32' fill='%23E0A96D'/><ellipse cx='60' cy='95' rx='34' ry='22' fill='%233B4A20'/><ellipse cx='60' cy='40' rx='38' ry='10' fill='%23C9934B'/><path d='M36 40 C36 18, 84 18, 84 40 Z' fill='%23DDB26F'/><rect x='36' y='37' width='48' height='6' fill='%233B4A20'/><circle cx='50' cy='62' r='3.5' fill='%23264653'/><circle cx='70' cy='62' r='3.5' fill='%23264653'/><path d='M54 74 Q60 80 66 74' stroke='%23264653' stroke-width='2.5' fill='none' stroke-linecap='round'/><circle cx='44' cy='66' r='4' fill='%23E76F51' opacity='0.4'/><circle cx='76' cy='66' r='4' fill='%23E76F51' opacity='0.4'/></svg>"
+    },
+    {
+      id: "avatar-aviator",
+      name: "Aviator",
+      role: "Sky Pilot",
+      url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><circle cx='60' cy='60' r='58' fill='%23457B9D'/><circle cx='60' cy='62' r='32' fill='%23C68642'/><ellipse cx='60' cy='95' rx='34' ry='22' fill='%231D3557'/><path d='M30 46 C30 20, 90 20, 90 46 Z' fill='%232B2D42'/><rect x='38' y='40' width='18' height='12' rx='4' fill='%23E63946' stroke='%23FFFFFF' stroke-width='2'/><rect x='64' y='40' width='18' height='12' rx='4' fill='%23E63946' stroke='%23FFFFFF' stroke-width='2'/><line x1='56' y1='46' x2='64' y2='46' stroke='%23FFFFFF' stroke-width='3'/><circle cx='50' cy='64' r='3.5' fill='%231D3557'/><circle cx='70' cy='64' r='3.5' fill='%231D3557'/><path d='M54 75 Q60 80 66 75' stroke='%231D3557' stroke-width='2.5' fill='none' stroke-linecap='round'/></svg>"
+    },
+    {
+      id: "avatar-globetrotter",
+      name: "Nomad",
+      role: "Globe-Trotter",
+      url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><circle cx='60' cy='60' r='58' fill='%238DB48E'/><circle cx='60' cy='62' r='32' fill='%23F5C299'/><ellipse cx='60' cy='96' rx='34' ry='22' fill='%235A7E64'/><path d='M34 44 C34 16, 86 16, 86 44 Z' fill='%23F4A261'/><rect x='30' y='42' width='60' height='9' rx='4' fill='%23E76F51'/><circle cx='50' cy='64' r='3.5' fill='%232A3B2A'/><circle cx='70' cy='64' r='3.5' fill='%232A3B2A'/><path d='M54 75 Q60 81 66 75' stroke='%232A3B2A' stroke-width='2.5' fill='none' stroke-linecap='round'/><line x1='38' y1='84' x2='82' y2='108' stroke='%23E76F51' stroke-width='6'/></svg>"
+    },
+    {
+      id: "avatar-creator",
+      name: "Creator",
+      role: "Urban Artist",
+      url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><circle cx='60' cy='60' r='58' fill='%233B4A20'/><circle cx='60' cy='62' r='32' fill='%238D5524'/><ellipse cx='60' cy='96' rx='34' ry='22' fill='%23FDFCF9'/><path d='M30 46 C24 30, 42 16, 60 18 C78 16, 96 30, 90 46 Z' fill='%231F241F'/><path d='M26 62 A36 36 0 0 1 94 62' stroke='%23E9C46A' stroke-width='5' fill='none'/><rect x='22' y='52' width='9' height='20' rx='4' fill='%23E9C46A'/><rect x='89' y='52' width='9' height='20' rx='4' fill='%23E9C46A'/><circle cx='48' cy='62' r='9' stroke='%23E9C46A' stroke-width='2' fill='none'/><circle cx='72' cy='62' r='9' stroke='%23E9C46A' stroke-width='2' fill='none'/><line x1='57' y1='62' x2='63' y2='62' stroke='%23E9C46A' stroke-width='2'/><circle cx='48' cy='62' r='3' fill='%231F241F'/><circle cx='72' cy='62' r='3' fill='%231F241F'/><path d='M54 76 Q60 82 66 76' stroke='%231F241F' stroke-width='2.5' fill='none' stroke-linecap='round'/></svg>"
+    },
+    {
+      id: "avatar-wanderer",
+      name: "Islander",
+      role: "Coastline Seeker",
+      url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><circle cx='60' cy='60' r='58' fill='%232A9D8F'/><circle cx='60' cy='62' r='32' fill='%23E0AC69'/><ellipse cx='60' cy='96' rx='34' ry='22' fill='%23E76F51'/><path d='M32 46 C32 20, 88 20, 88 46 Z' fill='%23264653'/><circle cx='34' cy='36' r='7' fill='%23F4A261'/><polygon points='40,56 56,56 53,68 43,68' fill='%23264653'/><polygon points='64,56 80,56 77,68 67,68' fill='%23264653'/><line x1='56' y1='58' x2='64' y2='58' stroke='%23264653' stroke-width='2.5'/><path d='M54 76 Q60 81 66 76' stroke='%23264653' stroke-width='2.5' fill='none' stroke-linecap='round'/></svg>"
+    },
+    {
+      id: "avatar-trailblazer",
+      name: "Trekker",
+      role: "Peak Hiker",
+      url: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><circle cx='60' cy='60' r='58' fill='%23264653'/><circle cx='60' cy='62' r='32' fill='%23FFDBAC'/><ellipse cx='60' cy='96' rx='34' ry='22' fill='%23E9C46A'/><path d='M34 44 C34 22, 86 22, 86 44 Z' fill='%231D2D44'/><rect x='30' y='40' width='60' height='8' rx='2' fill='%23E76F51'/><circle cx='50' cy='64' r='3.5' fill='%23264653'/><circle cx='70' cy='64' r='3.5' fill='%23264653'/><path d='M54 75 Q60 80 66 75' stroke='%23264653' stroke-width='2.5' fill='none' stroke-linecap='round'/></svg>"
+    }
+  ]
 };
+
+// --- GLOBAL MULTI-CURRENCY CONVERSION SYSTEM ---
+const WAYFIND_CURRENCIES = {
+  NGN: { code: 'NGN', symbol: '₦', name: 'Nigerian Naira (₦ NGN)', rate: 1550 },
+  USD: { code: 'USD', symbol: '$', name: 'US Dollar ($ USD)', rate: 1.0 },
+  EUR: { code: 'EUR', symbol: '€', name: 'Euro (€ EUR)', rate: 0.92 },
+  GBP: { code: 'GBP', symbol: '£', name: 'British Pound (£ GBP)', rate: 0.78 },
+  CAD: { code: 'CAD', symbol: 'CA$', name: 'Canadian Dollar (CA$ CAD)', rate: 1.36 },
+  AUD: { code: 'AUD', symbol: 'A$', name: 'Australian Dollar (A$ AUD)', rate: 1.52 },
+  JPY: { code: 'JPY', symbol: '¥', name: 'Japanese Yen (¥ JPY)', rate: 155.0 },
+  ZAR: { code: 'ZAR', symbol: 'R', name: 'South African Rand (R ZAR)', rate: 18.2 },
+  GHS: { code: 'GHS', symbol: 'GH₵', name: 'Ghanaian Cedi (GH₵ GHS)', rate: 14.5 },
+  KES: { code: 'KES', symbol: 'KSh', name: 'Kenyan Shilling (KSh KES)', rate: 130.0 },
+  AED: { code: 'AED', symbol: 'AED ', name: 'UAE Dirham (AED)', rate: 3.67 },
+  CHF: { code: 'CHF', symbol: 'CHF ', name: 'Swiss Franc (CHF)', rate: 0.89 }
+};
+
+/**
+ * Universal Currency Formatter across Wayfind web app
+ */
+function formatCurrency(amountUSD, currencyCode) {
+  const activeCode = currencyCode || (window.store ? window.store.getState().currency : 'NGN');
+  const curr = WAYFIND_CURRENCIES[activeCode] || WAYFIND_CURRENCIES.NGN;
+  const num = typeof amountUSD === 'number' ? amountUSD : parseFloat(amountUSD) || 0;
+  const converted = Math.round(num * curr.rate);
+  return `${curr.symbol}${converted.toLocaleString()}`;
+}
+
+/**
+ * Format string ranges like "$85 - $140" into the active currency
+ */
+function formatDestinationBudget(budgetRangeStr, currencyCode) {
+  if (!budgetRangeStr) return '$85 - $140';
+  const matches = budgetRangeStr.match(/\d+/g);
+  if (matches && matches.length >= 2) {
+    const low = parseInt(matches[0]);
+    const high = parseInt(matches[1]);
+    return `${formatCurrency(low, currencyCode)} – ${formatCurrency(high, currencyCode)}`;
+  }
+  return budgetRangeStr;
+}
+
+window.WAYFIND_CURRENCIES = WAYFIND_CURRENCIES;
+window.formatCurrency = formatCurrency;
+window.formatDestinationBudget = formatDestinationBudget;

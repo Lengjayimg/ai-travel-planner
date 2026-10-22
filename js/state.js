@@ -10,8 +10,9 @@ class WayfindStore {
       theme: localStorage.getItem('wayfind_theme') || 'light',
       isCustomizing: false,
       activeDayIndex: 0,
-      currency: 'NGN', // 'NGN' | 'USD'
-      exchangeRateUSDToNGN: 850,
+      currency: localStorage.getItem('wayfind_currency') || 'NGN',
+      isHighContrast: localStorage.getItem('wayfind_accessibility') === 'true',
+      exchangeRateUSDToNGN: 1550,
       
       // User Profile (Persona: Anabel / Adaeze Jones)
       user: {
@@ -19,6 +20,7 @@ class WayfindStore {
         handle: '@anabeltravels',
         email: 'anabel.jones@travel.ng',
         avatarText: 'AJ',
+        avatarUrl: localStorage.getItem('wayfind_avatar') || null,
         location: 'Lagos, Nigeria',
         tripsCount: 4,
         isLoggedIn: true
@@ -84,6 +86,7 @@ class WayfindStore {
         handle: '@' + (supabaseUser.email.split('@')[0] || 'traveler'),
         email: supabaseUser.email,
         avatarText: initials,
+        avatarUrl: metadata.avatar_url || localStorage.getItem('wayfind_avatar') || null,
         location: metadata.location || 'Nigeria',
         tripsCount: this.state.savedTrips.length,
         isLoggedIn: true
@@ -94,6 +97,7 @@ class WayfindStore {
         handle: '@guest',
         email: '',
         avatarText: 'GT',
+        avatarUrl: null,
         location: 'Explorer',
         tripsCount: 0,
         isLoggedIn: false
@@ -113,8 +117,53 @@ class WayfindStore {
         .slice(0, 2)
         .join('') || 'TR';
     }
+    if (profile.avatar_url) {
+      this.state.user.avatarUrl = profile.avatar_url;
+      localStorage.setItem('wayfind_avatar', profile.avatar_url);
+    }
     if (profile.location) this.state.user.location = profile.location;
     if (profile.travel_style) this.state.user.travelStyle = profile.travel_style;
+    this.notify();
+  }
+
+  setCurrency(currencyCode) {
+    if (window.WAYFIND_CURRENCIES && window.WAYFIND_CURRENCIES[currencyCode]) {
+      this.state.currency = currencyCode;
+      localStorage.setItem('wayfind_currency', currencyCode);
+      this.notify();
+      if (typeof showToast === 'function') {
+        showToast(`Display currency set to ${currencyCode}`, 'ph-currency-circle-dollar');
+      }
+    }
+  }
+
+  setAccessibility(enabled) {
+    this.state.isHighContrast = !!enabled;
+    localStorage.setItem('wayfind_accessibility', enabled ? 'true' : 'false');
+    if (enabled) {
+      document.documentElement.classList.add('high-contrast-mode');
+      document.documentElement.setAttribute('data-contrast', 'high');
+      if (typeof showToast === 'function') {
+        showToast('High-Contrast & Large Touch Targets activated.', 'ph-eye');
+      }
+    } else {
+      document.documentElement.classList.remove('high-contrast-mode');
+      document.documentElement.removeAttribute('data-contrast');
+      if (typeof showToast === 'function') {
+        showToast('Standard visual mode restored.', 'ph-eye');
+      }
+    }
+    this.notify();
+  }
+
+  updateAvatar(avatarUrl) {
+    if (!this.state.user) return;
+    this.state.user.avatarUrl = avatarUrl;
+    if (avatarUrl) {
+      localStorage.setItem('wayfind_avatar', avatarUrl);
+    } else {
+      localStorage.removeItem('wayfind_avatar');
+    }
     this.notify();
   }
 

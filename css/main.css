@@ -389,8 +389,11 @@ button, input, select, textarea {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   color: var(--color-text-headline);
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
+  font-size: 0.95rem;
+  padding: 0;
+  flex-shrink: 0;
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;

@@ -14,6 +14,12 @@ function initApp() {
   document.documentElement.setAttribute('data-theme', currentTheme);
   updateThemeLogos(currentTheme);
 
+  // Apply High-Contrast Accessibility Mode if enabled
+  if (store.getState().isHighContrast) {
+    document.documentElement.classList.add('high-contrast-mode');
+    document.documentElement.setAttribute('data-contrast', 'high');
+  }
+
   // 2. Render initial destination inspiration & hero cards
   renderDestinations('all');
 
@@ -35,7 +41,10 @@ function initApp() {
   // 7. Setup Chatbot Interactivity
   setupChatbot();
 
-  // 8. Subscribe UI re-renderers to State Changes
+  // 8. Render Cartoon Avatars for Settings
+  renderCartoonAvatars();
+
+  // 9. Subscribe UI re-renderers to State Changes
   store.subscribe((state) => {
     renderCurrentView(state);
     updateThemeLogos(state.theme);
@@ -208,9 +217,7 @@ function renderItineraryView(state) {
     `;
   } else {
     timelineFeed.innerHTML = activeDay.activities.map(act => {
-      const displayCost = state.currency === 'NGN' 
-        ? `₦${(act.costNGN || 0).toLocaleString()}`
-        : `$${(act.costUSD || 0)}`;
+      const displayCost = formatCurrency(act.costUSD || Math.round((act.costNGN || 5000) / 850), state.currency);
 
       return `
         <div class="timeline-activity-card animate-fade-in" id="${act.id}">
@@ -240,25 +247,24 @@ function renderItineraryView(state) {
 
   // 3. Render Budget Breakdown in Sidebar
   if (budgetPanel) {
-    const totalCostStr = state.currency === 'NGN' 
-      ? `₦${trip.budgetTotalNGN.toLocaleString()}`
-      : `$${trip.budgetTotalUSD.toLocaleString()}`;
+    const totalCostStr = formatCurrency(trip.budgetTotalUSD, state.currency);
 
     budgetPanel.innerHTML = `
       <div class="budget-total-header">
         <p>Estimated Total (${trip.duration})</p>
         <h3>${totalCostStr}</h3>
-        <div style="margin-top: 8px; display: flex; gap: 8px;">
-          <button class="btn btn-ghost btn-sm" onclick="store.toggleCurrency()" style="font-size: 0.78rem; padding: 4px 10px;">
-            Currency: ${state.currency} (Switch)
-          </button>
+        <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+          <label style="font-size: 0.78rem; color: var(--color-text-muted);">Currency:</label>
+          <select class="form-control" style="font-size: 0.78rem; padding: 4px 8px; height: 30px; width: auto; font-weight: 600;" onchange="store.setCurrency(this.value)">
+            ${Object.values(WAYFIND_CURRENCIES).map(c => `
+              <option value="${c.code}" ${state.currency === c.code ? 'selected' : ''}>${c.code} (${c.symbol})</option>
+            `).join('')}
+          </select>
         </div>
       </div>
       <div class="budget-category-list">
         ${trip.budgetBreakdown.map(cat => {
-          const catAmount = state.currency === 'NGN' 
-            ? `₦${cat.allocatedNGN.toLocaleString()}` 
-            : `$${cat.allocatedUSD}`;
+          const catAmount = formatCurrency(cat.allocatedUSD, state.currency);
           return `
             <div class="budget-cat-item">
               <div class="budget-cat-top">
@@ -327,7 +333,7 @@ function renderSavedTripsView(state) {
         <p style="font-size: 0.88rem; color: var(--color-text-muted);">${trip.dates} • ${trip.travelers}</p>
         <div style="margin-top: auto; padding-top: 14px; display: flex; justify-content: space-between; align-items: center;">
           <span style="font-family: var(--font-display); font-weight: 700; color: var(--color-text-headline);">
-            ₦${trip.budgetTotalNGN.toLocaleString()}
+            ${formatCurrency(trip.budgetTotalUSD, state.currency)}
           </span>
           <button class="btn btn-secondary btn-sm" onclick="window.location.hash = 'itinerary'">Open Plan</button>
         </div>
@@ -362,7 +368,7 @@ function renderDestinations(filter) {
           ${d.highlights.slice(0, 3).map(h => `<span class="destination-tag"><i class="ph ph-check icon-xs" style="color: var(--color-primary);" aria-hidden="true"></i> ${h}</span>`).join('')}
         </div>
         <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 0.85rem; color: var(--color-text-muted);">From <strong>${d.avgBudgetPerDay}</strong>/day</span>
+          <span style="font-size: 0.85rem; color: var(--color-text-muted);">From <strong>${formatDestinationBudget(d.avgBudgetPerDay, store.getState().currency)}</strong>/day</span>
           <button class="btn btn-secondary btn-sm" onclick="startPlanningDestination('${d.name}')">Plan Trip</button>
         </div>
       </div>
@@ -1123,13 +1129,18 @@ async function handleResetPassword() {
 }
 
 /**
- * Synchronize UI elements with active authentication state
+ * Synchronize UI elements with active authentication state, avatars, and settings
  */
 function updateUserUI(user) {
   if (!user) return;
 
   const headerAuthBtn = document.getElementById('headerAuthBtn');
   const headerAuthBtnText = document.getElementById('headerAuthBtnText');
+  const headerProfileDropdown = document.getElementById('headerProfileDropdown');
+  const headerAvatarInitials = document.getElementById('headerAvatarInitials');
+  const menuAvatarInitials = document.getElementById('menuAvatarInitials');
+  const menuUserName = document.getElementById('menuUserName');
+  const menuUserEmail = document.getElementById('menuUserEmail');
   const headerGetStartedBtn = document.getElementById('headerGetStartedBtn');
   const dashGreetingName = document.getElementById('dashGreetingName');
   const dashProfileAvatar = document.getElementById('dashProfileAvatar');
@@ -1138,50 +1149,194 @@ function updateUserUI(user) {
   const profileAvatar = document.getElementById('profileAvatar');
   const profileName = document.getElementById('profileName');
   const profileEmail = document.getElementById('profileEmail');
+  const settingsCurrencySelect = document.getElementById('settingsCurrencySelect');
+  const settingsAccessibilitySwitch = document.getElementById('settingsAccessibilitySwitch');
+  const settingsThemeSwitch = document.getElementById('settingsThemeSwitch');
 
   const firstName = user.name ? user.name.split(' ')[0] : 'Traveler';
 
   if (user.isLoggedIn) {
-    if (headerAuthBtnText) {
-      headerAuthBtnText.textContent = firstName;
-    }
-    if (headerAuthBtn) {
-      headerAuthBtn.title = `Signed in as ${user.name} (${user.email})`;
-      headerAuthBtn.onclick = (e) => {
-        e.preventDefault();
-        window.location.hash = 'profile';
-      };
-    }
-    if (headerGetStartedBtn) {
-      headerGetStartedBtn.title = 'Trip Planner';
-    }
+    // Show active user avatar dropdown, hide generic sign in button
+    if (headerAuthBtn) headerAuthBtn.style.display = 'none';
+    if (headerProfileDropdown) headerProfileDropdown.style.display = 'inline-block';
+    renderAvatarBadge(headerAvatarInitials, user.avatarText, user.avatarUrl);
+    renderAvatarBadge(menuAvatarInitials, user.avatarText, user.avatarUrl);
+    if (menuUserName) menuUserName.textContent = user.name;
+    if (menuUserEmail) menuUserEmail.textContent = user.email || 'traveler@wayfind.travel';
+
+    if (headerGetStartedBtn) headerGetStartedBtn.title = 'Trip Planner';
     if (dashGreetingName) dashGreetingName.textContent = firstName;
-    if (dashProfileAvatar) dashProfileAvatar.textContent = user.avatarText || 'TR';
+    renderAvatarBadge(dashProfileAvatar, user.avatarText, user.avatarUrl);
     if (dashProfileName) dashProfileName.textContent = user.name;
     if (dashProfileEmail) dashProfileEmail.textContent = user.email || 'traveler@wayfind.travel';
-    if (profileAvatar) profileAvatar.textContent = user.avatarText || 'TR';
+
+    renderAvatarBadge(profileAvatar, user.avatarText, user.avatarUrl);
     if (profileName) profileName.textContent = user.name;
     if (profileEmail) profileEmail.textContent = user.email || 'traveler@wayfind.travel';
   } else {
-    if (headerAuthBtnText) {
-      headerAuthBtnText.textContent = 'Sign In';
-    }
+    // Show sign in button, hide profile dropdown
     if (headerAuthBtn) {
+      headerAuthBtn.style.display = 'inline-flex';
       headerAuthBtn.title = 'Sign In to Wayfind';
       headerAuthBtn.onclick = (e) => {
         e.preventDefault();
         openModal('signInModal');
       };
     }
-    if (headerGetStartedBtn) {
-      headerGetStartedBtn.title = 'Sign Up to Start Planning';
-    }
+    if (headerAuthBtnText) headerAuthBtnText.textContent = 'Sign In';
+    if (headerProfileDropdown) headerProfileDropdown.style.display = 'none';
+
+    if (headerGetStartedBtn) headerGetStartedBtn.title = 'Sign Up to Start Planning';
     if (dashGreetingName) dashGreetingName.textContent = 'Traveler';
-    if (dashProfileAvatar) dashProfileAvatar.textContent = 'GT';
+    renderAvatarBadge(dashProfileAvatar, 'GT', null);
     if (dashProfileName) dashProfileName.textContent = 'Guest Traveler';
     if (dashProfileEmail) dashProfileEmail.textContent = 'guest@wayfind.travel';
-    if (profileAvatar) profileAvatar.textContent = 'GT';
+
+    renderAvatarBadge(profileAvatar, 'GT', null);
     if (profileName) profileName.textContent = 'Guest Traveler';
     if (profileEmail) profileEmail.textContent = 'guest@wayfind.travel';
   }
+
+  // Synchronize Settings Controls
+  if (settingsCurrencySelect) {
+    settingsCurrencySelect.value = store.getState().currency;
+  }
+  if (settingsAccessibilitySwitch) {
+    settingsAccessibilitySwitch.checked = store.getState().isHighContrast;
+  }
+  if (settingsThemeSwitch) {
+    settingsThemeSwitch.checked = store.getState().theme === 'dark';
+  }
+
+  renderCartoonAvatars();
+}
+
+/**
+ * Universal Avatar Badge Renderer: Handles custom photo, cartoon SVG, or initials
+ */
+function renderAvatarBadge(container, avatarText, avatarUrl) {
+  if (!container) return;
+  if (avatarUrl) {
+    container.innerHTML = `<img src="${avatarUrl}" alt="${avatarText || 'Avatar'}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;" />`;
+    container.style.padding = '0';
+  } else {
+    container.textContent = avatarText || 'TR';
+    container.style.padding = '';
+  }
+}
+
+/**
+ * Render 6 Travel Cartoon Avatars in Settings
+ */
+function renderCartoonAvatars() {
+  const container = document.getElementById('cartoonAvatarGrid');
+  if (!container || !WAYFIND_DATA.cartoonAvatars) return;
+
+  const currentAvatarUrl = store.getState().user?.avatarUrl;
+
+  container.innerHTML = WAYFIND_DATA.cartoonAvatars.map(av => {
+    const isActive = currentAvatarUrl === av.url;
+    return `
+      <div class="cartoon-avatar-item ${isActive ? 'active' : ''}" onclick="selectCartoonAvatar('${av.id}')" title="${av.name} (${av.role})">
+        <img src="${av.url}" alt="${av.name}" class="cartoon-avatar-img" />
+        <span class="cartoon-avatar-label">${av.name}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+/**
+ * Select a Cartoon Avatar
+ */
+async function selectCartoonAvatar(avatarId) {
+  const avatar = WAYFIND_DATA.cartoonAvatars.find(a => a.id === avatarId);
+  if (!avatar) return;
+
+  store.updateAvatar(avatar.url);
+
+  // If user is logged in, sync to Supabase
+  const user = store.getState().user;
+  if (user && user.isLoggedIn && window.authService) {
+    try {
+      await window.authService.updateProfile(user.id, { avatar_url: avatar.url });
+    } catch (e) {
+      console.warn('Avatar cloud sync skipped:', e.message);
+    }
+  }
+
+  renderCartoonAvatars();
+  showToast(`Profile avatar updated to ${avatar.name}!`, 'ph-sparkle');
+}
+
+/**
+ * Handle Custom Photo File Upload
+ */
+function handleAvatarFileUpload(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showToast('Please select an image file.', 'ph-warning-circle');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target.result;
+    store.updateAvatar(dataUrl);
+
+    const user = store.getState().user;
+    if (user && user.isLoggedIn && window.authService) {
+      try {
+        await window.authService.updateProfile(user.id, { avatar_url: dataUrl });
+      } catch (err) {
+        console.warn('Photo cloud sync skipped:', err.message);
+      }
+    }
+
+    renderCartoonAvatars();
+    showToast('Profile photo uploaded!', 'ph-check-circle');
+  };
+  reader.readAsDataURL(file);
+}
+
+/**
+ * Reset Avatar back to initials
+ */
+async function resetAvatarToInitials() {
+  store.updateAvatar(null);
+
+  const user = store.getState().user;
+  if (user && user.isLoggedIn && window.authService) {
+    try {
+      await window.authService.updateProfile(user.id, { avatar_url: null });
+    } catch (e) {
+      console.warn('Avatar reset cloud sync skipped:', e.message);
+    }
+  }
+
+  renderCartoonAvatars();
+  showToast('Avatar reset to initials.', 'ph-arrows-counter-clockwise');
+}
+
+window.renderAvatarBadge = renderAvatarBadge;
+window.renderCartoonAvatars = renderCartoonAvatars;
+window.selectCartoonAvatar = selectCartoonAvatar;
+window.handleAvatarFileUpload = handleAvatarFileUpload;
+window.resetAvatarToInitials = resetAvatarToInitials;
+
+// Close Header Profile Menu on click outside or navigation
+document.addEventListener('click', (e) => {
+  const dropdown = document.getElementById('headerProfileDropdown');
+  if (dropdown && !dropdown.contains(e.target)) {
+    dropdown.classList.remove('open');
+  }
+});
+const avatarBtn = document.getElementById('headerAvatarBtn');
+if (avatarBtn) {
+  avatarBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const dropdown = document.getElementById('headerProfileDropdown');
+    if (dropdown) dropdown.classList.toggle('open');
+  });
 }
