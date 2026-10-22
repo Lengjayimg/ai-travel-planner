@@ -59,6 +59,17 @@ function setupNavigation() {
     el.addEventListener('click', (e) => {
       e.preventDefault();
       const targetRoute = el.getAttribute('data-route');
+
+      // Divert "Get Started" & "Start Planning" buttons to Sign Up for new/unauthenticated users
+      if (['headerGetStartedBtn', 'heroStartPlanningBtn', 'bannerStartPlanningBtn'].includes(el.id)) {
+        const user = store.getState().user;
+        if (!user || !user.isLoggedIn) {
+          openModal('signUpModal');
+          closeMobileMenu();
+          return;
+        }
+      }
+
       window.location.hash = targetRoute;
       closeMobileMenu();
     });
@@ -557,6 +568,101 @@ function setupModals() {
       }
     });
   }
+
+  // Password Visibility Toggles (Show / Hide)
+  document.querySelectorAll('.password-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const wrapper = btn.closest('.password-input-wrapper');
+      const input = wrapper ? wrapper.querySelector('input') : null;
+      const icon = btn.querySelector('i');
+      if (input) {
+        if (input.type === 'password') {
+          input.type = 'text';
+          btn.setAttribute('aria-label', 'Hide password');
+          if (icon) {
+            icon.classList.remove('ph-eye');
+            icon.classList.add('ph-eye-slash');
+          }
+        } else {
+          input.type = 'password';
+          btn.setAttribute('aria-label', 'Show password');
+          if (icon) {
+            icon.classList.remove('ph-eye-slash');
+            icon.classList.add('ph-eye');
+          }
+        }
+      }
+    });
+  });
+
+  // Forgot Password Modal Transitions
+  const toForgotLink = document.getElementById('toForgotPasswordLink');
+  const toSignInFromForgot = document.getElementById('toSignInFromForgotLink');
+  if (toForgotLink) {
+    toForgotLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      const signInEmail = document.getElementById('signInEmail');
+      const forgotEmail = document.getElementById('forgotPasswordEmail');
+      if (signInEmail && forgotEmail && signInEmail.value.trim()) {
+        forgotEmail.value = signInEmail.value.trim();
+      }
+      openModal('forgotPasswordModal');
+    });
+  }
+  if (toSignInFromForgot) {
+    toSignInFromForgot.addEventListener('click', (e) => {
+      e.preventDefault();
+      openModal('signInModal');
+    });
+  }
+
+  // Forgot Password Form Submit
+  const forgotForm = document.getElementById('forgotPasswordForm');
+  const forgotEmailInput = document.getElementById('forgotPasswordEmail');
+  const forgotSubmitBtn = document.getElementById('forgotPasswordSubmitBtn');
+  const forgotError = document.getElementById('forgotPasswordError');
+  const forgotNotice = document.getElementById('forgotPasswordNotice');
+
+  if (forgotForm && window.authService) {
+    forgotForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (forgotError) {
+        forgotError.style.display = 'none';
+        forgotError.textContent = '';
+      }
+      if (forgotNotice) {
+        forgotNotice.style.display = 'none';
+        forgotNotice.textContent = '';
+      }
+
+      const email = forgotEmailInput.value.trim();
+      if (!email) return;
+
+      const origBtnHTML = forgotSubmitBtn.innerHTML;
+      forgotSubmitBtn.disabled = true;
+      forgotSubmitBtn.innerHTML = `<i class="ph ph-circle-notch icon-sm" style="animation: spin 0.8s linear infinite;" aria-hidden="true"></i> <span>Sending...</span>`;
+
+      try {
+        await window.authService.resetPassword(email);
+        if (forgotNotice) {
+          forgotNotice.innerHTML = `<strong>Recovery Link Dispatched!</strong> Instructions have been sent to <strong>${email}</strong>. Please check your inbox.`;
+          forgotNotice.style.display = 'block';
+        }
+        showToast('Password reset link sent to your email', 'ph-paper-plane-tilt');
+      } catch (err) {
+        if (forgotError) {
+          forgotError.textContent = err.message || 'Unable to send password reset email.';
+          forgotError.style.display = 'block';
+        } else {
+          showToast(err.message || 'Unable to send reset email', 'ph-warning-circle');
+        }
+      } finally {
+        forgotSubmitBtn.disabled = false;
+        forgotSubmitBtn.innerHTML = origBtnHTML;
+      }
+    });
+  }
 }
 
 function openModal(modalId) {
@@ -901,8 +1007,20 @@ function setupAuth() {
       const fullName = signUpFullName.value.trim();
       const email = signUpEmail.value.trim();
       const password = signUpPassword.value;
+      const confirmPassword = document.getElementById('signUpConfirmPassword')?.value;
 
       if (!fullName || !email || !password) return;
+
+      // Validate matching passwords
+      if (confirmPassword !== undefined && password !== confirmPassword) {
+        if (signUpError) {
+          signUpError.textContent = 'Passwords do not match. Please verify and try again.';
+          signUpError.style.display = 'block';
+        } else {
+          showToast('Passwords do not match', 'ph-warning-circle');
+        }
+        return;
+      }
 
       const originalBtnHTML = signUpSubmitBtn.innerHTML;
       signUpSubmitBtn.disabled = true;
@@ -941,6 +1059,51 @@ function setupAuth() {
 }
 
 /**
+ * Route "Get Started" and "Start Planning" buttons:
+ * Non-authenticated users are directed to the Sign Up page/modal.
+ * Authenticated users are directed to the Trip Planner (#planner).
+ */
+function handleStartPlanningAction(e) {
+  if (e) e.preventDefault();
+  const user = store.getState().user;
+  if (!user || !user.isLoggedIn) {
+    openModal('signUpModal');
+  } else {
+    window.location.hash = 'planner';
+  }
+}
+window.handleStartPlanningAction = handleStartPlanningAction;
+
+/**
+ * Handle third-party OAuth sign in / sign up (e.g. Google, Apple)
+ */
+async function handleOAuthSignIn(provider) {
+  if (!window.authService) {
+    showToast('Auth service initializing. Please try again.', 'ph-warning-circle');
+    return;
+  }
+
+  try {
+    showToast(`Connecting to ${provider.charAt(0).toUpperCase() + provider.slice(1)}...`, 'ph-sparkle');
+    await window.authService.signInWithOAuth(provider);
+  } catch (err) {
+    console.error('OAuth error:', err);
+    const msg = err.message || '';
+    const friendlyNotice = msg.toLowerCase().includes('not enabled') || msg.toLowerCase().includes('provider')
+      ? `${provider.charAt(0).toUpperCase() + provider.slice(1)} Sign-In requires activating the provider in your Supabase Dashboard under Authentication > Providers > ${provider.charAt(0).toUpperCase() + provider.slice(1)}.`
+      : (err.message || 'Unable to connect to OAuth provider.');
+
+    const errBox = document.getElementById('signInError') || document.getElementById('signUpError');
+    if (errBox) {
+      errBox.textContent = friendlyNotice;
+      errBox.style.display = 'block';
+    }
+    showToast(friendlyNotice, 'ph-warning-circle');
+  }
+}
+window.handleOAuthSignIn = handleOAuthSignIn;
+
+/**
  * Trigger Supabase Password Reset for user
  */
 async function handleResetPassword() {
@@ -967,6 +1130,7 @@ function updateUserUI(user) {
 
   const headerAuthBtn = document.getElementById('headerAuthBtn');
   const headerAuthBtnText = document.getElementById('headerAuthBtnText');
+  const headerGetStartedBtn = document.getElementById('headerGetStartedBtn');
   const dashGreetingName = document.getElementById('dashGreetingName');
   const dashProfileAvatar = document.getElementById('dashProfileAvatar');
   const dashProfileName = document.getElementById('dashProfileName');
@@ -988,6 +1152,9 @@ function updateUserUI(user) {
         window.location.hash = 'profile';
       };
     }
+    if (headerGetStartedBtn) {
+      headerGetStartedBtn.title = 'Trip Planner';
+    }
     if (dashGreetingName) dashGreetingName.textContent = firstName;
     if (dashProfileAvatar) dashProfileAvatar.textContent = user.avatarText || 'TR';
     if (dashProfileName) dashProfileName.textContent = user.name;
@@ -1005,6 +1172,9 @@ function updateUserUI(user) {
         e.preventDefault();
         openModal('signInModal');
       };
+    }
+    if (headerGetStartedBtn) {
+      headerGetStartedBtn.title = 'Sign Up to Start Planning';
     }
     if (dashGreetingName) dashGreetingName.textContent = 'Traveler';
     if (dashProfileAvatar) dashProfileAvatar.textContent = 'GT';

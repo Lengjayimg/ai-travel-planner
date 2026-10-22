@@ -61,6 +61,24 @@ const authService = {
   },
 
   /**
+   * Authenticate via third-party OAuth provider (e.g. 'google', 'apple')
+   */
+  async signInWithOAuth(provider) {
+    if (!supabaseClient) {
+      throw new Error('Supabase client failed to load.');
+    }
+    const { data, error } = await supabaseClient.auth.signInWithOAuth({
+      provider: provider,
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
    * Log out the active session
    */
   async signOut() {

@@ -938,3 +938,126 @@ input:checked + .toggle-slider {
 input:checked + .toggle-slider:before {
   transform: translateX(22px);
 }
+
+/* ==========================================================================
+   AUTHENTICATION UI EXTENSIONS: PASSWORD TOGGLE, SOCIAL AUTH & DIVIDERS
+   ========================================================================== */
+
+/* Password Input Wrapper with Show/Hide Toggle */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-input-wrapper .form-control {
+  padding-right: 44px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  font-size: 1.15rem;
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+.password-toggle-btn:hover {
+  color: var(--color-primary-dark);
+}
+
+.password-toggle-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+/* Text link button (e.g. Forgot Password) */
+.btn-text-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-primary-dark);
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity var(--transition-fast), color var(--transition-fast);
+}
+
+.btn-text-link:hover {
+  opacity: 0.8;
+  color: var(--color-primary);
+}
+
+/* Auth Divider & Social Auth Group */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 18px 0;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.auth-divider span {
+  padding: 0 12px;
+  font-weight: 500;
+}
+
+.social-auth-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.btn-social-auth {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-headline);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-social-auth:hover {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.btn-social-auth svg,
+.btn-social-auth i {
+  flex-shrink: 0;
+}
