@@ -67,6 +67,41 @@ class WayfindStore {
     this.notify();
   }
 
+  setUser(supabaseUser) {
+    if (supabaseUser) {
+      const metadata = supabaseUser.user_metadata || {};
+      const fullName = metadata.full_name || supabaseUser.email.split('@')[0];
+      const initials = fullName
+        .split(' ')
+        .filter(Boolean)
+        .map(n => n[0].toUpperCase())
+        .slice(0, 2)
+        .join('') || 'TR';
+
+      this.state.user = {
+        id: supabaseUser.id,
+        name: fullName,
+        handle: '@' + (supabaseUser.email.split('@')[0] || 'traveler'),
+        email: supabaseUser.email,
+        avatarText: initials,
+        location: metadata.location || 'Nigeria',
+        tripsCount: this.state.savedTrips.length,
+        isLoggedIn: true
+      };
+    } else {
+      this.state.user = {
+        name: 'Guest Traveler',
+        handle: '@guest',
+        email: '',
+        avatarText: 'GT',
+        location: 'Explorer',
+        tripsCount: 0,
+        isLoggedIn: false
+      };
+    }
+    this.notify();
+  }
+
   setTheme(theme) {
     this.state.theme = theme;
     localStorage.setItem('wayfind_theme', theme);

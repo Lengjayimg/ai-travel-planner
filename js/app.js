@@ -26,14 +26,24 @@ function initApp() {
   // 5. Setup Modals & Overlays
   setupModals();
 
-  // 6. Setup Chatbot Interactivity
+  // 6. Setup Supabase Authentication
+  setupAuth();
+  if (window.authService) {
+    window.authService.init(store);
+  }
+
+  // 7. Setup Chatbot Interactivity
   setupChatbot();
 
-  // 7. Subscribe UI re-renderers to State Changes
+  // 8. Subscribe UI re-renderers to State Changes
   store.subscribe((state) => {
     renderCurrentView(state);
     updateThemeLogos(state.theme);
+    updateUserUI(state.user);
   });
+
+  // Initial user UI sync
+  updateUserUI(store.getState().user);
 
   // Handle URL hash on boot
   handleHashChange();
@@ -751,4 +761,190 @@ function showToast(msg, iconClass = 'ph-check-circle') {
     toast.style.opacity = '0';
     toast.style.transform = 'translateX(-50%) translateY(30px)';
   }, 3000);
+}
+
+/* ==========================================================================
+   SUPABASE AUTHENTICATION CONTROLLER & UI SYNC
+   ========================================================================== */
+
+function setupAuth() {
+  // Sign In Form submission
+  const signInForm = document.getElementById('signInForm');
+  const signInEmail = document.getElementById('signInEmail');
+  const signInPassword = document.getElementById('signInPassword');
+  const signInSubmitBtn = document.getElementById('signInSubmitBtn');
+  const signInError = document.getElementById('signInError');
+
+  if (signInForm && window.authService) {
+    signInForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (signInError) {
+        signInError.style.display = 'none';
+        signInError.textContent = '';
+      }
+
+      const email = signInEmail.value.trim();
+      const password = signInPassword.value;
+      if (!email || !password) return;
+
+      const originalBtnHTML = signInSubmitBtn.innerHTML;
+      signInSubmitBtn.disabled = true;
+      signInSubmitBtn.innerHTML = `<i class="ph ph-circle-notch icon-sm" style="animation: spin 0.8s linear infinite;" aria-hidden="true"></i> <span>Signing In...</span>`;
+
+      try {
+        await window.authService.signIn(email, password);
+        closeAllModals();
+        signInForm.reset();
+        showToast('Signed in successfully!', 'ph-check-circle');
+      } catch (err) {
+        if (signInError) {
+          signInError.textContent = err.message || 'Unable to sign in. Please verify your credentials.';
+          signInError.style.display = 'block';
+        } else {
+          showToast(err.message || 'Unable to sign in', 'ph-warning-circle');
+        }
+      } finally {
+        signInSubmitBtn.disabled = false;
+        signInSubmitBtn.innerHTML = originalBtnHTML;
+      }
+    });
+  }
+
+  // Sign Up Form submission
+  const signUpForm = document.getElementById('signUpForm');
+  const signUpFullName = document.getElementById('signUpFullName');
+  const signUpEmail = document.getElementById('signUpEmail');
+  const signUpPassword = document.getElementById('signUpPassword');
+  const signUpSubmitBtn = document.getElementById('signUpSubmitBtn');
+  const signUpError = document.getElementById('signUpError');
+  const signUpNotice = document.getElementById('signUpNotice');
+
+  if (signUpForm && window.authService) {
+    signUpForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (signUpError) {
+        signUpError.style.display = 'none';
+        signUpError.textContent = '';
+      }
+      if (signUpNotice) {
+        signUpNotice.style.display = 'none';
+        signUpNotice.textContent = '';
+      }
+
+      const fullName = signUpFullName.value.trim();
+      const email = signUpEmail.value.trim();
+      const password = signUpPassword.value;
+
+      if (!fullName || !email || !password) return;
+
+      const originalBtnHTML = signUpSubmitBtn.innerHTML;
+      signUpSubmitBtn.disabled = true;
+      signUpSubmitBtn.innerHTML = `<i class="ph ph-circle-notch icon-sm" style="animation: spin 0.8s linear infinite;" aria-hidden="true"></i> <span>Creating Account...</span>`;
+
+      try {
+        const data = await window.authService.signUp(fullName, email, password);
+        
+        // When email autoconfirm is enabled, session is directly provided
+        if (data && data.session) {
+          closeAllModals();
+          signUpForm.reset();
+          showToast(`Welcome to Wayfind, ${fullName}!`, 'ph-sparkle');
+        } else {
+          // If Supabase project requires email confirmation (mailer_autoconfirm: false)
+          if (signUpNotice) {
+            signUpNotice.innerHTML = `<strong>Account registered!</strong> We've sent a verification email to <strong>${email}</strong>. Please check your inbox and verify your address before signing in.`;
+            signUpNotice.style.display = 'block';
+          }
+          signUpForm.reset();
+          showToast('Confirmation email sent! Check your inbox.', 'ph-envelope-simple');
+        }
+      } catch (err) {
+        if (signUpError) {
+          signUpError.textContent = err.message || 'Unable to create account.';
+          signUpError.style.display = 'block';
+        } else {
+          showToast(err.message || 'Unable to create account', 'ph-warning-circle');
+        }
+      } finally {
+        signUpSubmitBtn.disabled = false;
+        signUpSubmitBtn.innerHTML = originalBtnHTML;
+      }
+    });
+  }
+}
+
+/**
+ * Trigger Supabase Password Reset for user
+ */
+async function handleResetPassword() {
+  if (!window.authService) return;
+  const user = store.getState().user;
+  const defaultEmail = (user && user.isLoggedIn && user.email) ? user.email : '';
+
+  const email = prompt('Enter your registered email address to receive a password reset link:', defaultEmail);
+  if (!email || !email.trim()) return;
+
+  try {
+    await window.authService.resetPassword(email.trim());
+    showToast(`Password reset link sent to ${email.trim()}`, 'ph-paper-plane-tilt');
+  } catch (err) {
+    showToast(err.message || 'Failed to send password reset email.', 'ph-warning-circle');
+  }
+}
+
+/**
+ * Synchronize UI elements with active authentication state
+ */
+function updateUserUI(user) {
+  if (!user) return;
+
+  const headerAuthBtn = document.getElementById('headerAuthBtn');
+  const headerAuthBtnText = document.getElementById('headerAuthBtnText');
+  const dashGreetingName = document.getElementById('dashGreetingName');
+  const dashProfileAvatar = document.getElementById('dashProfileAvatar');
+  const dashProfileName = document.getElementById('dashProfileName');
+  const dashProfileEmail = document.getElementById('dashProfileEmail');
+  const profileAvatar = document.getElementById('profileAvatar');
+  const profileName = document.getElementById('profileName');
+  const profileEmail = document.getElementById('profileEmail');
+
+  const firstName = user.name ? user.name.split(' ')[0] : 'Traveler';
+
+  if (user.isLoggedIn) {
+    if (headerAuthBtnText) {
+      headerAuthBtnText.textContent = firstName;
+    }
+    if (headerAuthBtn) {
+      headerAuthBtn.title = `Signed in as ${user.name} (${user.email})`;
+      headerAuthBtn.onclick = (e) => {
+        e.preventDefault();
+        window.location.hash = 'profile';
+      };
+    }
+    if (dashGreetingName) dashGreetingName.textContent = firstName;
+    if (dashProfileAvatar) dashProfileAvatar.textContent = user.avatarText || 'TR';
+    if (dashProfileName) dashProfileName.textContent = user.name;
+    if (dashProfileEmail) dashProfileEmail.textContent = user.email || 'traveler@wayfind.travel';
+    if (profileAvatar) profileAvatar.textContent = user.avatarText || 'TR';
+    if (profileName) profileName.textContent = user.name;
+    if (profileEmail) profileEmail.textContent = user.email || 'traveler@wayfind.travel';
+  } else {
+    if (headerAuthBtnText) {
+      headerAuthBtnText.textContent = 'Sign In';
+    }
+    if (headerAuthBtn) {
+      headerAuthBtn.title = 'Sign In to Wayfind';
+      headerAuthBtn.onclick = (e) => {
+        e.preventDefault();
+        openModal('signInModal');
+      };
+    }
+    if (dashGreetingName) dashGreetingName.textContent = 'Traveler';
+    if (dashProfileAvatar) dashProfileAvatar.textContent = 'GT';
+    if (dashProfileName) dashProfileName.textContent = 'Guest Traveler';
+    if (dashProfileEmail) dashProfileEmail.textContent = 'guest@wayfind.travel';
+    if (profileAvatar) profileAvatar.textContent = 'GT';
+    if (profileName) profileName.textContent = 'Guest Traveler';
+    if (profileEmail) profileEmail.textContent = 'guest@wayfind.travel';
+  }
 }
