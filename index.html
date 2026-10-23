@@ -64,7 +64,7 @@
           <div class="a11y-menu-popout">
             <div class="a11y-menu-header">
               <h4 class="a11y-menu-title">Accessibility Menu</h4>
-              <button type="button" class="a11y-close-btn" aria-label="Close Accessibility Menu" onclick="closeAllA11yMenus()">
+              <button type="button" class="a11y-close-btn" aria-label="Close Accessibility Menu" onclick="closeAllA11yMenus(event)">
                 <i class="ph ph-x" aria-hidden="true"></i>
               </button>
             </div>
@@ -147,12 +147,81 @@
         </a>
 
         <!-- Mobile Menu Toggle -->
-        <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Open Navigation Menu">
+        <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Open Navigation Menu" onclick="openMobileMenu()">
           <i class="ph ph-list" aria-hidden="true"></i>
         </button>
       </div>
     </div>
   </header>
+
+  <!-- Mobile Backdrop Overlay for Centered Accessibility Menu -->
+  <div class="a11y-mobile-overlay" id="a11yMobileOverlay" onclick="closeAllA11yMenus(event)"></div>
+
+  <!-- Mobile Navigation Drawer (Styled after user sample with Wayfind theme) -->
+  <div class="mobile-nav-drawer" id="mobileNavDrawer" aria-hidden="true">
+    <div class="mobile-nav-backdrop" id="mobileNavBackdrop" onclick="closeMobileMenu()"></div>
+    <div class="mobile-nav-panel">
+      <!-- Drawer Top: Wayfind Logo & Circular Close Button -->
+      <div class="mobile-nav-header">
+        <a href="#landing" class="mobile-brand-link" data-route="landing" onclick="closeMobileMenu()">
+          <div class="brand-icon-wrapper">
+            <img src="Logo for Light Mode.png" alt="Wayfind Compass" class="brand-icon-img" />
+          </div>
+          <div class="mobile-brand-meta">
+            <span class="brand-name">WAYFIND</span>
+            <span class="mobile-brand-sub">Intelligent Travel Planner</span>
+          </div>
+        </a>
+        <button type="button" class="mobile-nav-close-btn" id="mobileNavCloseBtn" aria-label="Close navigation menu" onclick="closeMobileMenu()">
+          <i class="ph ph-x" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <!-- Drawer Body: Pill-style Navigation Cards -->
+      <div class="mobile-nav-body">
+        <nav class="mobile-nav-cards">
+          <a href="#landing" class="mobile-nav-card active" data-route="landing" onclick="closeMobileMenu()">
+            <span>Home</span>
+            <i class="ph ph-arrow-right icon-xs" aria-hidden="true"></i>
+          </a>
+          <a href="#features" class="mobile-nav-card" data-route="features" onclick="closeMobileMenu()">
+            <span>Features</span>
+            <i class="ph ph-arrow-right icon-xs" aria-hidden="true"></i>
+          </a>
+          <a href="#how-it-works" class="mobile-nav-card" data-route="how-it-works" onclick="closeMobileMenu()">
+            <span>How It Works</span>
+            <i class="ph ph-arrow-right icon-xs" aria-hidden="true"></i>
+          </a>
+          <a href="#destinations" class="mobile-nav-card" data-route="destinations" onclick="closeMobileMenu()">
+            <span>Destinations</span>
+            <i class="ph ph-arrow-right icon-xs" aria-hidden="true"></i>
+          </a>
+          <a href="#planner" class="mobile-nav-card" data-route="planner" onclick="closeMobileMenu()">
+            <span>Trip Planner</span>
+            <i class="ph ph-arrow-right icon-xs" aria-hidden="true"></i>
+          </a>
+          <a href="#saved-trips" class="mobile-nav-card" data-route="saved-trips" onclick="closeMobileMenu()">
+            <span>My Trips</span>
+            <i class="ph ph-arrow-right icon-xs" aria-hidden="true"></i>
+          </a>
+          <a href="#dashboard" class="mobile-nav-card" data-route="dashboard" onclick="closeMobileMenu()">
+            <span>Dashboard</span>
+            <i class="ph ph-arrow-right icon-xs" aria-hidden="true"></i>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Drawer Bottom: Sign In & Start Planning Action Buttons -->
+      <div class="mobile-nav-footer">
+        <button type="button" class="btn-mobile-auth-outline" id="mobileAuthBtn" onclick="closeMobileMenu(); openModal('signInModal');">
+          <span>Log In</span>
+        </button>
+        <button type="button" class="btn-mobile-auth-solid" id="mobileGetStartedBtn" onclick="closeMobileMenu(); handleStartPlanningAction(event);">
+          <span>Start Planning</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- ==========================================================================
        VIEW 1: PUBLIC LANDING PAGE (data-view="landing")
@@ -1271,7 +1340,7 @@
       <div class="a11y-menu-popout">
         <div class="a11y-menu-header">
           <h4 class="a11y-menu-title">Accessibility Menu</h4>
-          <button type="button" class="a11y-close-btn" aria-label="Close Accessibility Menu" onclick="closeAllA11yMenus()">
+          <button type="button" class="a11y-close-btn" aria-label="Close Accessibility Menu" onclick="closeAllA11yMenus(event)">
             <i class="ph ph-x" aria-hidden="true"></i>
           </button>
         </div>
@@ -1390,7 +1459,7 @@
       <div class="a11y-menu-popout">
         <div class="a11y-menu-header">
           <h4 class="a11y-menu-title">Accessibility Menu</h4>
-          <button type="button" class="a11y-close-btn" aria-label="Close Accessibility Menu" onclick="closeAllA11yMenus()">
+          <button type="button" class="a11y-close-btn" aria-label="Close Accessibility Menu" onclick="closeAllA11yMenus(event)">
             <i class="ph ph-x" aria-hidden="true"></i>
           </button>
         </div>

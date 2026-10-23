@@ -164,38 +164,20 @@
     padding-right: var(--space-4);
   }
 
-  /* Mobile Navigation Menu */
+  /* Mobile Navigation Menu - Desktop nav and action buttons hidden, moved into drawer */
   .nav-links {
-    position: fixed;
-    top: var(--header-height);
-    left: 0;
-    right: 0;
-    background: var(--color-surface);
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-    padding: 20px;
-    border-bottom: 1px solid var(--color-border);
-    box-shadow: var(--shadow-lg);
-    display: none;
-  }
-
-  .nav-links.mobile-open {
-    display: flex;
-  }
-
-  .nav-link {
-    padding: 14px 0;
-    border-bottom: 1px solid var(--color-border-subtle);
-    font-size: 1.05rem;
+    display: none !important;
   }
 
   .mobile-nav-toggle {
-    display: flex;
+    display: flex !important;
   }
 
+  .header-user-wrapper,
+  #headerGetStartedBtn,
+  .header-cta-btn,
   .header-actions .btn-primary {
-    display: none; /* Keep clean on small mobile header, rely on menu CTA */
+    display: none !important; /* Moved into mobile hamburger menu drawer */
   }
 
   .steps-grid {

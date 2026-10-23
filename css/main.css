@@ -1141,6 +1141,67 @@ select.form-control {
   stroke-width: 2px;
 }
 
+/* Responsive AI Routing & Contextual Logic (Tablet & Mobile) */
+@media (max-width: 1024px) {
+  .transformation-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .transformation-arrow {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 8px auto;
+    padding: 10px 22px;
+    background: var(--color-primary-subtle);
+    border-radius: 999px;
+    border: 1px solid var(--color-primary-light);
+    width: fit-content;
+    box-shadow: 0 2px 8px rgba(90, 126, 100, 0.12);
+  }
+
+  .transformation-arrow svg {
+    transform: rotate(90deg);
+    width: 24px;
+    height: 24px;
+    margin-bottom: 2px;
+  }
+
+  .transformation-arrow span {
+    font-size: 0.9rem;
+    color: var(--color-primary-dark);
+    font-weight: 700;
+  }
+
+  .transformation-card {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .ai-transformation-box {
+    padding: 20px 16px;
+  }
+  .transformation-card {
+    padding: 16px;
+  }
+  .trans-input-item {
+    font-size: 0.84rem;
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  .trans-input-item i {
+    flex-shrink: 0;
+  }
+  .transformation-arrow {
+    padding: 8px 16px;
+  }
+  .transformation-arrow span {
+    font-size: 0.82rem;
+  }
+}
+
 /* --- Final CTA Section --- */
 .final-cta-section {
   position: relative;

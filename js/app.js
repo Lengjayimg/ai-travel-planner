@@ -89,10 +89,10 @@ function setupNavigation() {
 
   // Mobile menu hamburger toggle
   const mobileToggle = document.getElementById('mobileNavToggle');
-  const navLinks = document.getElementById('navLinks');
-  if (mobileToggle && navLinks) {
-    mobileToggle.addEventListener('click', () => {
-      navLinks.classList.toggle('mobile-open');
+  if (mobileToggle) {
+    mobileToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      openMobileMenu();
     });
   }
 
@@ -105,7 +105,22 @@ function setupNavigation() {
   }
 }
 
+function openMobileMenu() {
+  const drawer = document.getElementById('mobileNavDrawer');
+  if (drawer) {
+    drawer.classList.add('open');
+    drawer.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
 function closeMobileMenu() {
+  const drawer = document.getElementById('mobileNavDrawer');
+  if (drawer) {
+    drawer.classList.remove('open');
+    drawer.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
   const navLinks = document.getElementById('navLinks');
   if (navLinks) navLinks.classList.remove('mobile-open');
 }
@@ -166,8 +181,8 @@ function renderCurrentView(state) {
     }
   });
 
-  // Update active state in nav links
-  document.querySelectorAll('.nav-link').forEach(link => {
+  // Update active state in nav links (Desktop & Mobile Drawer)
+  document.querySelectorAll('.nav-link, .mobile-nav-card').forEach(link => {
     const route = link.getAttribute('data-route');
     if (route === state.currentView) {
       link.classList.add('active');
@@ -1222,6 +1237,23 @@ function updateUserUI(user) {
     if (profileEmail) profileEmail.textContent = 'guest@wayfind.travel';
   }
 
+  // Synchronize Mobile Drawer Action Buttons
+  const mobileAuthBtn = document.getElementById('mobileAuthBtn');
+  const mobileGetStartedBtn = document.getElementById('mobileGetStartedBtn');
+  if (mobileAuthBtn && mobileGetStartedBtn) {
+    if (user.isLoggedIn) {
+      mobileAuthBtn.innerHTML = '<span>Manage Account</span>';
+      mobileAuthBtn.onclick = () => { closeMobileMenu(); window.location.hash = 'profile'; };
+      mobileGetStartedBtn.innerHTML = '<span>Log Out</span>';
+      mobileGetStartedBtn.onclick = () => { closeMobileMenu(); if (window.authService) window.authService.signOut(); };
+    } else {
+      mobileAuthBtn.innerHTML = '<span>Log In</span>';
+      mobileAuthBtn.onclick = () => { closeMobileMenu(); openModal('signInModal'); };
+      mobileGetStartedBtn.innerHTML = '<span>Start Planning</span>';
+      mobileGetStartedBtn.onclick = (e) => { closeMobileMenu(); handleStartPlanningAction(e); };
+    }
+  }
+
   // Synchronize Settings Controls
   if (settingsCurrencySelect) {
     settingsCurrencySelect.value = store.getState().currency;
@@ -1366,8 +1398,17 @@ async function removeProfilePhoto() {
 /* ==========================================================================
    ACCESSIBILITY MENU CONTROLLER & FEATURES
    ========================================================================== */
-function closeAllA11yMenus() {
-  document.querySelectorAll('.a11y-dropdown-container').forEach(c => c.classList.remove('open'));
+function closeAllA11yMenus(e) {
+  if (e) {
+    if (typeof e.stopPropagation === 'function') e.stopPropagation();
+    if (typeof e.preventDefault === 'function') e.preventDefault();
+  }
+  document.querySelectorAll('.a11y-dropdown-container').forEach(c => {
+    c.classList.remove('open');
+    c.classList.add('a11y-dismissed');
+  });
+  const overlay = document.getElementById('a11yMobileOverlay');
+  if (overlay) overlay.classList.remove('active');
 }
 
 function handleA11yTextToSpeech() {
@@ -1530,16 +1571,28 @@ function setupA11yMenus() {
     document.documentElement.setAttribute('data-a11y-simplify', 'true');
   }
 
+  // Reset dismissed state on mouseleave so hovering again works freshly
+  document.querySelectorAll('.a11y-dropdown-container').forEach(container => {
+    container.addEventListener('mouseleave', () => {
+      container.classList.remove('a11y-dismissed');
+    });
+  });
+
   // Click handler for mobile / tap devices on .a11y-trigger-btn
   document.querySelectorAll('.a11y-trigger-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const container = btn.closest('.a11y-dropdown-container');
       if (!container) return;
+      container.classList.remove('a11y-dismissed');
       const wasOpen = container.classList.contains('open');
       closeAllA11yMenus();
       if (!wasOpen) {
         container.classList.add('open');
+        if (window.innerWidth <= 768) {
+          const overlay = document.getElementById('a11yMobileOverlay');
+          if (overlay) overlay.classList.add('active');
+        }
       }
     });
   });
@@ -1560,6 +1613,8 @@ window.resetAvatarToInitials = resetAvatarToInitials;
 window.removeProfilePhoto = removeProfilePhoto;
 
 window.closeAllA11yMenus = closeAllA11yMenus;
+window.openMobileMenu = openMobileMenu;
+window.closeMobileMenu = closeMobileMenu;
 window.handleA11yTextToSpeech = handleA11yTextToSpeech;
 window.handleA11yDecreaseFont = handleA11yDecreaseFont;
 window.handleA11yIncreaseFont = handleA11yIncreaseFont;
