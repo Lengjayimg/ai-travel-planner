@@ -1550,7 +1550,6 @@ function handleA11yResetDefaults() {
   localStorage.removeItem('wayfind_a11y_theme');
   localStorage.removeItem('wayfind_a11y_simplify');
 
-  closeAllA11yMenus();
   showToast('Accessibility settings reset to default', 'ph-arrows-counter-clockwise');
 }
 
