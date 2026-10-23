@@ -151,6 +151,57 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 40px;
   }
+
+  /* Tablet & Mobile Navigation Menu - Desktop nav and action buttons hidden, moved into drawer */
+  .nav-links {
+    display: none !important;
+  }
+
+  .mobile-nav-toggle {
+    display: flex !important;
+  }
+
+  #headerGetStartedBtn,
+  .header-cta-btn,
+  .header-actions .btn-primary {
+    display: none !important; /* Moved into mobile/tablet hamburger menu drawer */
+  }
+
+  /* Logged out state on Tablet & Mobile: Sign In button is inside hamburger drawer */
+  body:not(.user-logged-in) .header-user-wrapper {
+    display: none !important;
+  }
+
+  /* Logged in state on Tablet & Mobile: Introduce profile icon with user initials before hamburger */
+  body.user-logged-in .header-user-wrapper {
+    display: flex !important;
+    align-items: center;
+  }
+
+  body.user-logged-in .header-user-wrapper #headerAuthBtn {
+    display: none !important;
+  }
+
+  body.user-logged-in .header-user-wrapper #headerProfileDropdown {
+    display: inline-block !important;
+  }
+
+  .header-profile-menu {
+    right: -52px;
+    width: min(250px, calc(100vw - 32px));
+    max-width: calc(100vw - 32px);
+  }
+}
+
+/* --- Tablet View (769px to 1024px): Maintain full icon logo and WAYFIND text --- */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .site-header .brand-logo .brand-icon-wrapper {
+    display: flex !important;
+  }
+
+  .site-header .brand-logo .brand-name {
+    display: inline-block !important;
+  }
 }
 
 /* --- Mobile Breakpoint (max-width: 768px) --- */
@@ -164,20 +215,22 @@
     padding-right: var(--space-4);
   }
 
-  /* Mobile Navigation Menu - Desktop nav and action buttons hidden, moved into drawer */
-  .nav-links {
+  /* When logged in on mobile: remove the logo icon only (show only WAYFIND) */
+  body.user-logged-in .site-header .brand-logo .brand-icon-wrapper {
     display: none !important;
   }
 
-  .mobile-nav-toggle {
+  body.user-logged-in .site-header .brand-logo .brand-name {
+    display: inline-block !important;
+  }
+
+  /* When logged out on mobile: maintain full icon logo and WAYFIND text */
+  body:not(.user-logged-in) .site-header .brand-logo .brand-icon-wrapper {
     display: flex !important;
   }
 
-  .header-user-wrapper,
-  #headerGetStartedBtn,
-  .header-cta-btn,
-  .header-actions .btn-primary {
-    display: none !important; /* Moved into mobile hamburger menu drawer */
+  body:not(.user-logged-in) .site-header .brand-logo .brand-name {
+    display: inline-block !important;
   }
 
   .steps-grid {
@@ -242,6 +295,17 @@
     width: calc(100vw - 32px);
     right: 0;
     bottom: 56px;
+  }
+}
+
+/* --- Narrow Mobile Screens (max-width: 480px) --- */
+@media (max-width: 480px) {
+  .header-actions {
+    gap: 8px;
+  }
+
+  .site-header .brand-name {
+    font-size: 1.18rem;
   }
 }
 

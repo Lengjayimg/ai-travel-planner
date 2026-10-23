@@ -132,6 +132,10 @@ function setupNavigation() {
 }
 
 function openMobileMenu() {
+  const profileDropdown = document.getElementById('headerProfileDropdown');
+  if (profileDropdown) profileDropdown.classList.remove('open');
+  if (typeof closeAllA11yMenus === 'function') closeAllA11yMenus();
+
   const drawer = document.getElementById('mobileNavDrawer');
   if (drawer) {
     drawer.classList.add('open');
@@ -1196,6 +1200,9 @@ async function handleResetPassword() {
 function updateUserUI(user) {
   if (!user) return;
 
+  // Synchronize body class for logged-in responsive header behavior (mobile & tablet)
+  document.body.classList.toggle('user-logged-in', !!(user && user.isLoggedIn));
+
   const headerAuthBtn = document.getElementById('headerAuthBtn');
   const headerAuthBtnText = document.getElementById('headerAuthBtnText');
   const headerProfileDropdown = document.getElementById('headerProfileDropdown');
@@ -1672,7 +1679,16 @@ const avatarBtn = document.getElementById('headerAvatarBtn');
 if (avatarBtn) {
   avatarBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    if (typeof closeAllA11yMenus === 'function') closeAllA11yMenus();
     const dropdown = document.getElementById('headerProfileDropdown');
     if (dropdown) dropdown.classList.toggle('open');
+  });
+}
+
+const menuManageAccountLink = document.getElementById('menuManageAccountLink');
+if (menuManageAccountLink) {
+  menuManageAccountLink.addEventListener('click', () => {
+    const dropdown = document.getElementById('headerProfileDropdown');
+    if (dropdown) dropdown.classList.remove('open');
   });
 }
