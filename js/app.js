@@ -133,7 +133,10 @@ function setupNavigation() {
 
 function openMobileMenu() {
   const profileDropdown = document.getElementById('headerProfileDropdown');
-  if (profileDropdown) profileDropdown.classList.remove('open');
+  if (profileDropdown) {
+    profileDropdown.classList.remove('open');
+    profileDropdown.classList.add('profile-dismissed');
+  }
   if (typeof closeAllA11yMenus === 'function') closeAllA11yMenus();
 
   const drawer = document.getElementById('mobileNavDrawer');
@@ -1668,27 +1671,55 @@ window.handleA11yColorTheme = handleA11yColorTheme;
 window.handleA11ySimplifyContent = handleA11ySimplifyContent;
 window.handleA11yResetDefaults = handleA11yResetDefaults;
 
-// Close Header Profile Menu on click outside or navigation
+// Header Profile Menu Click & Hover Toggle Controller
+const profileDropdown = document.getElementById('headerProfileDropdown');
+const avatarBtn = document.getElementById('headerAvatarBtn');
+const menuManageAccountLink = document.getElementById('menuManageAccountLink');
+
+if (avatarBtn && profileDropdown) {
+  avatarBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (typeof closeAllA11yMenus === 'function') closeAllA11yMenus();
+
+    const menu = document.getElementById('headerProfileMenu');
+    // Check if dropdown is currently visually open (via class 'open' or active hover)
+    const isCurrentlyOpen = profileDropdown.classList.contains('open') ||
+      (!profileDropdown.classList.contains('profile-dismissed') && menu && window.getComputedStyle(menu).visibility === 'visible' && window.getComputedStyle(menu).opacity !== '0');
+
+    if (isCurrentlyOpen) {
+      // Toggle OFF: Close it explicitly
+      profileDropdown.classList.remove('open');
+      profileDropdown.classList.add('profile-dismissed');
+      avatarBtn.blur();
+    } else {
+      // Toggle ON: Open it
+      profileDropdown.classList.remove('profile-dismissed');
+      profileDropdown.classList.add('open');
+    }
+  });
+
+  // Reset dismissal state on mouseleave so subsequent hovers naturally open the menu again
+  profileDropdown.addEventListener('mouseleave', () => {
+    profileDropdown.classList.remove('profile-dismissed');
+    profileDropdown.classList.remove('open');
+  });
+}
+
+// Close Header Profile Menu on click outside
 document.addEventListener('click', (e) => {
   const dropdown = document.getElementById('headerProfileDropdown');
   if (dropdown && !dropdown.contains(e.target)) {
     dropdown.classList.remove('open');
+    dropdown.classList.remove('profile-dismissed');
   }
 });
-const avatarBtn = document.getElementById('headerAvatarBtn');
-if (avatarBtn) {
-  avatarBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (typeof closeAllA11yMenus === 'function') closeAllA11yMenus();
-    const dropdown = document.getElementById('headerProfileDropdown');
-    if (dropdown) dropdown.classList.toggle('open');
-  });
-}
 
-const menuManageAccountLink = document.getElementById('menuManageAccountLink');
 if (menuManageAccountLink) {
   menuManageAccountLink.addEventListener('click', () => {
     const dropdown = document.getElementById('headerProfileDropdown');
-    if (dropdown) dropdown.classList.remove('open');
+    if (dropdown) {
+      dropdown.classList.remove('open');
+      dropdown.classList.add('profile-dismissed');
+    }
   });
 }

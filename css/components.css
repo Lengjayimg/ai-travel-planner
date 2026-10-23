@@ -1174,17 +1174,28 @@ input:checked + .toggle-slider:before {
   padding: 14px;
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   transform: translateY(8px);
   transition: all var(--transition-fast);
   z-index: 1000;
 }
 
-.header-profile-dropdown:hover .header-profile-menu,
-.header-profile-dropdown:focus-within .header-profile-menu,
-.header-profile-dropdown.open .header-profile-menu {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
+/* Open state on hover, focus, or click toggle (unless explicitly dismissed via click) */
+.header-profile-dropdown:not(.profile-dismissed):hover .header-profile-menu,
+.header-profile-dropdown:not(.profile-dismissed):focus-within .header-profile-menu,
+.header-profile-dropdown.open:not(.profile-dismissed) .header-profile-menu {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+}
+
+/* Explicitly closed on second click or dismissal */
+.header-profile-dropdown.profile-dismissed .header-profile-menu {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: translateY(8px) !important;
 }
 
 .profile-menu-header {
