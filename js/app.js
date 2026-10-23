@@ -1407,6 +1407,8 @@ function closeAllA11yMenus(e) {
     c.classList.remove('open');
     c.classList.add('a11y-dismissed');
   });
+  const mobileModal = document.getElementById('a11yMobileModal');
+  if (mobileModal) mobileModal.classList.remove('active');
   const overlay = document.getElementById('a11yMobileOverlay');
   if (overlay) overlay.classList.remove('active');
 }
@@ -1578,20 +1580,31 @@ function setupA11yMenus() {
     });
   });
 
-  // Click handler for mobile / tap devices on .a11y-trigger-btn
+  // Click handler for accessibility trigger buttons
   document.querySelectorAll('.a11y-trigger-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const container = btn.closest('.a11y-dropdown-container');
-      if (!container) return;
-      container.classList.remove('a11y-dismissed');
-      const wasOpen = container.classList.contains('open');
-      closeAllA11yMenus();
-      if (!wasOpen) {
-        container.classList.add('open');
-        if (window.innerWidth <= 768) {
-          const overlay = document.getElementById('a11yMobileOverlay');
-          if (overlay) overlay.classList.add('active');
+      e.preventDefault();
+      if (window.innerWidth <= 768) {
+        // Mobile View: Always open centered accessibility modal
+        closeAllA11yMenus();
+        const mobileModal = document.getElementById('a11yMobileModal');
+        if (mobileModal) {
+          mobileModal.classList.add('active');
+        } else {
+          openModal('a11yMobileModal');
+        }
+      } else {
+        // Desktop View: Toggle dropdown popout
+        const container = btn.closest('.a11y-dropdown-container');
+        if (!container) return;
+        const wasOpen = container.classList.contains('open') && !container.classList.contains('a11y-dismissed');
+        document.querySelectorAll('.a11y-dropdown-container').forEach(c => {
+          c.classList.remove('open');
+        });
+        container.classList.remove('a11y-dismissed');
+        if (!wasOpen) {
+          container.classList.add('open');
         }
       }
     });
@@ -1599,7 +1612,7 @@ function setupA11yMenus() {
 
   // Close menus when clicking outside
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.a11y-dropdown-container')) {
+    if (!e.target.closest('.a11y-dropdown-container') && !e.target.closest('#a11yMobileModal')) {
       closeAllA11yMenus();
     }
   });

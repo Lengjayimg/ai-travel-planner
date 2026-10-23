@@ -1322,6 +1322,48 @@
        MODALS: AUTHENTICATION, ADD ACTIVITY, SHARE & QR CODE
        ========================================================================== -->
 
+  <!-- Centered Accessibility Menu Modal for Mobile View -->
+  <div class="modal-backdrop" id="a11yMobileModal">
+    <div class="modal-dialog a11y-modal-dialog">
+      <div class="a11y-menu-header">
+        <h4 class="a11y-menu-title">Accessibility Menu</h4>
+        <button type="button" class="a11y-close-btn" aria-label="Close Accessibility Menu" onclick="closeAllA11yMenus(event)">
+          <i class="ph ph-x" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="a11y-menu-items">
+        <button type="button" class="a11y-menu-item" onclick="handleA11yTextToSpeech()">
+          <i class="ph ph-speaker-high" aria-hidden="true"></i>
+          <span>Text to Speech</span>
+        </button>
+        <button type="button" class="a11y-menu-item" onclick="handleA11yDecreaseFont()">
+          <i class="ph ph-minus-circle" aria-hidden="true"></i>
+          <span>Decrease Font</span>
+        </button>
+        <button type="button" class="a11y-menu-item" onclick="handleA11yIncreaseFont()">
+          <i class="ph ph-plus-circle" aria-hidden="true"></i>
+          <span>Increase Font</span>
+        </button>
+        <button type="button" class="a11y-menu-item" onclick="handleA11yFontFamily()">
+          <i class="ph ph-text-t" aria-hidden="true"></i>
+          <span>Font Family</span>
+        </button>
+        <button type="button" class="a11y-menu-item" onclick="handleA11yColorTheme()">
+          <i class="ph ph-paint-bucket" aria-hidden="true"></i>
+          <span>Color Theme</span>
+        </button>
+        <button type="button" class="a11y-menu-item" onclick="handleA11ySimplifyContent()">
+          <i class="ph ph-list" aria-hidden="true"></i>
+          <span>Simplify Content</span>
+        </button>
+        <button type="button" class="a11y-menu-item a11y-item-reset" onclick="handleA11yResetDefaults()">
+          <i class="ph ph-arrows-counter-clockwise" aria-hidden="true"></i>
+          <span>Reset Defaults</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Sign In Modal -->
   <div class="modal-backdrop" id="signInModal">
     <!-- Accessibility Menu Trigger (Outside dialog overlay at the top right corner of the page) -->
