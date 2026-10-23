@@ -1412,46 +1412,36 @@ function formatMarkdownBasic(text) {
 }
 
 /* ==========================================================================
-   TOAST NOTIFICATION HELPER
+   TOAST NOTIFICATION HELPER (TOP SUCCESS FEEDBACK)
    ========================================================================== */
+let toastDismissTimer = null;
+
 function showToast(msg, iconClass = 'ph-check-circle') {
   let toast = document.getElementById('wayfindToast');
   if (!toast) {
     toast = document.createElement('div');
     toast.id = 'wayfindToast';
-    toast.style.cssText = `
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(30px);
-      background: var(--color-surface);
-      color: var(--color-text-headline);
-      border: 1px solid var(--color-primary);
-      box-shadow: var(--shadow-lg);
-      padding: 12px 24px;
-      border-radius: var(--radius-full);
-      font-family: var(--font-display);
-      font-weight: 600;
-      font-size: 0.9rem;
-      z-index: 999;
-      opacity: 0;
-      pointer-events: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    `;
+    toast.className = 'wayfind-toast';
     document.body.appendChild(toast);
   }
 
-  toast.innerHTML = `<i class="ph ${iconClass} icon-md" style="color: var(--color-primary);" aria-hidden="true"></i> <span>${msg}</span>`;
-  toast.style.opacity = '1';
-  toast.style.transform = 'translateX(-50%) translateY(0)';
+  // Clear previous timer to allow clean message renewals
+  if (toastDismissTimer) {
+    clearTimeout(toastDismissTimer);
+  }
 
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateX(-50%) translateY(30px)';
-  }, 3000);
+  const icon = iconClass.startsWith('ph-') ? iconClass : `ph-${iconClass}`;
+  toast.innerHTML = `<i class="ph ${icon} icon-md" style="color: var(--color-primary); font-size: 1.15rem; flex-shrink: 0;" aria-hidden="true"></i> <span>${msg}</span>`;
+
+  // Animate down from top
+  requestAnimationFrame(() => {
+    toast.classList.add('show');
+  });
+
+  // Automatically dismiss after 3.2s
+  toastDismissTimer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3200);
 }
 
 /* ==========================================================================
