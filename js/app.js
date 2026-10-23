@@ -246,6 +246,14 @@ function renderItineraryView(state) {
 
   if (!daysNav || !timelineFeed) return;
 
+  // Update Trip Title and Date Badges in Header
+  const titleEl = document.getElementById('itineraryTripTitle');
+  if (titleEl && trip.title) titleEl.textContent = trip.title;
+  const datesEl = document.getElementById('itineraryDatesText');
+  if (datesEl && trip.dates) {
+    datesEl.textContent = `${trip.dates} (${trip.duration || '4 Days / 3 Nights'})`;
+  }
+
   // 1. Render Days Tab Bar
   daysNav.innerHTML = trip.days.map((day, idx) => `
     <button class="day-tab-btn ${idx === state.activeDayIndex ? 'active' : ''}" onclick="selectDayIndex(${idx})">
@@ -361,10 +369,15 @@ function renderDashboardView(state) {
   const coverEl = document.getElementById('dashActiveCover');
   const titleEl = document.getElementById('dashActiveTitle');
   const datesEl = document.getElementById('dashActiveDates');
+  const datesValEl = document.getElementById('dashActiveDatesVal');
 
   if (coverEl) coverEl.src = activeTrip.coverImage;
   if (titleEl) titleEl.textContent = activeTrip.title;
-  if (datesEl) datesEl.textContent = `${activeTrip.destination} • ${activeTrip.dates}`;
+  if (datesValEl) {
+    datesValEl.textContent = `${activeTrip.destination} • ${activeTrip.dates}`;
+  } else if (datesEl) {
+    datesEl.innerHTML = `<i class="ph ph-calendar-blank"></i> <span id="dashActiveDatesVal">${activeTrip.destination} • ${activeTrip.dates}</span> <i class="ph ph-pencil-simple icon-xs"></i>`;
+  }
 }
 
 function renderSavedTripsView(state) {
@@ -652,6 +665,311 @@ function wizardCalendarClear() {
   renderWizardCalendar();
 }
 
+/* ==========================================================================
+   UNIVERSAL DATES OVERLAY POP OUT CONTROLLER (All Views)
+   ========================================================================== */
+let activeDateOverlayCaller = 'planner'; // 'landing' | 'planner' | 'itinerary' | 'dashboard'
+let overlayStartDate = null;
+let overlayEndDate = null;
+let overlayCalViewYear = 2026;
+let overlayCalViewMonth = 10; // November 2026 (0-indexed)
+
+function openDateOverlay(caller = 'planner') {
+  activeDateOverlayCaller = caller;
+
+  if (caller === 'planner') {
+    overlayStartDate = wizardStartDate ? new Date(wizardStartDate.getTime()) : null;
+    overlayEndDate = wizardEndDate ? new Date(wizardEndDate.getTime()) : null;
+    if (overlayStartDate) {
+      overlayCalViewMonth = overlayStartDate.getMonth();
+      overlayCalViewYear = overlayStartDate.getFullYear();
+    } else {
+      overlayCalViewMonth = calViewMonth;
+      overlayCalViewYear = calViewYear;
+    }
+  } else if (caller === 'landing') {
+    if (wizardStartDate && wizardEndDate) {
+      overlayStartDate = new Date(wizardStartDate.getTime());
+      overlayEndDate = new Date(wizardEndDate.getTime());
+      overlayCalViewMonth = overlayStartDate.getMonth();
+      overlayCalViewYear = overlayStartDate.getFullYear();
+    } else {
+      overlayStartDate = new Date(2026, 10, 12);
+      overlayEndDate = new Date(2026, 10, 15);
+      overlayCalViewMonth = 10;
+      overlayCalViewYear = 2026;
+    }
+  } else if (caller === 'itinerary' || caller === 'dashboard') {
+    if (wizardStartDate && wizardEndDate) {
+      overlayStartDate = new Date(wizardStartDate.getTime());
+      overlayEndDate = new Date(wizardEndDate.getTime());
+      overlayCalViewMonth = overlayStartDate.getMonth();
+      overlayCalViewYear = overlayStartDate.getFullYear();
+    } else {
+      overlayStartDate = new Date(2026, 10, 12);
+      overlayEndDate = new Date(2026, 10, 15);
+      overlayCalViewMonth = 10;
+      overlayCalViewYear = 2026;
+    }
+  }
+
+  updateOverlayDatesDisplay();
+  renderOverlayCalendar();
+  openModal('datesOverlayModal');
+}
+
+function closeDateOverlay() {
+  const modal = document.getElementById('datesOverlayModal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+}
+
+function renderOverlayCalendar() {
+  const monthHeading = document.getElementById('overlayMonthHeading');
+  const daysGrid = document.getElementById('overlayDaysGrid');
+  if (!daysGrid || !monthHeading) return;
+
+  monthHeading.textContent = `${CAL_MONTH_NAMES[overlayCalViewMonth]} ${overlayCalViewYear}`;
+  daysGrid.innerHTML = '';
+
+  const firstDayIndex = new Date(overlayCalViewYear, overlayCalViewMonth, 1).getDay();
+  const totalDays = new Date(overlayCalViewYear, overlayCalViewMonth + 1, 0).getDate();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Fill in leading empty day slots
+  for (let i = 0; i < firstDayIndex; i++) {
+    const blank = document.createElement('div');
+    blank.className = 'cal-day-cell is-disabled';
+    daysGrid.appendChild(blank);
+  }
+
+  // Populate days of month
+  for (let day = 1; day <= totalDays; day++) {
+    const cellDate = new Date(overlayCalViewYear, overlayCalViewMonth, day);
+    cellDate.setHours(0, 0, 0, 0);
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cal-day-cell';
+    btn.textContent = day;
+
+    if (cellDate.getTime() === today.getTime()) {
+      btn.classList.add('is-today');
+    }
+
+    const isStart = overlayStartDate && cellDate.getTime() === overlayStartDate.getTime();
+    const isEnd = overlayEndDate && cellDate.getTime() === overlayEndDate.getTime();
+    const inRange = overlayStartDate && overlayEndDate &&
+      cellDate.getTime() > overlayStartDate.getTime() &&
+      cellDate.getTime() < overlayEndDate.getTime();
+
+    if (isStart) {
+      btn.classList.add('start-selected');
+      if (overlayEndDate) btn.classList.add('has-end');
+    }
+    if (isEnd) {
+      btn.classList.add('end-selected');
+      if (overlayStartDate) btn.classList.add('has-start');
+    }
+    if (inRange) {
+      btn.classList.add('in-range');
+    }
+
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleOverlayCalClick(cellDate);
+    });
+
+    daysGrid.appendChild(btn);
+  }
+}
+
+function handleOverlayCalClick(clickedDate) {
+  if (!overlayStartDate || (overlayStartDate && overlayEndDate)) {
+    overlayStartDate = clickedDate;
+    overlayEndDate = null;
+  } else if (overlayStartDate && !overlayEndDate) {
+    if (clickedDate.getTime() >= overlayStartDate.getTime()) {
+      overlayEndDate = clickedDate;
+    } else {
+      overlayStartDate = clickedDate;
+      overlayEndDate = null;
+    }
+  }
+
+  updateOverlayDatesDisplay();
+  renderOverlayCalendar();
+}
+
+function updateOverlayDatesDisplay() {
+  const startBoxVal = document.getElementById('overlayStartDateText');
+  const endBoxVal = document.getElementById('overlayEndDateText');
+  const statusContainer = document.getElementById('datesOverlayStatus');
+
+  if (startBoxVal) {
+    startBoxVal.textContent = overlayStartDate ? formatShortInputDate(overlayStartDate) : 'Select start date';
+    startBoxVal.style.color = overlayStartDate ? 'var(--color-primary-dark)' : 'var(--color-text-muted)';
+  }
+  if (endBoxVal) {
+    endBoxVal.textContent = overlayEndDate ? formatShortInputDate(overlayEndDate) : 'Select end date';
+    endBoxVal.style.color = overlayEndDate ? 'var(--color-primary-dark)' : 'var(--color-text-muted)';
+  }
+
+  if (!statusContainer) return;
+
+  if (overlayStartDate && overlayEndDate) {
+    const diffMs = overlayEndDate.getTime() - overlayStartDate.getTime();
+    const days = Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1;
+    const nights = Math.max(1, days - 1);
+
+    statusContainer.innerHTML = `
+      <div class="dates-status-active animate-fade-in">
+        <div class="date-status-pill">
+          <span class="date-status-tag"><i class="ph ph-airplane-takeoff"></i> Start date:</span>
+          <strong class="date-status-val">${formatCalendarDisplayDate(overlayStartDate)}</strong>
+        </div>
+        <div class="date-status-arrow">
+          <i class="ph ph-arrow-right"></i>
+        </div>
+        <div class="date-status-pill">
+          <span class="date-status-tag"><i class="ph ph-airplane-landing"></i> End date:</span>
+          <strong class="date-status-val">${formatCalendarDisplayDate(overlayEndDate)}</strong>
+        </div>
+        <span class="date-status-duration">
+          <i class="ph ph-clock"></i> ${days} ${days === 1 ? 'Day' : 'Days'} / ${nights} ${nights === 1 ? 'Night' : 'Nights'}
+        </span>
+      </div>
+    `;
+  } else if (overlayStartDate) {
+    statusContainer.innerHTML = `
+      <div class="dates-status-active animate-fade-in">
+        <div class="date-status-pill">
+          <span class="date-status-tag"><i class="ph ph-airplane-takeoff"></i> Start date:</span>
+          <strong class="date-status-val">${formatCalendarDisplayDate(overlayStartDate)}</strong>
+        </div>
+        <span style="font-size: 0.85rem; color: var(--color-primary-dark); font-weight: 600;">
+          Next: Click an End date on the calendar below
+        </span>
+      </div>
+    `;
+  } else {
+    statusContainer.innerHTML = `
+      <div class="dates-status-empty">
+        <i class="ph ph-calendar-check icon-sm" aria-hidden="true"></i>
+        <span>Click on the calendar below: 1st click sets Start date, 2nd click sets End date.</span>
+      </div>
+    `;
+  }
+}
+
+function overlayCalendarQuickSelect(preset) {
+  const base = new Date();
+  base.setHours(0, 0, 0, 0);
+
+  if (preset === 'thisWeekend') {
+    const dayOfWeek = base.getDay();
+    const daysToSat = (6 - dayOfWeek + 7) % 7 || 7;
+    const sat = new Date(base.getFullYear(), base.getMonth(), base.getDate() + daysToSat);
+    const sun = new Date(base.getFullYear(), base.getMonth(), base.getDate() + daysToSat + 1);
+    overlayStartDate = sat;
+    overlayEndDate = sun;
+    overlayCalViewMonth = sat.getMonth();
+    overlayCalViewYear = sat.getFullYear();
+  } else if (preset === 'nextWeek') {
+    const start = new Date(base.getFullYear(), base.getMonth(), base.getDate() + 7);
+    const end = new Date(base.getFullYear(), base.getMonth(), base.getDate() + 13);
+    overlayStartDate = start;
+    overlayEndDate = end;
+    overlayCalViewMonth = start.getMonth();
+    overlayCalViewYear = start.getFullYear();
+  } else if (preset === 'inOneMonth') {
+    const start = new Date(base.getFullYear(), base.getMonth() + 1, 10);
+    const end = new Date(base.getFullYear(), base.getMonth() + 1, 15);
+    overlayStartDate = start;
+    overlayEndDate = end;
+    overlayCalViewMonth = start.getMonth();
+    overlayCalViewYear = start.getFullYear();
+  }
+
+  updateOverlayDatesDisplay();
+  renderOverlayCalendar();
+}
+
+function overlayCalendarClear() {
+  overlayStartDate = null;
+  overlayEndDate = null;
+  updateOverlayDatesDisplay();
+  renderOverlayCalendar();
+}
+
+function applyDateOverlay() {
+  if (!overlayStartDate) {
+    if (typeof showToast === 'function') {
+      showToast('Please select at least a Start Date on the calendar.', 'ph-calendar');
+    }
+    return;
+  }
+
+  if (!overlayEndDate) {
+    overlayEndDate = new Date(overlayStartDate.getTime());
+  }
+
+  const diffMs = overlayEndDate.getTime() - overlayStartDate.getTime();
+  const days = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1);
+  const nights = Math.max(1, days - 1);
+  const formattedRange = `${formatShortInputDate(overlayStartDate)} - ${formatShortInputDate(overlayEndDate)}`;
+  const durationStr = `${days} ${days === 1 ? 'Day' : 'Days'} / ${nights} ${nights === 1 ? 'Night' : 'Nights'}`;
+
+  // 1. Sync to Planner Wizard
+  wizardStartDate = new Date(overlayStartDate.getTime());
+  wizardEndDate = new Date(overlayEndDate.getTime());
+  calViewMonth = overlayCalViewMonth;
+  calViewYear = overlayCalViewYear;
+  updateWizardDatesDisplay();
+  renderWizardCalendar();
+
+  // 2. Sync to Landing Quick Planner
+  const quickInput = document.getElementById('quickFormDates');
+  if (quickInput) {
+    quickInput.value = formattedRange;
+  }
+
+  // 3. Sync to Itinerary & Dashboard
+  const trip = store.getState().currentTrip;
+  if (trip) {
+    trip.dates = formattedRange;
+    trip.duration = durationStr;
+    if (Array.isArray(trip.days)) {
+      trip.days.forEach((d, idx) => {
+        const dayDate = new Date(overlayStartDate.getTime() + idx * 24 * 60 * 60 * 1000);
+        d.date = `${CAL_SHORT_MONTHS[dayDate.getMonth()]} ${dayDate.getDate()}, ${dayDate.getFullYear()}`;
+      });
+    }
+  }
+
+  const itinDates = document.getElementById('itineraryDatesText');
+  if (itinDates) {
+    itinDates.textContent = `${formattedRange} (${durationStr})`;
+  }
+
+  const dashDatesVal = document.getElementById('dashActiveDatesVal');
+  if (dashDatesVal) {
+    dashDatesVal.textContent = `${(trip && trip.destination) || 'Abuja, Nigeria'} • ${formattedRange}`;
+  }
+
+  if (store.getState().currentView === 'itinerary') {
+    renderItineraryView(store.getState());
+  }
+
+  if (typeof showToast === 'function') {
+    showToast(`Travel dates updated: ${formattedRange} (${days} Days)`, 'ph-calendar-check');
+  }
+
+  closeDateOverlay();
+}
+
 // --- Target Budget & Multi-Currency Engine ---
 function getCurrencyConfig(code) {
   const active = code || store.getState().currency || 'USD';
@@ -858,6 +1176,30 @@ function setupPlannerForms() {
     });
   }
 
+  // Overlay Calendar Navigation
+  const overlayPrev = document.getElementById('overlayPrevMonthBtn');
+  const overlayNext = document.getElementById('overlayNextMonthBtn');
+  if (overlayPrev) {
+    overlayPrev.addEventListener('click', () => {
+      overlayCalViewMonth--;
+      if (overlayCalViewMonth < 0) {
+        overlayCalViewMonth = 11;
+        overlayCalViewYear--;
+      }
+      renderOverlayCalendar();
+    });
+  }
+  if (overlayNext) {
+    overlayNext.addEventListener('click', () => {
+      overlayCalViewMonth++;
+      if (overlayCalViewMonth > 11) {
+        overlayCalViewMonth = 0;
+        overlayCalViewYear++;
+      }
+      renderOverlayCalendar();
+    });
+  }
+
   const startInput = document.getElementById('wizardStartDate');
   const endInput = document.getElementById('wizardEndDate');
   [startInput, endInput].forEach(inp => {
@@ -944,6 +1286,27 @@ function setupPlannerForms() {
 }
 
 function triggerAIGeneration() {
+  // Synchronize trip dates from planner selection if present
+  if (wizardStartDate && wizardEndDate) {
+    const diffMs = wizardEndDate.getTime() - wizardStartDate.getTime();
+    const daysCount = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1);
+    const nightsCount = Math.max(1, daysCount - 1);
+    const formattedRange = `${formatShortInputDate(wizardStartDate)} - ${formatShortInputDate(wizardEndDate)}`;
+    const durationStr = `${daysCount} ${daysCount === 1 ? 'Day' : 'Days'} / ${nightsCount} ${nightsCount === 1 ? 'Night' : 'Nights'}`;
+
+    const trip = store.getState().currentTrip;
+    if (trip) {
+      trip.dates = formattedRange;
+      trip.duration = durationStr;
+      if (Array.isArray(trip.days)) {
+        trip.days.forEach((d, idx) => {
+          const dayDate = new Date(wizardStartDate.getTime() + idx * 24 * 60 * 60 * 1000);
+          d.date = `${CAL_SHORT_MONTHS[dayDate.getMonth()]} ${dayDate.getDate()}, ${dayDate.getFullYear()}`;
+        });
+      }
+    }
+  }
+
   // Navigate to 'generating' state
   store.setView('generating');
   
@@ -1412,36 +1775,46 @@ function formatMarkdownBasic(text) {
 }
 
 /* ==========================================================================
-   TOAST NOTIFICATION HELPER (TOP SUCCESS FEEDBACK)
+   TOAST NOTIFICATION HELPER
    ========================================================================== */
-let toastDismissTimer = null;
-
 function showToast(msg, iconClass = 'ph-check-circle') {
   let toast = document.getElementById('wayfindToast');
   if (!toast) {
     toast = document.createElement('div');
     toast.id = 'wayfindToast';
-    toast.className = 'wayfind-toast';
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(30px);
+      background: var(--color-surface);
+      color: var(--color-text-headline);
+      border: 1px solid var(--color-primary);
+      box-shadow: var(--shadow-lg);
+      padding: 12px 24px;
+      border-radius: var(--radius-full);
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 0.9rem;
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    `;
     document.body.appendChild(toast);
   }
 
-  // Clear previous timer to allow clean message renewals
-  if (toastDismissTimer) {
-    clearTimeout(toastDismissTimer);
-  }
+  toast.innerHTML = `<i class="ph ${iconClass} icon-md" style="color: var(--color-primary);" aria-hidden="true"></i> <span>${msg}</span>`;
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateX(-50%) translateY(0)';
 
-  const icon = iconClass.startsWith('ph-') ? iconClass : `ph-${iconClass}`;
-  toast.innerHTML = `<i class="ph ${icon} icon-md" style="color: var(--color-primary); font-size: 1.15rem; flex-shrink: 0;" aria-hidden="true"></i> <span>${msg}</span>`;
-
-  // Animate down from top
-  requestAnimationFrame(() => {
-    toast.classList.add('show');
-  });
-
-  // Automatically dismiss after 3.2s
-  toastDismissTimer = setTimeout(() => {
-    toast.classList.remove('show');
-  }, 3200);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(30px)';
+  }, 3000);
 }
 
 /* ==========================================================================
@@ -2180,3 +2553,10 @@ window.wizardCalendarQuickSelect = wizardCalendarQuickSelect;
 window.wizardCalendarClear = wizardCalendarClear;
 window.handleWizardCurrencyChange = handleWizardCurrencyChange;
 window.updateBudgetUI = updateBudgetUI;
+
+// Universal Dates Overlay Exports
+window.openDateOverlay = openDateOverlay;
+window.closeDateOverlay = closeDateOverlay;
+window.applyDateOverlay = applyDateOverlay;
+window.overlayCalendarQuickSelect = overlayCalendarQuickSelect;
+window.overlayCalendarClear = overlayCalendarClear;

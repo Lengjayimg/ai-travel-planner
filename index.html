@@ -356,9 +356,9 @@
 
             <div class="form-group">
               <label class="form-label" for="quickFormDates">Travel Dates</label>
-              <div class="form-input-wrapper">
+              <div class="form-input-wrapper date-overlay-trigger" onclick="openDateOverlay('landing')" style="cursor: pointer;" title="Click to set travel dates in advance">
                 <i class="ph ph-calendar-blank form-input-icon" aria-hidden="true"></i>
-                <input type="text" id="quickFormDates" class="form-control" value="Nov 12 – Nov 15, 2026" placeholder="Select dates" required />
+                <input type="text" id="quickFormDates" class="form-control" value="Nov 12 – Nov 15, 2026" placeholder="Select dates" readonly required style="cursor: pointer;" />
               </div>
             </div>
 
@@ -796,7 +796,9 @@
                 <div>
                   <span class="badge badge-green" style="margin-bottom: 8px;">Active Itinerary</span>
                   <h3 id="dashActiveTitle" style="color: #FFFFFF; font-size: 1.6rem;">Abuja: Capital Art & Nature Retreat</h3>
-                  <p id="dashActiveDates" style="color: rgba(255, 255, 255, 0.85); font-size: 0.9rem;">Abuja, Nigeria • Nov 12 – 15, 2026</p>
+                  <p id="dashActiveDates" onclick="openDateOverlay('dashboard')" style="color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" title="Click to change travel dates">
+                    <i class="ph ph-calendar-blank"></i> <span id="dashActiveDatesVal">Abuja, Nigeria • Nov 12 - 15, 2026</span> <i class="ph ph-pencil-simple icon-xs"></i>
+                  </p>
                 </div>
                 <a href="#itinerary" class="btn btn-primary btn-sm" data-route="itinerary">
                   <span>View Details</span>
@@ -918,15 +920,22 @@
 
           <!-- 2. Dates -->
           <div class="wizard-section">
-            <h4 class="wizard-section-title"><i class="ph ph-calendar-blank icon-sm" aria-hidden="true"></i> Travel Dates</h4>
+            <div class="wizard-section-header-row" style="margin-bottom: 10px;">
+              <h4 class="wizard-section-title" style="margin-bottom: 0;">
+                <i class="ph ph-calendar-blank icon-sm" aria-hidden="true"></i> Travel Dates
+              </h4>
+              <button type="button" class="btn btn-secondary btn-xs" onclick="openDateOverlay('planner')">
+                <i class="ph ph-arrows-out-simple"></i> <span>Pop Out Calendar</span>
+              </button>
+            </div>
             <div class="wizard-dates-grid">
-              <div class="form-input-wrapper">
+              <div class="form-input-wrapper date-overlay-trigger" onclick="openDateOverlay('planner')" style="cursor: pointer;" title="Click to pick Start Date in pop out">
                 <i class="ph ph-airplane-takeoff form-input-icon" aria-hidden="true"></i>
-                <input type="text" id="wizardStartDate" class="form-control" placeholder="Select Start Date" readonly required />
+                <input type="text" id="wizardStartDate" class="form-control" placeholder="Select Start Date" readonly required style="cursor: pointer;" />
               </div>
-              <div class="form-input-wrapper">
+              <div class="form-input-wrapper date-overlay-trigger" onclick="openDateOverlay('planner')" style="cursor: pointer;" title="Click to pick End Date in pop out">
                 <i class="ph ph-airplane-landing form-input-icon" aria-hidden="true"></i>
-                <input type="text" id="wizardEndDate" class="form-control" placeholder="Select End Date" readonly required />
+                <input type="text" id="wizardEndDate" class="form-control" placeholder="Select End Date" readonly required style="cursor: pointer;" />
               </div>
             </div>
 
@@ -1126,18 +1135,34 @@
       <!-- Top Action Bar -->
       <div class="app-header-bar">
         <div class="app-title-group">
-          <h2>Abuja: Capital Art & Nature Retreat</h2>
-          <p>4 Days / 3 Nights • Nov 12 – 15, 2026 • 2 Adults • Curated Plan</p>
+          <h2 id="itineraryTripTitle">Abuja: Capital Art & Nature Retreat</h2>
+          <div class="itinerary-meta-badges">
+            <span class="itinerary-meta-pill" onclick="openDateOverlay('itinerary')" title="Click to edit travel dates" style="cursor: pointer;">
+              <i class="ph ph-calendar-blank text-primary" aria-hidden="true"></i>
+              <span id="itineraryDatesText">Nov 12 – 15, 2026 (4 Days / 3 Nights)</span>
+              <i class="ph ph-pencil-simple icon-xs" style="margin-left: 2px;"></i>
+            </span>
+            <span class="itinerary-meta-pill">
+              <i class="ph ph-users" aria-hidden="true"></i>
+              <span>2 Adults</span>
+            </span>
+            <span class="itinerary-meta-pill badge-curated">
+              <i class="ph ph-sparkle" aria-hidden="true"></i> Curated Plan
+            </span>
+          </div>
         </div>
         <div class="app-actions-group">
           <button class="btn btn-secondary btn-sm" onclick="openAddActivityModal()">
-            <i class="ph ph-plus icon-sm" aria-hidden="true"></i> Add Activity
+            <i class="ph ph-plus icon-sm" aria-hidden="true"></i>
+            <span>Add Activity</span>
           </button>
           <button class="btn btn-secondary btn-sm" onclick="openShareModal()">
-            <i class="ph ph-share-network icon-sm" aria-hidden="true"></i> Share
+            <i class="ph ph-share-network icon-sm" aria-hidden="true"></i>
+            <span>Share</span>
           </button>
           <button class="btn btn-primary btn-sm" onclick="openSaveSuccessModal()">
-            <i class="ph ph-bookmark-simple icon-sm" aria-hidden="true"></i> Save Trip
+            <i class="ph ph-bookmark-simple icon-sm" aria-hidden="true"></i>
+            <span>Save Trip</span>
           </button>
         </div>
       </div>
@@ -1725,6 +1750,84 @@
 
       <div style="text-align: center; font-size: 0.88rem; color: var(--color-text-muted);">
         Remember your password? <a href="#" id="toSignInFromForgotLink" style="color: var(--color-primary-dark); font-weight: 600;">Back to Sign In</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       UNIVERSAL DATES OVERLAY POP OUT (All Views)
+       ========================================================================== -->
+  <div class="modal-backdrop dates-overlay-backdrop" id="datesOverlayModal">
+    <div class="modal-dialog dates-overlay-dialog" role="dialog" aria-modal="true" aria-labelledby="datesOverlayHeading">
+      <button class="modal-close-btn" aria-label="Close modal" onclick="closeDateOverlay()">
+        <i class="ph ph-x" aria-hidden="true"></i>
+      </button>
+
+      <div class="dates-overlay-header">
+        <h3 id="datesOverlayHeading"><i class="ph ph-calendar-blank icon-sm" aria-hidden="true"></i> Select Travel Dates</h3>
+        <p class="dates-overlay-sub">Select your trip Start date and End date in advance.</p>
+      </div>
+
+      <!-- Selected Date Fields Display -->
+      <div class="dates-overlay-inputs-row">
+        <div class="date-overlay-box">
+          <span class="date-overlay-box-label"><i class="ph ph-airplane-takeoff"></i> Start Date</span>
+          <div class="date-overlay-box-val" id="overlayStartDateText">Select start date</div>
+        </div>
+        <div class="date-overlay-box-arrow"><i class="ph ph-arrow-right"></i></div>
+        <div class="date-overlay-box">
+          <span class="date-overlay-box-label"><i class="ph ph-airplane-landing"></i> End Date</span>
+          <div class="date-overlay-box-val" id="overlayEndDateText">Select end date</div>
+        </div>
+      </div>
+
+      <!-- Stated Start Date and End Date below the fields -->
+      <div class="wizard-dates-status dates-overlay-status" id="datesOverlayStatus">
+        <div class="dates-status-empty">
+          <i class="ph ph-calendar-check icon-sm" aria-hidden="true"></i>
+          <span>Click on the calendar below: 1st click sets Start date, 2nd click sets End date.</span>
+        </div>
+      </div>
+
+      <!-- Advance Calendar -->
+      <div class="integrated-calendar-card dates-overlay-calendar" id="datesOverlayCalendarCard">
+        <div class="cal-header">
+          <button type="button" class="cal-nav-btn" id="overlayPrevMonthBtn" aria-label="Previous Month">
+            <i class="ph ph-caret-left" aria-hidden="true"></i>
+          </button>
+          <div class="cal-title-group">
+            <h5 class="cal-month-heading" id="overlayMonthHeading">November 2026</h5>
+            <span class="cal-hint-sub">Click start date, then click end date</span>
+          </div>
+          <button type="button" class="cal-nav-btn" id="overlayNextMonthBtn" aria-label="Next Month">
+            <i class="ph ph-caret-right" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <!-- Quick Advance Shortcuts -->
+        <div class="cal-advance-shortcuts">
+          <button type="button" class="cal-quick-pill" onclick="overlayCalendarQuickSelect('thisWeekend')">This Weekend</button>
+          <button type="button" class="cal-quick-pill" onclick="overlayCalendarQuickSelect('nextWeek')">Next Week (7 Days)</button>
+          <button type="button" class="cal-quick-pill" onclick="overlayCalendarQuickSelect('inOneMonth')">Next Month (5 Days)</button>
+          <button type="button" class="cal-quick-pill" onclick="overlayCalendarClear()">Clear Dates</button>
+        </div>
+
+        <!-- Weekdays Row -->
+        <div class="cal-weekdays-grid">
+          <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+        </div>
+
+        <!-- Days Grid -->
+        <div class="cal-days-grid" id="overlayDaysGrid"></div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="dates-overlay-actions">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeDateOverlay()">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btnApplyOverlayDates" onclick="applyDateOverlay()">
+          <span>Confirm & Apply Dates</span>
+          <i class="ph ph-check icon-sm" aria-hidden="true"></i>
+        </button>
       </div>
     </div>
   </div>

@@ -256,25 +256,189 @@
     justify-content: center;
   }
 
-  .timeline-activity-card {
-    grid-template-columns: 1fr;
+  /* --- Generated Itinerary View Mobile Responsive Optimization --- */
+  [data-view="itinerary"] .app-header-bar {
+    flex-direction: column;
+    align-items: stretch;
     gap: 14px;
+    padding: 8px 0 16px;
+  }
+
+  [data-view="itinerary"] .app-title-group h2 {
+    font-size: 1.35rem;
+    line-height: 1.25;
+    margin-bottom: 6px;
+  }
+
+  [data-view="itinerary"] .app-actions-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+  }
+
+  [data-view="itinerary"] .app-actions-group .btn {
+    padding: 8px 6px;
+    font-size: 0.8rem;
+    justify-content: center;
+    text-align: center;
+    min-height: 40px;
+    white-space: nowrap;
+  }
+
+  .customize-controls-banner {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .customize-controls-banner .btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 40px;
+  }
+
+  .itinerary-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px;
+  }
+
+  .days-tab-nav {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 6px 0 10px;
+    margin-bottom: 16px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    position: sticky;
+    top: var(--header-height, 64px);
+    background: var(--color-bg);
+    z-index: 10;
+  }
+
+  .days-tab-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .day-tab-btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    min-height: 40px;
+  }
+
+  #itineraryActiveDayTitle {
+    font-size: 1.18rem !important;
+    margin-bottom: 14px !important;
+  }
+
+  .timeline-feed {
+    gap: 16px;
   }
 
   .timeline-feed::before {
-    left: 12px;
+    display: none !important;
+  }
+
+  .timeline-activity-card {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius-lg);
+    transform: none !important;
   }
 
   .activity-img-wrapper {
-    height: 140px;
+    height: 150px !important;
+    width: 100%;
+    border-radius: var(--radius-md);
+  }
+
+  .activity-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  .activity-time {
+    font-size: 0.78rem;
+    padding: 2px 7px;
+  }
+
+  .activity-main-info h4 {
+    font-size: 1.05rem !important;
+    line-height: 1.3;
+    margin: 4px 0 !important;
+  }
+
+  .activity-main-info p {
+    font-size: 0.85rem !important;
+    line-height: 1.45;
+    color: var(--color-text-muted);
   }
 
   .activity-actions-col {
+    width: 100%;
+    display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid var(--color-border-subtle);
-    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+    padding-top: 10px;
+    margin-top: 4px;
+  }
+
+  .activity-cost-badge {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-primary-dark);
+  }
+
+  [data-theme="dark"] .activity-cost-badge {
+    color: var(--color-primary-light);
+  }
+
+  .activity-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text-headline);
+    min-height: 38px;
+  }
+
+  .activity-icon-btn:hover {
+    background: var(--color-primary-subtle);
+    color: var(--color-primary-dark);
+    border-color: var(--color-primary);
+  }
+
+  .activity-icon-btn.btn-delete {
+    color: var(--color-error);
+    padding: 6px 10px;
+  }
+
+  .budget-summary-panel {
+    padding: 18px 16px;
+    border-radius: var(--radius-lg);
+  }
+
+  .budget-total-header {
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+  }
+
+  .budget-total-header h3 {
+    font-size: 1.6rem;
   }
 
   .footer-top {
@@ -306,6 +470,29 @@
 
   .site-header .brand-name {
     font-size: 1.18rem;
+  }
+
+  [data-view="itinerary"] .app-actions-group .btn {
+    padding: 8px 4px;
+    font-size: 0.74rem;
+    gap: 4px;
+  }
+
+  [data-view="itinerary"] .app-actions-group .btn i {
+    font-size: 0.95rem;
+  }
+
+  .timeline-activity-card {
+    padding: 12px 14px;
+  }
+
+  .activity-img-wrapper {
+    height: 140px !important;
+  }
+
+  .itinerary-meta-pill {
+    font-size: 0.75rem;
+    padding: 3px 8px;
   }
 }
 
