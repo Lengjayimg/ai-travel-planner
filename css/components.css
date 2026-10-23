@@ -1611,14 +1611,16 @@ html.high-contrast-mode input:checked + .toggle-slider:before {
 
 /* Accessibility Mobile Modal & Overlay: Clear, unblurred background so users see live changes */
 #a11yMobileModal.modal-backdrop {
-  background: rgba(0, 0, 0, 0.12) !important;
+  display: block !important;
+  background: rgba(0, 0, 0, 0.08) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   z-index: 3500 !important;
+  padding: 0 !important;
 }
 
 [data-theme="dark"] #a11yMobileModal.modal-backdrop {
-  background: rgba(0, 0, 0, 0.28) !important;
+  background: rgba(0, 0, 0, 0.22) !important;
 }
 
 /* Mobile backdrop for accessibility menu centered popout (Clear / No blur) */
@@ -1631,7 +1633,7 @@ html.high-contrast-mode input:checked + .toggle-slider:before {
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.12) !important;
+    background: rgba(0, 0, 0, 0.08) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     z-index: 3400;
@@ -1645,27 +1647,28 @@ html.high-contrast-mode input:checked + .toggle-slider:before {
   }
 
   [data-theme="dark"] .a11y-mobile-overlay {
-    background: rgba(0, 0, 0, 0.28) !important;
+    background: rgba(0, 0, 0, 0.22) !important;
   }
 
-  /* Center accessibility popout menu in the middle of the screen on mobile */
+  /* Close to top header and on the left side of the screen in mobile view */
   .a11y-dropdown-container:not(.a11y-dismissed).open .a11y-menu-popout,
   .a11y-dropdown-container:not(.a11y-dismissed):hover .a11y-menu-popout,
   .a11y-dropdown-container:not(.a11y-dismissed):focus-within .a11y-menu-popout {
     position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
+    top: calc(var(--header-height, 64px) + 8px) !important;
+    left: 12px !important;
     right: auto !important;
     bottom: auto !important;
-    transform: translate(-50%, -50%) !important;
-    width: min(88vw, 320px) !important;
-    max-height: 80vh !important;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45) !important;
-    border-radius: var(--radius-xl) !important;
+    transform: none !important;
+    width: min(70vw, 236px) !important;
+    max-height: calc(100vh - var(--header-height, 64px) - 20px) !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22) !important;
+    border-radius: var(--radius-lg, 16px) !important;
     z-index: 3500 !important;
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
+    padding: 12px 8px 10px 8px !important;
   }
 
   .a11y-dropdown-container:not(.a11y-dismissed).open .a11y-menu-popout::before,
@@ -1674,23 +1677,55 @@ html.high-contrast-mode input:checked + .toggle-slider:before {
   }
 }
 
-/* Centered Mobile Accessibility Modal Dialog */
+/* Positioned close to top header on the left side of the screen in mobile view */
 .modal-dialog.a11y-modal-dialog {
-  max-width: 330px;
-  width: 90vw;
-  background: var(--color-surface-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-  padding: 18px 16px 16px 16px;
-  margin: auto;
+  position: fixed !important;
+  top: calc(var(--header-height, 64px) + 8px) !important;
+  left: 12px !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  width: min(70vw, 236px) !important;
+  max-height: calc(100vh - var(--header-height, 64px) - 20px) !important;
+  background: var(--color-surface-elevated) !important;
+  border: 1.5px solid var(--color-border) !important;
+  border-radius: var(--radius-lg, 16px) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  padding: 12px 8px 10px 8px !important;
+  margin: 0 !important;
 }
 
 .modal-dialog.a11y-modal-dialog .a11y-menu-items {
-  max-height: 65vh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding-right: 4px;
+  max-height: calc(100vh - var(--header-height, 64px) - 78px) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  padding-right: 2px !important;
+}
+
+.modal-dialog.a11y-modal-dialog .a11y-menu-header {
+  padding: 0 4px 8px 6px !important;
+  margin-bottom: 4px !important;
+}
+
+.modal-dialog.a11y-modal-dialog .a11y-menu-title {
+  font-size: 0.95rem !important;
+}
+
+.modal-dialog.a11y-modal-dialog .a11y-close-btn {
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 0.82rem !important;
+}
+
+.modal-dialog.a11y-modal-dialog .a11y-menu-item {
+  padding: 6px 8px !important;
+  font-size: 0.84rem !important;
+  gap: 8px !important;
+}
+
+.modal-dialog.a11y-modal-dialog .a11y-menu-item i {
+  font-size: 1.05rem !important;
+  width: 18px !important;
 }
 
 .a11y-menu-item {
