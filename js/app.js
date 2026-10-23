@@ -68,6 +68,9 @@ function initApp() {
 function setupNavigation() {
   // Desktop and Mobile navigation links
   document.querySelectorAll('[data-route]').forEach(el => {
+    // Brand logos have their dedicated smooth-scroll handler below
+    if (el.matches('.brand-logo, .mobile-brand-link')) return;
+
     el.addEventListener('click', (e) => {
       e.preventDefault();
       const targetRoute = el.getAttribute('data-route');
@@ -82,7 +85,30 @@ function setupNavigation() {
         }
       }
 
-      window.location.hash = targetRoute;
+      const currentHash = window.location.hash.replace('#', '') || 'landing';
+      if (currentHash === targetRoute) {
+        // Already on target view: ensure smoothly scrolled to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        window.location.hash = targetRoute;
+      }
+
+      closeMobileMenu();
+    });
+  });
+
+  // Dedicated Brand Logo click: Always smoothly scroll to the very top of the page
+  document.querySelectorAll('.brand-logo, .mobile-brand-link').forEach(logo => {
+    logo.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+      document.body.scrollTo({ top: 0, behavior: 'smooth' });
+      if (store.getState().currentView !== 'landing') {
+        window.location.hash = 'landing';
+        store.setView('landing');
+      }
       closeMobileMenu();
     });
   });
