@@ -49,6 +49,56 @@
 
       <!-- Header Actions -->
       <div class="header-actions">
+        <!-- Accessibility Menu Trigger (Shown when Logged In - between Dashboard and theme toggle switch) -->
+        <div class="a11y-dropdown-container header-a11y-dropdown" id="headerA11yContainer" style="display: none;">
+          <button type="button" class="a11y-trigger-btn a11y-circle-btn" aria-label="Accessibility Menu" aria-haspopup="true">
+            <svg class="a11y-symbol-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" stroke-width="2"/>
+              <circle cx="12" cy="8" r="1.5" fill="currentColor" stroke="none"/>
+              <path d="M7 11.5h10"/>
+              <path d="M12 11.5V16"/>
+              <path d="M9 19l3-3 3 3"/>
+            </svg>
+          </button>
+          <!-- Popout Menu -->
+          <div class="a11y-menu-popout">
+            <button type="button" class="a11y-close-btn" aria-label="Close Accessibility Menu" onclick="closeAllA11yMenus()">
+              <i class="ph ph-x" aria-hidden="true"></i>
+            </button>
+            <h4 class="a11y-menu-title">Accessibility Menu</h4>
+            <div class="a11y-menu-items">
+              <button type="button" class="a11y-menu-item" onclick="handleA11yTextToSpeech()">
+                <i class="ph ph-speaker-high" aria-hidden="true"></i>
+                <span>Text to Speech</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11yDecreaseFont()">
+                <i class="ph ph-minus-circle" aria-hidden="true"></i>
+                <span>Decrease Font</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11yIncreaseFont()">
+                <i class="ph ph-plus-circle" aria-hidden="true"></i>
+                <span>Increase Font</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11yFontFamily()">
+                <i class="ph ph-text-t" aria-hidden="true"></i>
+                <span>Font Family</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11yColorTheme()">
+                <i class="ph ph-paint-bucket" aria-hidden="true"></i>
+                <span>Color Theme</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11ySimplifyContent()">
+                <i class="ph ph-list" aria-hidden="true"></i>
+                <span>Simplify Content</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11yResetDefaults()">
+                <i class="ph ph-arrows-counter-clockwise" aria-hidden="true"></i>
+                <span>Reset Defaults</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Theme Toggle (Dark / Light) -->
         <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Dark/Light Mode" aria-label="Toggle Theme">
           <i class="ph ph-moon" aria-hidden="true"></i>
@@ -1047,6 +1097,9 @@
               <button type="button" class="btn btn-ghost btn-sm" style="font-size: 0.82rem; padding: 6px 12px;" onclick="resetAvatarToInitials()">
                 <i class="ph ph-arrows-counter-clockwise icon-sm" aria-hidden="true"></i> Use Initials
               </button>
+              <button type="button" class="btn btn-ghost btn-sm" id="removePhotoBtn" style="font-size: 0.82rem; padding: 6px 12px; color: var(--color-error);" onclick="removeProfilePhoto()">
+                <i class="ph ph-trash icon-sm" aria-hidden="true"></i> Remove Photo
+              </button>
             </div>
           </div>
 
@@ -1144,9 +1197,9 @@
   <aside class="ai-chatbot-widget" id="aiChatbotWidget">
     
     <!-- Floating Trigger Pill -->
-    <button class="chatbot-toggle-pill" id="chatbotTogglePill" aria-label="Open AI Travel Companion">
-      <i class="ph ph-sparkle icon-sm" aria-hidden="true"></i>
-      <span>AI Travel Companion</span>
+    <button class="chatbot-toggle-pill" id="chatbotTogglePill" aria-label="Open Chat">
+      <i class="ph ph-chat-teardrop-dots icon-sm" aria-hidden="true"></i>
+      <span>Chat</span>
     </button>
 
     <!-- Chat Window Container -->
@@ -1201,7 +1254,61 @@
   <!-- Sign In Modal -->
   <div class="modal-backdrop" id="signInModal">
     <div class="modal-dialog">
-      <button class="modal-close-btn" aria-label="Close modal"><i class="ph ph-x" aria-hidden="true"></i></button>
+      <!-- Top Action Bar: Accessibility Menu Widget on the right, and Close button -->
+      <div class="modal-top-actions">
+        <!-- Accessibility Menu Trigger -->
+        <div class="a11y-dropdown-container" id="signInA11yContainer">
+          <button type="button" class="a11y-trigger-btn a11y-pill-btn" aria-label="Accessibility Menu" aria-haspopup="true">
+            <svg class="a11y-symbol-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" stroke-width="2"/>
+              <circle cx="12" cy="8" r="1.5" fill="currentColor" stroke="none"/>
+              <path d="M7 11.5h10"/>
+              <path d="M12 11.5V16"/>
+              <path d="M9 19l3-3 3 3"/>
+            </svg>
+            <span class="a11y-btn-text">Accessibility Menu</span>
+          </button>
+          <!-- Popout Menu -->
+          <div class="a11y-menu-popout">
+            <button type="button" class="a11y-close-btn" aria-label="Close Accessibility Menu" onclick="closeAllA11yMenus()">
+              <i class="ph ph-x" aria-hidden="true"></i>
+            </button>
+            <h4 class="a11y-menu-title">Accessibility Menu</h4>
+            <div class="a11y-menu-items">
+              <button type="button" class="a11y-menu-item" onclick="handleA11yTextToSpeech()">
+                <i class="ph ph-speaker-high" aria-hidden="true"></i>
+                <span>Text to Speech</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11yDecreaseFont()">
+                <i class="ph ph-minus-circle" aria-hidden="true"></i>
+                <span>Decrease Font</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11yIncreaseFont()">
+                <i class="ph ph-plus-circle" aria-hidden="true"></i>
+                <span>Increase Font</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11yFontFamily()">
+                <i class="ph ph-text-t" aria-hidden="true"></i>
+                <span>Font Family</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11yColorTheme()">
+                <i class="ph ph-paint-bucket" aria-hidden="true"></i>
+                <span>Color Theme</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11ySimplifyContent()">
+                <i class="ph ph-list" aria-hidden="true"></i>
+                <span>Simplify Content</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11yResetDefaults()">
+                <i class="ph ph-arrows-counter-clockwise" aria-hidden="true"></i>
+                <span>Reset Defaults</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <button class="modal-close-btn" aria-label="Close modal"><i class="ph ph-x" aria-hidden="true"></i></button>
+      </div>
+
       <h3 style="margin-bottom: 6px;">Welcome Back</h3>
       <p style="font-size: 0.9rem; margin-bottom: 24px;">Sign in to continue planning your journeys.</p>
 
@@ -1214,15 +1321,20 @@
         </div>
         
         <div class="form-group" style="margin-bottom: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
-            <label class="form-label" for="signInPassword" style="margin-bottom: 0;">Password</label>
-            <button type="button" id="toForgotPasswordLink" class="btn-text-link">Forgot password?</button>
-          </div>
+          <label class="form-label" for="signInPassword">Password</label>
           <div class="password-input-wrapper">
             <input type="password" id="signInPassword" class="form-control" placeholder="Your password" required autocomplete="current-password" />
             <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility">
               <i class="ph ph-eye" aria-hidden="true"></i>
             </button>
+          </div>
+          <!-- Same line under password field: Remember Me & Forgot Password -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+            <label style="display: inline-flex; align-items: center; gap: 7px; font-size: 0.84rem; color: var(--color-text-muted); cursor: pointer; user-select: none; margin: 0;">
+              <input type="checkbox" id="signInRememberMe" style="width: 15px; height: 15px; accent-color: var(--color-primary); cursor: pointer;" checked />
+              <span>Remember me</span>
+            </label>
+            <button type="button" id="toForgotPasswordLink" class="btn-text-link">Forgot password?</button>
           </div>
         </div>
 
@@ -1260,7 +1372,60 @@
   <!-- Sign Up Modal -->
   <div class="modal-backdrop" id="signUpModal">
     <div class="modal-dialog">
-      <button class="modal-close-btn" aria-label="Close modal"><i class="ph ph-x" aria-hidden="true"></i></button>
+      <!-- Top Action Bar: Accessibility Menu Widget on the right, and Close button -->
+      <div class="modal-top-actions">
+        <!-- Accessibility Menu Trigger -->
+        <div class="a11y-dropdown-container" id="signUpA11yContainer">
+          <button type="button" class="a11y-trigger-btn a11y-pill-btn" aria-label="Accessibility Menu" aria-haspopup="true">
+            <svg class="a11y-symbol-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" stroke-width="2"/>
+              <circle cx="12" cy="8" r="1.5" fill="currentColor" stroke="none"/>
+              <path d="M7 11.5h10"/>
+              <path d="M12 11.5V16"/>
+              <path d="M9 19l3-3 3 3"/>
+            </svg>
+            <span class="a11y-btn-text">Accessibility Menu</span>
+          </button>
+          <!-- Popout Menu -->
+          <div class="a11y-menu-popout">
+            <button type="button" class="a11y-close-btn" aria-label="Close Accessibility Menu" onclick="closeAllA11yMenus()">
+              <i class="ph ph-x" aria-hidden="true"></i>
+            </button>
+            <h4 class="a11y-menu-title">Accessibility Menu</h4>
+            <div class="a11y-menu-items">
+              <button type="button" class="a11y-menu-item" onclick="handleA11yTextToSpeech()">
+                <i class="ph ph-speaker-high" aria-hidden="true"></i>
+                <span>Text to Speech</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11yDecreaseFont()">
+                <i class="ph ph-minus-circle" aria-hidden="true"></i>
+                <span>Decrease Font</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11yIncreaseFont()">
+                <i class="ph ph-plus-circle" aria-hidden="true"></i>
+                <span>Increase Font</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11yFontFamily()">
+                <i class="ph ph-text-t" aria-hidden="true"></i>
+                <span>Font Family</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11yColorTheme()">
+                <i class="ph ph-paint-bucket" aria-hidden="true"></i>
+                <span>Color Theme</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11ySimplifyContent()">
+                <i class="ph ph-list" aria-hidden="true"></i>
+                <span>Simplify Content</span>
+              </button>
+              <button type="button" class="a11y-menu-item" onclick="handleA11yResetDefaults()">
+                <i class="ph ph-arrows-counter-clockwise" aria-hidden="true"></i>
+                <span>Reset Defaults</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <button class="modal-close-btn" aria-label="Close modal"><i class="ph ph-x" aria-hidden="true"></i></button>
+      </div>
       <h3 style="margin-bottom: 6px;">Create An Account</h3>
       <p style="font-size: 0.9rem; margin-bottom: 24px;">Start planning your next thoughtful adventure.</p>
 

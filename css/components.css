@@ -1388,3 +1388,302 @@ html.high-contrast-mode .toggle-slider:before {
 html.high-contrast-mode input:checked + .toggle-slider:before {
   transform: translateX(26px) !important;
 }
+
+/* ==========================================================================
+   ACCESSIBILITY MENU WIDGET (POPOUT & BUTTONS)
+   ========================================================================== */
+.a11y-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.a11y-trigger-btn {
+  background: #BD261B;
+  color: #FFFFFF;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(189, 38, 27, 0.35);
+  transition: all var(--transition-fast);
+}
+
+.a11y-trigger-btn:hover {
+  background: #A51E14;
+  transform: translateY(-1px);
+}
+
+.a11y-trigger-btn:focus-visible {
+  outline: 2px solid #FFD166;
+  outline-offset: 2px;
+}
+
+.a11y-pill-btn {
+  height: 38px;
+  border-radius: var(--radius-full);
+  padding: 0 16px 0 10px;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.a11y-circle-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.a11y-symbol-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Responsive: show only icon on tablet and mobile */
+@media (max-width: 768px) {
+  .a11y-pill-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 50%;
+  }
+  .a11y-pill-btn .a11y-btn-text {
+    display: none !important;
+  }
+}
+
+/* Popout Menu Styled after User Sample */
+.a11y-menu-popout {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 250px;
+  background: #BD261B;
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  padding: 18px 10px 16px 10px;
+  z-index: 2500;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+/* Popout on hover or when class 'open' is toggled */
+.a11y-dropdown-container:hover .a11y-menu-popout,
+.a11y-dropdown-container:focus-within .a11y-menu-popout,
+.a11y-dropdown-container.open .a11y-menu-popout {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Yellow Round Close Button */
+.a11y-close-btn {
+  position: absolute;
+  top: -10px;
+  right: -8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #E5A900;
+  color: #FFFFFF;
+  border: 2.5px solid #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  transition: transform var(--transition-fast);
+  z-index: 10;
+}
+
+.a11y-close-btn:hover {
+  transform: scale(1.12);
+}
+
+.a11y-menu-title {
+  font-family: var(--font-display);
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0 0 12px 12px;
+  text-align: left;
+  letter-spacing: -0.01em;
+}
+
+.a11y-menu-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.a11y-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.a11y-menu-item:hover,
+.a11y-menu-item:focus-visible {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.a11y-menu-item i {
+  font-size: 1.15rem;
+  width: 22px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.modal-top-actions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 20;
+}
+
+.modal-top-actions .modal-close-btn {
+  position: static;
+  top: auto;
+  right: auto;
+}
+
+/* ==========================================================================
+   A11Y ACCESSIBILITY FEATURES (CONTRAST THEMES, FONTS & SIMPLIFY CONTENT)
+   ========================================================================== */
+html[data-a11y-theme="yellow-black"] {
+  --color-bg-light: #000000 !important;
+  --color-bg-secondary: #000000 !important;
+  --color-surface: #000000 !important;
+  --color-text-body: #FFFF00 !important;
+  --color-text-headline: #FFFF00 !important;
+  --color-text-muted: #FFEA00 !important;
+  --color-border: #FFFF00 !important;
+  --color-border-subtle: #FFFF00 !important;
+  --color-primary: #FFFF00 !important;
+  --color-primary-dark: #FFFF00 !important;
+  background: #000000 !important;
+  color: #FFFF00 !important;
+}
+
+html[data-a11y-theme="yellow-black"] body,
+html[data-a11y-theme="yellow-black"] h1,
+html[data-a11y-theme="yellow-black"] h2,
+html[data-a11y-theme="yellow-black"] h3,
+html[data-a11y-theme="yellow-black"] h4,
+html[data-a11y-theme="yellow-black"] p,
+html[data-a11y-theme="yellow-black"] span,
+html[data-a11y-theme="yellow-black"] strong,
+html[data-a11y-theme="yellow-black"] a,
+html[data-a11y-theme="yellow-black"] button,
+html[data-a11y-theme="yellow-black"] input,
+html[data-a11y-theme="yellow-black"] select {
+  color: #FFFF00 !important;
+  border-color: #FFFF00 !important;
+  background-color: transparent !important;
+}
+
+html[data-a11y-theme="black-white"] {
+  --color-bg-light: #FFFFFF !important;
+  --color-bg-secondary: #F0F0F0 !important;
+  --color-surface: #FFFFFF !important;
+  --color-text-body: #000000 !important;
+  --color-text-headline: #000000 !important;
+  --color-text-muted: #222222 !important;
+  --color-border: #000000 !important;
+  --color-border-subtle: #444444 !important;
+  --color-primary: #000000 !important;
+  --color-primary-dark: #000000 !important;
+  background: #FFFFFF !important;
+  color: #000000 !important;
+}
+
+html[data-a11y-theme="black-white"] body,
+html[data-a11y-theme="black-white"] h1,
+html[data-a11y-theme="black-white"] h2,
+html[data-a11y-theme="black-white"] h3,
+html[data-a11y-theme="black-white"] h4,
+html[data-a11y-theme="black-white"] p,
+html[data-a11y-theme="black-white"] span,
+html[data-a11y-theme="black-white"] strong,
+html[data-a11y-theme="black-white"] a,
+html[data-a11y-theme="black-white"] button,
+html[data-a11y-theme="black-white"] input,
+html[data-a11y-theme="black-white"] select {
+  color: #000000 !important;
+  border-color: #000000 !important;
+}
+
+html[data-a11y-theme="sepia"] {
+  --color-bg-light: #FBF0D9 !important;
+  --color-bg-secondary: #F2E3C6 !important;
+  --color-surface: #F5E5C9 !important;
+  --color-text-body: #5F4B32 !important;
+  --color-text-headline: #3E2F1E !important;
+  --color-text-muted: #7E6850 !important;
+  --color-border: #D8C3A5 !important;
+  --color-border-subtle: #E2D2BC !important;
+  background: #FBF0D9 !important;
+}
+
+html[data-a11y-theme="inverted"] {
+  filter: invert(100%) hue-rotate(180deg) !important;
+}
+html[data-a11y-theme="inverted"] img,
+html[data-a11y-theme="inverted"] video {
+  filter: invert(100%) hue-rotate(180deg) !important;
+}
+
+/* Font Family Overrides */
+html[data-a11y-font="dyslexic"] body,
+html[data-a11y-font="dyslexic"] * {
+  font-family: 'Comic Sans MS', 'Trebuchet MS', sans-serif !important;
+  letter-spacing: 0.04em !important;
+  word-spacing: 0.08em !important;
+}
+
+html[data-a11y-font="readable"] body,
+html[data-a11y-font="readable"] * {
+  font-family: 'Verdana', 'Segoe UI', -apple-system, sans-serif !important;
+}
+
+html[data-a11y-font="monospace"] body,
+html[data-a11y-font="monospace"] * {
+  font-family: 'Consolas', 'Courier New', monospace !important;
+}
+
+/* Simplify Content Mode */
+html[data-a11y-simplify="true"] .floating-ai-chip,
+html[data-a11y-simplify="true"] .floating-budget-chip,
+html[data-a11y-simplify="true"] .ambient-glow,
+html[data-a11y-simplify="true"] .blur-layer,
+html[data-a11y-simplify="true"] .transformation-arrow {
+  display: none !important;
+}
+
+html[data-a11y-simplify="true"] * {
+  animation: none !important;
+  transition: none !important;
+}

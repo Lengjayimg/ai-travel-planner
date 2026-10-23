@@ -44,7 +44,10 @@ function initApp() {
   // 8. Render Cartoon Avatars for Settings
   renderCartoonAvatars();
 
-  // 9. Subscribe UI re-renderers to State Changes
+  // 9. Setup Accessibility Menu & Interactions
+  setupA11yMenus();
+
+  // 10. Subscribe UI re-renderers to State Changes
   store.subscribe((state) => {
     renderCurrentView(state);
     updateThemeLogos(state.theme);
@@ -953,6 +956,16 @@ function setupAuth() {
   const signInPassword = document.getElementById('signInPassword');
   const signInSubmitBtn = document.getElementById('signInSubmitBtn');
   const signInError = document.getElementById('signInError');
+  const signInRememberMe = document.getElementById('signInRememberMe');
+
+  // Pre-fill remembered email if saved
+  const savedRememberEmail = localStorage.getItem('wayfind_remember_email');
+  if (savedRememberEmail && signInEmail) {
+    signInEmail.value = savedRememberEmail;
+    if (signInRememberMe) {
+      signInRememberMe.checked = true;
+    }
+  }
 
   if (signInForm && window.authService) {
     signInForm.addEventListener('submit', async (e) => {
@@ -972,6 +985,14 @@ function setupAuth() {
 
       try {
         await window.authService.signIn(email, password);
+
+        // Manage Remember Me preference
+        if (signInRememberMe && signInRememberMe.checked) {
+          localStorage.setItem('wayfind_remember_email', email);
+        } else {
+          localStorage.removeItem('wayfind_remember_email');
+        }
+
         closeAllModals();
         signInForm.reset();
         showToast('Signed in successfully!', 'ph-check-circle');
@@ -1152,13 +1173,15 @@ function updateUserUI(user) {
   const settingsCurrencySelect = document.getElementById('settingsCurrencySelect');
   const settingsAccessibilitySwitch = document.getElementById('settingsAccessibilitySwitch');
   const settingsThemeSwitch = document.getElementById('settingsThemeSwitch');
+  const headerA11yContainer = document.getElementById('headerA11yContainer');
 
   const firstName = user.name ? user.name.split(' ')[0] : 'Traveler';
 
   if (user.isLoggedIn) {
-    // Show active user avatar dropdown, hide generic sign in button
+    // Show active user avatar dropdown and logged-in accessibility icon, hide generic sign in button
     if (headerAuthBtn) headerAuthBtn.style.display = 'none';
     if (headerProfileDropdown) headerProfileDropdown.style.display = 'inline-block';
+    if (headerA11yContainer) headerA11yContainer.style.display = 'inline-block';
     renderAvatarBadge(headerAvatarInitials, user.avatarText, user.avatarUrl);
     renderAvatarBadge(menuAvatarInitials, user.avatarText, user.avatarUrl);
     if (menuUserName) menuUserName.textContent = user.name;
@@ -1174,7 +1197,7 @@ function updateUserUI(user) {
     if (profileName) profileName.textContent = user.name;
     if (profileEmail) profileEmail.textContent = user.email || 'traveler@wayfind.travel';
   } else {
-    // Show sign in button, hide profile dropdown
+    // Show sign in button, hide profile dropdown and logged-in header accessibility icon
     if (headerAuthBtn) {
       headerAuthBtn.style.display = 'inline-flex';
       headerAuthBtn.title = 'Sign In to Wayfind';
@@ -1185,6 +1208,7 @@ function updateUserUI(user) {
     }
     if (headerAuthBtnText) headerAuthBtnText.textContent = 'Sign In';
     if (headerProfileDropdown) headerProfileDropdown.style.display = 'none';
+    if (headerA11yContainer) headerA11yContainer.style.display = 'none';
 
     if (headerGetStartedBtn) headerGetStartedBtn.title = 'Sign Up to Start Planning';
     if (dashGreetingName) dashGreetingName.textContent = 'Traveler';
@@ -1319,11 +1343,229 @@ async function resetAvatarToInitials() {
   showToast('Avatar reset to initials.', 'ph-arrows-counter-clockwise');
 }
 
+/**
+ * Remove Profile Photo and restore default initials
+ */
+async function removeProfilePhoto() {
+  store.updateAvatar(null);
+
+  const user = store.getState().user;
+  if (user && user.isLoggedIn && window.authService) {
+    try {
+      await window.authService.updateProfile(user.id, { avatar_url: null });
+    } catch (e) {
+      console.warn('Avatar remove cloud sync skipped:', e.message);
+    }
+  }
+
+  renderCartoonAvatars();
+  showToast('Profile photo removed.', 'ph-trash');
+}
+
+/* ==========================================================================
+   ACCESSIBILITY MENU CONTROLLER & FEATURES
+   ========================================================================== */
+function closeAllA11yMenus() {
+  document.querySelectorAll('.a11y-dropdown-container').forEach(c => c.classList.remove('open'));
+}
+
+function handleA11yTextToSpeech() {
+  if (!('speechSynthesis' in window)) {
+    showToast('Text to Speech is not supported in this browser.', 'ph-warning-circle');
+    return;
+  }
+
+  if (window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+    showToast('Text to speech stopped.', 'ph-speaker-slash');
+    return;
+  }
+
+  const activeView = document.querySelector('.view-container.active-view') || document.querySelector('main') || document.body;
+  const elements = Array.from(activeView.querySelectorAll('h1, h2, h3, h4, p, .hero-tagline, .section-subtitle'))
+    .filter(el => el.offsetParent !== null && el.textContent.trim().length > 0)
+    .slice(0, 15);
+
+  const textToRead = elements.map(el => el.textContent.trim()).join('. ');
+  if (!textToRead) {
+    showToast('No readable text found on current page.', 'ph-warning-circle');
+    return;
+  }
+
+  const utterance = new SpeechSynthesisUtterance(textToRead);
+  utterance.rate = 1.0;
+  utterance.pitch = 1.0;
+  utterance.onend = () => {
+    showToast('Speech finished.', 'ph-speaker-high');
+  };
+  utterance.onerror = () => {
+    showToast('Speech stopped.', 'ph-speaker-slash');
+  };
+
+  window.speechSynthesis.speak(utterance);
+  showToast('Reading content aloud... Click again to stop.', 'ph-speaker-high');
+}
+
+function getA11yFontScale() {
+  const saved = localStorage.getItem('wayfind_a11y_font_scale');
+  return saved ? parseInt(saved, 10) : 100;
+}
+
+function setA11yFontScale(scale) {
+  const clamped = Math.max(75, Math.min(135, scale));
+  document.documentElement.style.fontSize = clamped + '%';
+  localStorage.setItem('wayfind_a11y_font_scale', clamped.toString());
+  showToast(`Font size: ${clamped}%`, 'ph-text-aa');
+}
+
+function handleA11yDecreaseFont() {
+  const current = getA11yFontScale();
+  setA11yFontScale(current - 5);
+}
+
+function handleA11yIncreaseFont() {
+  const current = getA11yFontScale();
+  setA11yFontScale(current + 5);
+}
+
+const A11Y_FONTS = ['default', 'dyslexic', 'readable', 'monospace'];
+const A11Y_FONT_LABELS = {
+  default: 'System Display (Default)',
+  dyslexic: 'Dyslexia Friendly',
+  readable: 'Clean Sans-Serif',
+  monospace: 'Monospace Code'
+};
+
+function handleA11yFontFamily() {
+  const current = document.documentElement.getAttribute('data-a11y-font') || 'default';
+  const currentIndex = A11Y_FONTS.indexOf(current);
+  const nextIndex = (currentIndex + 1) % A11Y_FONTS.length;
+  const nextFont = A11Y_FONTS[nextIndex];
+
+  if (nextFont === 'default') {
+    document.documentElement.removeAttribute('data-a11y-font');
+    localStorage.removeItem('wayfind_a11y_font');
+  } else {
+    document.documentElement.setAttribute('data-a11y-font', nextFont);
+    localStorage.setItem('wayfind_a11y_font', nextFont);
+  }
+
+  showToast(`Font: ${A11Y_FONT_LABELS[nextFont] || nextFont}`, 'ph-text-t');
+}
+
+const A11Y_THEMES = ['normal', 'yellow-black', 'black-white', 'sepia', 'inverted'];
+const A11Y_THEME_LABELS = {
+  normal: 'Standard Colors',
+  'yellow-black': 'High Contrast Yellow on Black',
+  'black-white': 'High Contrast Black on White',
+  sepia: 'Sepia Warm',
+  inverted: 'Color Inverted'
+};
+
+function handleA11yColorTheme() {
+  const current = document.documentElement.getAttribute('data-a11y-theme') || 'normal';
+  const currentIndex = A11Y_THEMES.indexOf(current);
+  const nextIndex = (currentIndex + 1) % A11Y_THEMES.length;
+  const nextTheme = A11Y_THEMES[nextIndex];
+
+  if (nextTheme === 'normal') {
+    document.documentElement.removeAttribute('data-a11y-theme');
+    localStorage.removeItem('wayfind_a11y_theme');
+  } else {
+    document.documentElement.setAttribute('data-a11y-theme', nextTheme);
+    localStorage.setItem('wayfind_a11y_theme', nextTheme);
+  }
+
+  showToast(`Theme: ${A11Y_THEME_LABELS[nextTheme] || nextTheme}`, 'ph-paint-bucket');
+}
+
+function handleA11ySimplifyContent() {
+  const isSimplified = document.documentElement.getAttribute('data-a11y-simplify') === 'true';
+  if (isSimplified) {
+    document.documentElement.removeAttribute('data-a11y-simplify');
+    localStorage.removeItem('wayfind_a11y_simplify');
+    showToast('Standard visual layout restored', 'ph-check-circle');
+  } else {
+    document.documentElement.setAttribute('data-a11y-simplify', 'true');
+    localStorage.setItem('wayfind_a11y_simplify', 'true');
+    showToast('Simplify Content enabled (decorative effects hidden)', 'ph-list');
+  }
+}
+
+function handleA11yResetDefaults() {
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
+  document.documentElement.style.fontSize = '';
+  document.documentElement.removeAttribute('data-a11y-font');
+  document.documentElement.removeAttribute('data-a11y-theme');
+  document.documentElement.removeAttribute('data-a11y-simplify');
+
+  localStorage.removeItem('wayfind_a11y_font_scale');
+  localStorage.removeItem('wayfind_a11y_font');
+  localStorage.removeItem('wayfind_a11y_theme');
+  localStorage.removeItem('wayfind_a11y_simplify');
+
+  closeAllA11yMenus();
+  showToast('Accessibility settings reset to default', 'ph-arrows-counter-clockwise');
+}
+
+function setupA11yMenus() {
+  // Restore saved accessibility preferences
+  const savedScale = localStorage.getItem('wayfind_a11y_font_scale');
+  if (savedScale) {
+    document.documentElement.style.fontSize = savedScale + '%';
+  }
+  const savedFont = localStorage.getItem('wayfind_a11y_font');
+  if (savedFont && savedFont !== 'default') {
+    document.documentElement.setAttribute('data-a11y-font', savedFont);
+  }
+  const savedTheme = localStorage.getItem('wayfind_a11y_theme');
+  if (savedTheme && savedTheme !== 'normal') {
+    document.documentElement.setAttribute('data-a11y-theme', savedTheme);
+  }
+  const savedSimplify = localStorage.getItem('wayfind_a11y_simplify');
+  if (savedSimplify === 'true') {
+    document.documentElement.setAttribute('data-a11y-simplify', 'true');
+  }
+
+  // Click handler for mobile / tap devices on .a11y-trigger-btn
+  document.querySelectorAll('.a11y-trigger-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const container = btn.closest('.a11y-dropdown-container');
+      if (!container) return;
+      const wasOpen = container.classList.contains('open');
+      closeAllA11yMenus();
+      if (!wasOpen) {
+        container.classList.add('open');
+      }
+    });
+  });
+
+  // Close menus when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.a11y-dropdown-container')) {
+      closeAllA11yMenus();
+    }
+  });
+}
+
 window.renderAvatarBadge = renderAvatarBadge;
 window.renderCartoonAvatars = renderCartoonAvatars;
 window.selectCartoonAvatar = selectCartoonAvatar;
 window.handleAvatarFileUpload = handleAvatarFileUpload;
 window.resetAvatarToInitials = resetAvatarToInitials;
+window.removeProfilePhoto = removeProfilePhoto;
+
+window.closeAllA11yMenus = closeAllA11yMenus;
+window.handleA11yTextToSpeech = handleA11yTextToSpeech;
+window.handleA11yDecreaseFont = handleA11yDecreaseFont;
+window.handleA11yIncreaseFont = handleA11yIncreaseFont;
+window.handleA11yFontFamily = handleA11yFontFamily;
+window.handleA11yColorTheme = handleA11yColorTheme;
+window.handleA11ySimplifyContent = handleA11ySimplifyContent;
+window.handleA11yResetDefaults = handleA11yResetDefaults;
 
 // Close Header Profile Menu on click outside or navigation
 document.addEventListener('click', (e) => {
