@@ -1177,11 +1177,13 @@ function updateUserUI(user) {
 
   const firstName = user.name ? user.name.split(' ')[0] : 'Traveler';
 
+  // Always keep accessibility icon visible in header between Dashboard and theme toggle
+  if (headerA11yContainer) headerA11yContainer.style.display = 'inline-block';
+
   if (user.isLoggedIn) {
-    // Show active user avatar dropdown and logged-in accessibility icon, hide generic sign in button
+    // Show active user avatar dropdown, hide generic sign in button
     if (headerAuthBtn) headerAuthBtn.style.display = 'none';
     if (headerProfileDropdown) headerProfileDropdown.style.display = 'inline-block';
-    if (headerA11yContainer) headerA11yContainer.style.display = 'inline-block';
     renderAvatarBadge(headerAvatarInitials, user.avatarText, user.avatarUrl);
     renderAvatarBadge(menuAvatarInitials, user.avatarText, user.avatarUrl);
     if (menuUserName) menuUserName.textContent = user.name;
@@ -1197,7 +1199,7 @@ function updateUserUI(user) {
     if (profileName) profileName.textContent = user.name;
     if (profileEmail) profileEmail.textContent = user.email || 'traveler@wayfind.travel';
   } else {
-    // Show sign in button, hide profile dropdown and logged-in header accessibility icon
+    // Show sign in button, hide profile dropdown
     if (headerAuthBtn) {
       headerAuthBtn.style.display = 'inline-flex';
       headerAuthBtn.title = 'Sign In to Wayfind';
@@ -1208,7 +1210,6 @@ function updateUserUI(user) {
     }
     if (headerAuthBtnText) headerAuthBtnText.textContent = 'Sign In';
     if (headerProfileDropdown) headerProfileDropdown.style.display = 'none';
-    if (headerA11yContainer) headerA11yContainer.style.display = 'none';
 
     if (headerGetStartedBtn) headerGetStartedBtn.title = 'Sign Up to Start Planning';
     if (dashGreetingName) dashGreetingName.textContent = 'Traveler';

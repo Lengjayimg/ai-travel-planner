@@ -1458,9 +1458,19 @@ html.high-contrast-mode input:checked + .toggle-slider:before {
   padding: 0;
 }
 
+.header-a11y-dropdown {
+  display: inline-block !important;
+  vertical-align: middle;
+}
+
 .header-a11y-dropdown .a11y-circle-btn {
   width: 32px;
   height: 32px;
+}
+
+.header-a11y-dropdown .a11y-symbol-icon {
+  width: 17px;
+  height: 17px;
 }
 
 .a11y-symbol-icon {
