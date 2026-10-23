@@ -911,7 +911,7 @@
             <h4 class="wizard-section-title"><i class="ph ph-map-pin icon-sm" aria-hidden="true"></i> Destination</h4>
             <div class="form-input-wrapper">
               <i class="ph ph-map-pin form-input-icon" aria-hidden="true"></i>
-              <input type="text" id="wizardDestination" class="form-control" value="Abuja, Nigeria" placeholder="Enter city or country" required />
+              <input type="text" id="wizardDestination" class="form-control" value="" placeholder="Enter city or country (e.g. Abuja, Lagos, Nairobi, Cape Town)" required />
             </div>
             <span style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 6px; display: block;">Popular: Abuja, Lagos, Obudu Plateau, Nairobi, Cape Town</span>
           </div>
@@ -919,31 +919,123 @@
           <!-- 2. Dates -->
           <div class="wizard-section">
             <h4 class="wizard-section-title"><i class="ph ph-calendar-blank icon-sm" aria-hidden="true"></i> Travel Dates</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="wizard-dates-grid">
               <div class="form-input-wrapper">
                 <i class="ph ph-airplane-takeoff form-input-icon" aria-hidden="true"></i>
-                <input type="text" class="form-control" value="11/12/2026" placeholder="Start Date (MM/DD/YYYY)" required />
+                <input type="text" id="wizardStartDate" class="form-control" placeholder="Select Start Date" readonly required />
               </div>
               <div class="form-input-wrapper">
                 <i class="ph ph-airplane-landing form-input-icon" aria-hidden="true"></i>
-                <input type="text" class="form-control" value="11/15/2026" placeholder="End Date (MM/DD/YYYY)" required />
+                <input type="text" id="wizardEndDate" class="form-control" placeholder="Select End Date" readonly required />
               </div>
+            </div>
+
+            <!-- Stated Start Date and End Date below the fields -->
+            <div class="wizard-dates-status" id="wizardDatesStatus">
+              <div class="dates-status-empty">
+                <i class="ph ph-calendar-check icon-sm" aria-hidden="true"></i>
+                <span>No travel dates selected yet. Click any day on the calendar below to choose your start and end dates.</span>
+              </div>
+            </div>
+
+            <!-- Integrated Interactive Calendar (Select dates in advance) -->
+            <div class="integrated-calendar-card" id="wizardCalendarCard">
+              <div class="cal-header">
+                <button type="button" class="cal-nav-btn" id="calPrevMonthBtn" aria-label="Previous Month">
+                  <i class="ph ph-caret-left" aria-hidden="true"></i>
+                </button>
+                <div class="cal-title-group">
+                  <h5 class="cal-month-heading" id="calMonthHeading">November 2026</h5>
+                  <span class="cal-hint-sub">Click start date, then click end date to select advance dates</span>
+                </div>
+                <button type="button" class="cal-nav-btn" id="calNextMonthBtn" aria-label="Next Month">
+                  <i class="ph ph-caret-right" aria-hidden="true"></i>
+                </button>
+              </div>
+
+              <!-- Quick Advance Shortcuts -->
+              <div class="cal-advance-shortcuts">
+                <button type="button" class="cal-quick-pill" onclick="wizardCalendarQuickSelect('thisWeekend')">This Weekend</button>
+                <button type="button" class="cal-quick-pill" onclick="wizardCalendarQuickSelect('nextWeek')">Next Week (7 Days)</button>
+                <button type="button" class="cal-quick-pill" onclick="wizardCalendarQuickSelect('inOneMonth')">Next Month (5 Days)</button>
+                <button type="button" class="cal-quick-pill" onclick="wizardCalendarClear()">Clear Dates</button>
+              </div>
+
+              <!-- Weekdays Row -->
+              <div class="cal-weekdays-grid">
+                <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+              </div>
+
+              <!-- Days Grid -->
+              <div class="cal-days-grid" id="calDaysGrid"></div>
             </div>
           </div>
 
-          <!-- 3. Budget Range Slider -->
+          <!-- 3. Target Budget & Currency Allocation -->
           <div class="wizard-section">
-            <h4 class="wizard-section-title"><i class="ph ph-wallet icon-sm" aria-hidden="true"></i> Target Budget (USD / NGN Equivalent)</h4>
-            <div class="budget-slider-wrapper">
-              <div class="slider-val-display">
-                <span>Total Trip Budget Allocation</span>
-                <span class="slider-val-box" id="wizardBudgetVal">$365</span>
+            <div class="wizard-section-header-row">
+              <h4 class="wizard-section-title" style="margin-bottom: 0;">
+                <i class="ph ph-wallet icon-sm" aria-hidden="true"></i> Target Budget
+              </h4>
+              <!-- Currency Switch on this page -->
+              <div class="budget-currency-selector-group">
+                <label for="wizardCurrencySelect" class="budget-currency-label">
+                  <i class="ph ph-currency-circle-dollar icon-sm" aria-hidden="true"></i>
+                  <span>Currency:</span>
+                </label>
+                <select id="wizardCurrencySelect" class="form-control budget-currency-dropdown" aria-label="Display currency for budget">
+                  <option value="NGN">NGN (₦)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                  <option value="CAD">CAD (CA$)</option>
+                  <option value="AUD">AUD (A$)</option>
+                  <option value="JPY">JPY (¥)</option>
+                  <option value="ZAR">ZAR (R)</option>
+                  <option value="GHS">GHS (GH₵)</option>
+                  <option value="KES">KES (KSh)</option>
+                  <option value="AED">AED</option>
+                  <option value="CHF">CHF</option>
+                </select>
               </div>
-              <input type="range" id="wizardBudgetSlider" class="range-slider-input" min="100" max="1500" step="25" value="365" />
-              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--color-text-muted); margin-top: 8px;">
-                <span>$100 (Backpacker)</span>
-                <span>$500 (Comfortable)</span>
-                <span>$1,500+ (Luxury)</span>
+            </div>
+
+            <div class="budget-slider-wrapper">
+              <!-- Top display & manual input with stepper arrows -->
+              <div class="slider-val-display budget-controls-row">
+                <div class="budget-display-meta">
+                  <span class="budget-title-label">Total Trip Budget Allocation</span>
+                  <div class="slider-val-box" id="wizardBudgetVal">Select or enter budget</div>
+                </div>
+
+                <!-- Manual Budget Input with Arrow Up & Down Stepper Style -->
+                <div class="manual-budget-input-wrapper">
+                  <span class="manual-budget-prefix" id="budgetCurrencyPrefix">$</span>
+                  <input type="number" id="wizardBudgetInput" class="form-control manual-budget-input" placeholder="0" min="0" step="50" />
+                  <div class="budget-stepper-arrows">
+                    <button type="button" class="budget-step-btn step-up" id="budgetStepUp" title="Increase price" aria-label="Increase budget">
+                      <i class="ph ph-caret-up" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="budget-step-btn step-down" id="budgetStepDown" title="Decrease price" aria-label="Decrease budget">
+                      <i class="ph ph-caret-down" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Range Slider (Unlimited / Dynamic Max) -->
+              <div class="range-slider-container">
+                <input type="range" id="wizardBudgetSlider" class="range-slider-input" min="0" max="10000" step="50" value="0" />
+              </div>
+
+              <!-- Scale Row & Unlimited Quick Pill -->
+              <div class="budget-scale-row">
+                <span id="budgetScaleMin">$0</span>
+                <span id="budgetScaleMid">$5,000</span>
+                <button type="button" class="btn-unlimited-pill" id="btnUnlimitedBudget" title="Toggle Unlimited Budget">
+                  <i class="ph ph-infinity" aria-hidden="true"></i> Unlimited Budget
+                </button>
+                <span id="budgetScaleMax">$10,000+</span>
               </div>
             </div>
           </div>
@@ -953,7 +1045,7 @@
             <h4 class="wizard-section-title"><i class="ph ph-users icon-sm" aria-hidden="true"></i> Who are you traveling with?</h4>
             <div class="choice-chips-grid single-select">
               <span class="choice-chip">Solo Explorer</span>
-              <span class="choice-chip active">With Partner / Couple</span>
+              <span class="choice-chip">With Partner / Couple</span>
               <span class="choice-chip">Family with Kids</span>
               <span class="choice-chip">Group of Friends</span>
             </div>
@@ -963,9 +1055,9 @@
           <div class="wizard-section">
             <h4 class="wizard-section-title"><i class="ph ph-compass icon-sm" aria-hidden="true"></i> Travel Interests & Moods</h4>
             <div class="choice-chips-grid">
-              <span class="choice-chip active">Art & Contemporary Galleries</span>
-              <span class="choice-chip active">Scenic Nature & Waterfalls</span>
-              <span class="choice-chip active">Local Culinary Delicacies</span>
+              <span class="choice-chip">Art & Contemporary Galleries</span>
+              <span class="choice-chip">Scenic Nature & Waterfalls</span>
+              <span class="choice-chip">Local Culinary Delicacies</span>
               <span class="choice-chip">Aesthetic Sunset Cocktails</span>
               <span class="choice-chip">Historical Architecture</span>
               <span class="choice-chip">Lakeside Water Sports</span>

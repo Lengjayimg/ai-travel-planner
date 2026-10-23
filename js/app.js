@@ -52,6 +52,7 @@ function initApp() {
     renderCurrentView(state);
     updateThemeLogos(state.theme);
     updateUserUI(state.user);
+    if (typeof updateBudgetUI === 'function') updateBudgetUI();
   });
 
   // Initial user UI sync
@@ -441,6 +442,371 @@ function startPlanningDestination(destName) {
 /* ==========================================================================
    PLANNER FORMS & SIMULATED AI GENERATION
    ========================================================================== */
+
+// --- Integrated Advance Calendar State ---
+let calViewYear = 2026;
+let calViewMonth = 10; // 0-indexed: 10 = November 2026
+let wizardStartDate = null; // Date object or null
+let wizardEndDate = null; // Date object or null
+
+// --- Target Budget & Currency State ---
+let wizardBudgetValue = null; // number or null
+let isWizardBudgetUnlimited = false;
+
+const CAL_MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+const CAL_DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const CAL_SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function formatCalendarDisplayDate(date) {
+  if (!date) return '';
+  const dayName = CAL_DAY_NAMES[date.getDay()];
+  const monthName = CAL_SHORT_MONTHS[date.getMonth()];
+  const day = date.getDate();
+  const year = date.getFullYear();
+  return `${dayName}, ${monthName} ${day}, ${year}`;
+}
+
+function formatShortInputDate(date) {
+  if (!date) return '';
+  const month = CAL_SHORT_MONTHS[date.getMonth()];
+  const day = date.getDate();
+  const year = date.getFullYear();
+  return `${month} ${day}, ${year}`;
+}
+
+function renderWizardCalendar() {
+  const monthHeading = document.getElementById('calMonthHeading');
+  const daysGrid = document.getElementById('calDaysGrid');
+  if (!daysGrid || !monthHeading) return;
+
+  monthHeading.textContent = `${CAL_MONTH_NAMES[calViewMonth]} ${calViewYear}`;
+  daysGrid.innerHTML = '';
+
+  const firstDayIndex = new Date(calViewYear, calViewMonth, 1).getDay();
+  const totalDays = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Fill in leading empty day slots
+  for (let i = 0; i < firstDayIndex; i++) {
+    const blank = document.createElement('div');
+    blank.className = 'cal-day-cell is-disabled';
+    daysGrid.appendChild(blank);
+  }
+
+  // Populate days of month
+  for (let day = 1; day <= totalDays; day++) {
+    const cellDate = new Date(calViewYear, calViewMonth, day);
+    cellDate.setHours(0, 0, 0, 0);
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cal-day-cell';
+    btn.textContent = day;
+
+    if (cellDate.getTime() === today.getTime()) {
+      btn.classList.add('is-today');
+    }
+
+    const isStart = wizardStartDate && cellDate.getTime() === wizardStartDate.getTime();
+    const isEnd = wizardEndDate && cellDate.getTime() === wizardEndDate.getTime();
+    const inRange = wizardStartDate && wizardEndDate &&
+      cellDate.getTime() > wizardStartDate.getTime() &&
+      cellDate.getTime() < wizardEndDate.getTime();
+
+    if (isStart) {
+      btn.classList.add('start-selected');
+      if (wizardEndDate) btn.classList.add('has-end');
+    }
+    if (isEnd) {
+      btn.classList.add('end-selected');
+      if (wizardStartDate) btn.classList.add('has-start');
+    }
+    if (inRange) {
+      btn.classList.add('in-range');
+    }
+
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleWizardCalendarClick(cellDate);
+    });
+
+    daysGrid.appendChild(btn);
+  }
+}
+
+function handleWizardCalendarClick(clickedDate) {
+  // If neither start is selected, or both were already selected: start fresh
+  if (!wizardStartDate || (wizardStartDate && wizardEndDate)) {
+    wizardStartDate = clickedDate;
+    wizardEndDate = null;
+  } else if (wizardStartDate && !wizardEndDate) {
+    if (clickedDate.getTime() >= wizardStartDate.getTime()) {
+      wizardEndDate = clickedDate;
+    } else {
+      // Clicked earlier date: make it the new start date
+      wizardStartDate = clickedDate;
+      wizardEndDate = null;
+    }
+  }
+
+  updateWizardDatesDisplay();
+  renderWizardCalendar();
+}
+
+function updateWizardDatesDisplay() {
+  const startInput = document.getElementById('wizardStartDate');
+  const endInput = document.getElementById('wizardEndDate');
+  const statusContainer = document.getElementById('wizardDatesStatus');
+
+  if (startInput) startInput.value = formatShortInputDate(wizardStartDate);
+  if (endInput) endInput.value = formatShortInputDate(wizardEndDate);
+
+  if (!statusContainer) return;
+
+  if (wizardStartDate && wizardEndDate) {
+    const diffMs = wizardEndDate.getTime() - wizardStartDate.getTime();
+    const days = Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1;
+    const nights = Math.max(1, days - 1);
+
+    statusContainer.innerHTML = `
+      <div class="dates-status-active animate-fade-in">
+        <div class="date-status-pill">
+          <span class="date-status-tag"><i class="ph ph-airplane-takeoff"></i> Start date:</span>
+          <strong class="date-status-val">${formatCalendarDisplayDate(wizardStartDate)}</strong>
+        </div>
+        <div class="date-status-arrow">
+          <i class="ph ph-arrow-right"></i>
+        </div>
+        <div class="date-status-pill">
+          <span class="date-status-tag"><i class="ph ph-airplane-landing"></i> End date:</span>
+          <strong class="date-status-val">${formatCalendarDisplayDate(wizardEndDate)}</strong>
+        </div>
+        <span class="date-status-duration">
+          <i class="ph ph-clock"></i> ${days} ${days === 1 ? 'Day' : 'Days'} / ${nights} ${nights === 1 ? 'Night' : 'Nights'}
+        </span>
+      </div>
+    `;
+  } else if (wizardStartDate) {
+    statusContainer.innerHTML = `
+      <div class="dates-status-active animate-fade-in">
+        <div class="date-status-pill">
+          <span class="date-status-tag"><i class="ph ph-airplane-takeoff"></i> Start date:</span>
+          <strong class="date-status-val">${formatCalendarDisplayDate(wizardStartDate)}</strong>
+        </div>
+        <span style="font-size: 0.85rem; color: var(--color-primary-dark); font-weight: 600;">
+          Next: Click an End date on the calendar below
+        </span>
+      </div>
+    `;
+  } else {
+    statusContainer.innerHTML = `
+      <div class="dates-status-empty">
+        <i class="ph ph-calendar-check icon-sm" aria-hidden="true"></i>
+        <span>No travel dates selected yet. Click any day on the calendar below to choose your start and end dates.</span>
+      </div>
+    `;
+  }
+}
+
+function wizardCalendarQuickSelect(preset) {
+  const base = new Date();
+  base.setHours(0, 0, 0, 0);
+
+  if (preset === 'thisWeekend') {
+    const dayOfWeek = base.getDay();
+    const daysToSat = (6 - dayOfWeek + 7) % 7 || 7;
+    const sat = new Date(base.getFullYear(), base.getMonth(), base.getDate() + daysToSat);
+    const sun = new Date(base.getFullYear(), base.getMonth(), base.getDate() + daysToSat + 1);
+    wizardStartDate = sat;
+    wizardEndDate = sun;
+    calViewMonth = sat.getMonth();
+    calViewYear = sat.getFullYear();
+  } else if (preset === 'nextWeek') {
+    const start = new Date(base.getFullYear(), base.getMonth(), base.getDate() + 7);
+    const end = new Date(base.getFullYear(), base.getMonth(), base.getDate() + 13);
+    wizardStartDate = start;
+    wizardEndDate = end;
+    calViewMonth = start.getMonth();
+    calViewYear = start.getFullYear();
+  } else if (preset === 'inOneMonth') {
+    const start = new Date(base.getFullYear(), base.getMonth() + 1, 10);
+    const end = new Date(base.getFullYear(), base.getMonth() + 1, 15);
+    wizardStartDate = start;
+    wizardEndDate = end;
+    calViewMonth = start.getMonth();
+    calViewYear = start.getFullYear();
+  }
+
+  updateWizardDatesDisplay();
+  renderWizardCalendar();
+}
+
+function wizardCalendarClear() {
+  wizardStartDate = null;
+  wizardEndDate = null;
+  updateWizardDatesDisplay();
+  renderWizardCalendar();
+}
+
+// --- Target Budget & Multi-Currency Engine ---
+function getCurrencyConfig(code) {
+  const active = code || store.getState().currency || 'USD';
+  const cfg = (window.WAYFIND_CURRENCIES && window.WAYFIND_CURRENCIES[active]) || { code: 'USD', symbol: '$', rate: 1.0 };
+  let step = 50;
+  let max = 10000;
+  let mid = 5000;
+
+  if (cfg.rate >= 1000) {
+    step = 50000;
+    max = 15000000;
+    mid = 7500000;
+  } else if (cfg.rate >= 100) {
+    step = 5000;
+    max = 1500000;
+    mid = 750000;
+  } else if (cfg.rate >= 10) {
+    step = 500;
+    max = 150000;
+    mid = 75000;
+  }
+
+  return { ...cfg, step, max, mid };
+}
+
+function updateBudgetUI(opts = {}) {
+  const currencyCode = store.getState().currency || 'USD';
+  const cfg = getCurrencyConfig(currencyCode);
+
+  const currencySelect = document.getElementById('wizardCurrencySelect');
+  const currencyPrefix = document.getElementById('budgetCurrencyPrefix');
+  const budgetInput = document.getElementById('wizardBudgetInput');
+  const budgetSlider = document.getElementById('wizardBudgetSlider');
+  const budgetDisplay = document.getElementById('wizardBudgetVal');
+  const scaleMin = document.getElementById('budgetScaleMin');
+  const scaleMid = document.getElementById('budgetScaleMid');
+  const scaleMax = document.getElementById('budgetScaleMax');
+  const btnUnlimited = document.getElementById('btnUnlimitedBudget');
+
+  if (currencySelect && currencySelect.value !== currencyCode) {
+    currencySelect.value = currencyCode;
+  }
+  if (currencyPrefix) currencyPrefix.textContent = cfg.symbol;
+
+  if (scaleMin) scaleMin.textContent = `${cfg.symbol}0`;
+  if (scaleMid) scaleMid.textContent = `${cfg.symbol}${cfg.mid.toLocaleString()}`;
+  if (scaleMax) scaleMax.textContent = `${cfg.symbol}${cfg.max.toLocaleString()}+`;
+
+  if (isWizardBudgetUnlimited) {
+    if (btnUnlimited) btnUnlimited.classList.add('active');
+    if (budgetDisplay) budgetDisplay.innerHTML = `<i class="ph ph-infinity" style="margin-right: 4px;"></i> Unlimited Budget`;
+    if (budgetInput) {
+      budgetInput.value = '';
+      budgetInput.placeholder = 'Unlimited';
+    }
+    if (budgetSlider) {
+      budgetSlider.max = cfg.max;
+      budgetSlider.value = cfg.max;
+    }
+    return;
+  } else {
+    if (btnUnlimited) btnUnlimited.classList.remove('active');
+  }
+
+  if (wizardBudgetValue === null || wizardBudgetValue === undefined) {
+    if (budgetDisplay) budgetDisplay.textContent = 'Select or enter budget';
+    if (budgetInput) {
+      budgetInput.value = '';
+      budgetInput.placeholder = `e.g. ${(cfg.rate >= 1000 ? 500000 : 500).toLocaleString()}`;
+    }
+    if (budgetSlider) {
+      budgetSlider.max = cfg.max;
+      budgetSlider.step = cfg.step;
+      budgetSlider.value = 0;
+    }
+    return;
+  }
+
+  const numVal = Math.max(0, wizardBudgetValue);
+
+  // Dynamic unlimited slider max
+  if (budgetSlider) {
+    const targetMax = Math.max(cfg.max, Math.ceil((numVal * 1.35) / cfg.step) * cfg.step);
+    budgetSlider.max = targetMax;
+    budgetSlider.step = cfg.step;
+    budgetSlider.value = numVal;
+  }
+
+  if (budgetInput && !opts.skipInput) {
+    budgetInput.value = numVal;
+    budgetInput.placeholder = '0';
+  }
+
+  if (budgetDisplay) {
+    budgetDisplay.textContent = `${cfg.symbol}${numVal.toLocaleString()}`;
+  }
+}
+
+function handleBudgetStep(direction) {
+  const currencyCode = store.getState().currency || 'USD';
+  const cfg = getCurrencyConfig(currencyCode);
+  isWizardBudgetUnlimited = false;
+
+  if (wizardBudgetValue === null || wizardBudgetValue === undefined || isNaN(wizardBudgetValue)) {
+    wizardBudgetValue = direction > 0 ? cfg.step : 0;
+  } else {
+    wizardBudgetValue = Math.max(0, wizardBudgetValue + (direction * cfg.step));
+  }
+
+  updateBudgetUI();
+}
+
+function handleBudgetManualInput(val) {
+  isWizardBudgetUnlimited = false;
+  if (val === '' || val === null || isNaN(val)) {
+    wizardBudgetValue = null;
+  } else {
+    wizardBudgetValue = Math.max(0, parseInt(val, 10) || 0);
+  }
+  updateBudgetUI({ skipInput: true });
+}
+
+function handleBudgetSliderInput(val) {
+  isWizardBudgetUnlimited = false;
+  wizardBudgetValue = Math.max(0, parseInt(val, 10) || 0);
+  updateBudgetUI();
+}
+
+function toggleUnlimitedBudget() {
+  isWizardBudgetUnlimited = !isWizardBudgetUnlimited;
+  if (isWizardBudgetUnlimited) {
+    wizardBudgetValue = null;
+  } else {
+    const cfg = getCurrencyConfig(store.getState().currency);
+    wizardBudgetValue = cfg.mid;
+  }
+  updateBudgetUI();
+}
+
+function handleWizardCurrencyChange(newCurrency) {
+  const oldCurrency = store.getState().currency || 'USD';
+  if (oldCurrency === newCurrency) return;
+
+  const oldRate = window.WAYFIND_CURRENCIES[oldCurrency]?.rate || 1.0;
+  const newRate = window.WAYFIND_CURRENCIES[newCurrency]?.rate || 1.0;
+
+  if (wizardBudgetValue !== null && !isWizardBudgetUnlimited) {
+    const usdEquivalent = wizardBudgetValue / oldRate;
+    wizardBudgetValue = Math.round(usdEquivalent * newRate);
+  }
+
+  store.setCurrency(newCurrency);
+  updateBudgetUI();
+}
+
 function setupPlannerForms() {
   // 1. Landing Quick Planner Form
   const quickForm = document.getElementById('quickTripForm');
@@ -456,30 +822,125 @@ function setupPlannerForms() {
   if (wizardForm) {
     wizardForm.addEventListener('submit', (e) => {
       e.preventDefault();
+      if (!wizardStartDate || !wizardEndDate) {
+        if (typeof showToast === 'function') {
+          showToast('Please select your travel dates on the calendar.', 'ph-calendar');
+        }
+        const cal = document.getElementById('wizardCalendarCard');
+        if (cal) cal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
       triggerAIGeneration();
     });
   }
 
-  // Budget slider real-time label update
-  const budgetSlider = document.getElementById('wizardBudgetSlider');
-  const budgetDisplay = document.getElementById('wizardBudgetVal');
-  if (budgetSlider && budgetDisplay) {
-    budgetSlider.addEventListener('input', (e) => {
-      budgetDisplay.textContent = `$${parseInt(e.target.value).toLocaleString()}`;
+  // 3. Calendar Navigation & Input Bindings
+  const prevBtn = document.getElementById('calPrevMonthBtn');
+  const nextBtn = document.getElementById('calNextMonthBtn');
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      calViewMonth--;
+      if (calViewMonth < 0) {
+        calViewMonth = 11;
+        calViewYear--;
+      }
+      renderWizardCalendar();
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      calViewMonth++;
+      if (calViewMonth > 11) {
+        calViewMonth = 0;
+        calViewYear++;
+      }
+      renderWizardCalendar();
     });
   }
 
-  // Chip toggles for companions & preferences
+  const startInput = document.getElementById('wizardStartDate');
+  const endInput = document.getElementById('wizardEndDate');
+  [startInput, endInput].forEach(inp => {
+    if (inp) {
+      inp.addEventListener('click', () => {
+        const cal = document.getElementById('wizardCalendarCard');
+        if (cal) cal.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+    }
+  });
+
+  // 4. Budget Controls: Stepper Arrows, Manual Input, Slider & Unlimited Pill
+  const stepUpBtn = document.getElementById('budgetStepUp');
+  const stepDownBtn = document.getElementById('budgetStepDown');
+  if (stepUpBtn) {
+    stepUpBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleBudgetStep(1);
+    });
+  }
+  if (stepDownBtn) {
+    stepDownBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleBudgetStep(-1);
+    });
+  }
+
+  const budgetInput = document.getElementById('wizardBudgetInput');
+  if (budgetInput) {
+    budgetInput.addEventListener('input', (e) => {
+      handleBudgetManualInput(e.target.value);
+    });
+    budgetInput.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        handleBudgetStep(1);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        handleBudgetStep(-1);
+      }
+    });
+  }
+
+  const budgetSlider = document.getElementById('wizardBudgetSlider');
+  if (budgetSlider) {
+    budgetSlider.addEventListener('input', (e) => {
+      handleBudgetSliderInput(e.target.value);
+    });
+  }
+
+  const unlimitedBtn = document.getElementById('btnUnlimitedBudget');
+  if (unlimitedBtn) {
+    unlimitedBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleUnlimitedBudget();
+    });
+  }
+
+  const currencySelect = document.getElementById('wizardCurrencySelect');
+  if (currencySelect) {
+    currencySelect.addEventListener('change', (e) => {
+      handleWizardCurrencyChange(e.target.value);
+    });
+  }
+
+  // 5. Choice Chip Toggles (Companions & Interests)
   document.querySelectorAll('.choice-chip').forEach(chip => {
     chip.addEventListener('click', () => {
-      // If single choice within parent group, uncheck siblings
       const parent = chip.parentElement;
       if (parent.classList.contains('single-select')) {
+        const wasActive = chip.classList.contains('active');
         parent.querySelectorAll('.choice-chip').forEach(c => c.classList.remove('active'));
+        if (!wasActive) chip.classList.add('active');
+      } else {
+        chip.classList.toggle('active');
       }
-      chip.classList.toggle('active');
     });
   });
+
+  // Initial render of calendar & budget
+  renderWizardCalendar();
+  updateWizardDatesDisplay();
+  updateBudgetUI();
 }
 
 function triggerAIGeneration() {
@@ -1723,3 +2184,9 @@ if (menuManageAccountLink) {
     }
   });
 }
+
+// Global Wizard Calendar & Budget Exports
+window.wizardCalendarQuickSelect = wizardCalendarQuickSelect;
+window.wizardCalendarClear = wizardCalendarClear;
+window.handleWizardCurrencyChange = handleWizardCurrencyChange;
+window.updateBudgetUI = updateBudgetUI;
