@@ -891,17 +891,54 @@
   display: grid;
   grid-template-columns: 1fr 340px;
   gap: 32px;
+  align-items: start;
+}
+
+.itinerary-sidebar-col {
+  position: sticky;
+  top: calc(var(--header-height, 74px) + 70px);
+}
+
+/* --- Sticky Days Navigation Bar (Fixed at top when scrolling, swipeable left & right) --- */
+.days-sticky-container {
+  position: sticky;
+  top: var(--header-height, 74px);
+  z-index: 35;
+  background: var(--color-bg);
+  padding: 10px 0 12px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  transition: all var(--transition-fast);
+}
+
+[data-theme="dark"] .days-sticky-container {
+  background: var(--color-bg);
+  border-bottom-color: var(--color-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
 .days-tab-nav {
   display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
   gap: 10px;
   overflow-x: auto;
-  padding-bottom: 12px;
-  margin-bottom: 24px;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 4px 0;
+  touch-action: pan-x pan-y;
+}
+
+.days-tab-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .day-tab-btn {
+  flex: 0 0 auto;
   padding: 10px 22px;
   border-radius: var(--radius-full);
   background: var(--color-surface);
@@ -913,6 +950,17 @@
   cursor: pointer;
   white-space: nowrap;
   transition: all var(--transition-fast);
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.day-tab-btn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-dark);
 }
 
 .day-tab-btn.active {
@@ -1109,6 +1157,40 @@
   height: 100%;
   border-radius: 4px;
   transition: width 0.5s ease;
+}
+
+/* --- Open AI Companion Card --- */
+.itinerary-companion-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.itinerary-companion-icon-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.companion-avatar-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.05rem;
+}
+
+[data-theme="dark"] .companion-avatar-icon {
+  color: var(--color-primary-light);
 }
 
 /* --- Modals and Overlays --- */

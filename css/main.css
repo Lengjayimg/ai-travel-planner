@@ -19,6 +19,7 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
 }
 
 body {
@@ -26,7 +27,7 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text-main);
   line-height: 1.6;
-  overflow-x: hidden;
+  overflow-x: clip;
   transition: background-color var(--transition-normal), color var(--transition-normal);
   min-height: 100vh;
   position: relative;

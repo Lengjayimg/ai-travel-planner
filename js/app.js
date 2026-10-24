@@ -347,6 +347,16 @@ function renderItineraryView(state) {
 
 function selectDayIndex(idx) {
   store.setDayIndex(idx);
+  // Auto-scroll the active tab into view horizontally in the swipeable days bar
+  setTimeout(() => {
+    const daysNav = document.getElementById('itineraryDaysNav');
+    if (daysNav) {
+      const activeBtn = daysNav.querySelectorAll('.day-tab-btn')[idx];
+      if (activeBtn) {
+        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+  }, 40);
 }
 
 function deleteActivityAction(activityId) {

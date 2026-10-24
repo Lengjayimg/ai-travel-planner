@@ -304,18 +304,26 @@
     gap: 24px;
   }
 
+  .days-sticky-container {
+    top: var(--header-height, 64px);
+    padding: 8px 0;
+    margin-bottom: 18px;
+    margin-left: calc(-1 * var(--space-4, 16px));
+    margin-right: calc(-1 * var(--space-4, 16px));
+    padding-left: var(--space-4, 16px);
+    padding-right: var(--space-4, 16px);
+  }
+
   .days-tab-nav {
     display: flex;
+    flex-flow: row nowrap;
     gap: 8px;
     overflow-x: auto;
-    padding: 6px 0 10px;
-    margin-bottom: 16px;
+    overflow-y: hidden;
+    padding: 2px 0 6px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    position: sticky;
-    top: var(--header-height, 64px);
-    background: var(--color-bg);
-    z-index: 10;
+    touch-action: pan-x pan-y;
   }
 
   .days-tab-nav::-webkit-scrollbar {
@@ -325,7 +333,7 @@
   .day-tab-btn {
     padding: 8px 16px;
     font-size: 0.85rem;
-    flex-shrink: 0;
+    flex: 0 0 auto;
     min-height: 40px;
   }
 
@@ -343,17 +351,24 @@
   }
 
   .timeline-activity-card {
-    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
     gap: 12px;
     padding: 14px 16px;
     border-radius: var(--radius-lg);
     transform: none !important;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .activity-img-wrapper {
-    height: 150px !important;
+    height: 160px !important;
     width: 100%;
     border-radius: var(--radius-md);
+  }
+
+  .activity-main-info {
+    width: 100%;
   }
 
   .activity-meta-row {
@@ -427,9 +442,12 @@
     padding: 6px 10px;
   }
 
+  /* Responsive Estimated Total Card */
   .budget-summary-panel {
     padding: 18px 16px;
     border-radius: var(--radius-lg);
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .budget-total-header {
@@ -439,6 +457,15 @@
 
   .budget-total-header h3 {
     font-size: 1.6rem;
+  }
+
+  /* Responsive Open AI Companion Card */
+  .itinerary-companion-card {
+    padding: 18px 16px;
+    border-radius: var(--radius-lg);
+    margin-top: 18px !important;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .footer-top {
@@ -472,6 +499,10 @@
     font-size: 1.18rem;
   }
 
+  [data-view="itinerary"] .app-actions-group {
+    gap: 6px;
+  }
+
   [data-view="itinerary"] .app-actions-group .btn {
     padding: 8px 4px;
     font-size: 0.74rem;
@@ -480,6 +511,17 @@
 
   [data-view="itinerary"] .app-actions-group .btn i {
     font-size: 0.95rem;
+  }
+
+  .days-sticky-container {
+    padding: 6px 0;
+    margin-bottom: 14px;
+  }
+
+  .day-tab-btn {
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    min-height: 38px;
   }
 
   .timeline-activity-card {
@@ -493,6 +535,14 @@
   .itinerary-meta-pill {
     font-size: 0.75rem;
     padding: 3px 8px;
+  }
+
+  .budget-total-header h3 {
+    font-size: 1.45rem;
+  }
+
+  .itinerary-companion-card {
+    padding: 16px 14px;
   }
 }
 

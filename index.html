@@ -1148,15 +1148,18 @@
         </button>
       </div>
 
+      <!-- Sticky Days Navigation Bar (Fixed at top when scrolling, swipeable left & right) -->
+      <div class="days-sticky-container" id="itineraryDaysStickyContainer">
+        <div class="days-tab-nav" id="itineraryDaysNav" role="tablist" aria-label="Trip days navigation">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
       <!-- Itinerary Layout Grid -->
       <div class="itinerary-layout">
         
-        <!-- Left Column: Day Tab Navigation & Activities Feed -->
-        <div>
-          <div class="days-tab-nav" id="itineraryDaysNav">
-            <!-- Rendered by JS -->
-          </div>
-
+        <!-- Left Column: Activities Feed -->
+        <div class="itinerary-main-col">
           <h3 id="itineraryActiveDayTitle" style="margin-bottom: 20px; font-size: 1.35rem;">Day 1: Arrival & Lakeside Unwind</h3>
 
           <!-- Vertical Dotted Timeline Feed -->
@@ -1165,17 +1168,22 @@
           </div>
         </div>
 
-        <!-- Right Column: Budget Breakdown Sidebar -->
-        <div>
+        <!-- Right Column: Budget Breakdown Sidebar & AI Companion -->
+        <div class="itinerary-sidebar-col">
           <div class="budget-summary-panel" id="itineraryBudgetBreakdown">
             <!-- Rendered by JS -->
           </div>
 
-          <div class="card-solid" style="padding: 24px; margin-top: 24px;">
-            <h4 style="margin-bottom: 8px;">Need quick changes?</h4>
-            <p style="font-size: 0.88rem; margin-bottom: 14px;">Ask your AI companion to swap times, find halal or vegan food, or suggest quiet spots.</p>
+          <div class="card-solid itinerary-companion-card" style="margin-top: 24px;">
+            <div class="itinerary-companion-icon-title">
+              <div class="companion-avatar-icon">
+                <i class="ph ph-sparkle icon-sm" aria-hidden="true"></i>
+              </div>
+              <h4 style="margin: 0;">Need quick changes?</h4>
+            </div>
+            <p style="font-size: 0.88rem; margin: 8px 0 14px; color: var(--color-text-muted);">Ask your AI companion to swap times, find halal or vegan food, or suggest quiet spots.</p>
             <button class="btn btn-primary btn-sm btn-full" onclick="store.toggleChatbot()">
-              <i class="ph ph-chat-circle-dots icon-sm" aria-hidden="true"></i> Open AI Companion
+              <i class="ph ph-chat-circle-dots icon-sm" aria-hidden="true"></i> <span>Open AI Companion</span>
             </button>
           </div>
         </div>
