@@ -499,11 +499,16 @@ function renderSavedTripsView(state) {
 
   if (!state.savedTrips || state.savedTrips.length === 0) {
     container.innerHTML = `
-      <div class="empty-saved-trips" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
-        <i class="ph ph-folder-dashed" style="font-size: 3.2rem; color: var(--color-text-muted); opacity: 0.6;"></i>
-        <h3 style="margin-top: 16px; font-size: 1.3rem;">No saved trips yet</h3>
-        <p style="color: var(--color-text-muted); max-width: 420px; margin: 8px auto 20px;">Your saved itineraries and customized adventures will appear here.</p>
-        <a href="#planner" class="btn btn-primary">Plan Your Next Trip</a>
+      <div class="empty-saved-trips animate-fade-in">
+        <div class="empty-saved-icon">
+          <i class="ph ph-folder-dashed" aria-hidden="true"></i>
+        </div>
+        <h3>No Saved Trips Yet</h3>
+        <p>You haven't saved any trips yet. Plan your personalized itinerary and click <strong>"Save Trip"</strong> to keep it accessible anytime, even offline.</p>
+        <a href="#planner" class="btn btn-primary btn-sm" data-route="planner">
+          <i class="ph ph-sparkle" aria-hidden="true"></i>
+          <span>Plan Your Next Trip</span>
+        </a>
       </div>
     `;
     return;

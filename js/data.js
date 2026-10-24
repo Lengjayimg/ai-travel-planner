@@ -345,39 +345,8 @@ const WAYFIND_DATA = {
     ]
   },
 
-  // --- Secondary Sample Trip (For Saved Trips View) ---
-  savedTrips: [
-    {
-      id: "trip-qatar-002",
-      title: "Qatar: Modern Skyline & Desert Dune Safari",
-      destination: "Doha, Qatar",
-      dates: "July 25 – 31, 2026",
-      startDate: "2026-07-25T00:00:00.000Z",
-      endDate: "2026-07-31T00:00:00.000Z",
-      duration: "7 Days",
-      travelers: "1 Adult (Solo)",
-      travelStyle: "Luxury & Culture",
-      budgetTotalUSD: 1250,
-      budgetTotalNGN: 1060000,
-      status: "Past Itinerary",
-      coverImage: "https://images.unsplash.com/photo-1580674684081-7617fbf3d745?auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      id: "trip-lagos-003",
-      title: "Lagos: Art, Atlantic Breeze & Nightlife",
-      destination: "Lagos, Nigeria",
-      dates: "August 3 – 9, 2026",
-      startDate: "2026-08-03T00:00:00.000Z",
-      endDate: "2026-08-09T00:00:00.000Z",
-      duration: "7 Days",
-      travelers: "2 Adults",
-      travelStyle: "Culture & Culinary",
-      budgetTotalUSD: 420,
-      budgetTotalNGN: 357000,
-      status: "Saved Draft",
-      coverImage: "https://images.unsplash.com/photo-1577975882846-431adc8c2009?auto=format&fit=crop&w=600&q=80"
-    }
-  ],
+  // --- Saved Trips (Starts empty until user explicitly clicks "Save Trip") ---
+  savedTrips: [],
 
   // --- Pre-configured AI Chatbot Knowledge Base & Intent Responses ---
   chatbotIntents: [

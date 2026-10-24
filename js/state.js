@@ -22,7 +22,7 @@ class WayfindStore {
         avatarText: 'AJ',
         avatarUrl: localStorage.getItem('wayfind_avatar') || null,
         location: 'Lagos, Nigeria',
-        tripsCount: 4,
+        tripsCount: 0,
         isLoggedIn: true
       },
 
@@ -37,9 +37,19 @@ class WayfindStore {
       savedTrips: (() => {
         try {
           const stored = localStorage.getItem('wayfind_saved_trips');
-          if (stored) return JSON.parse(stored);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+              // Only user-saved trips; strip pre-seeded mock trips from earlier sessions
+              const userSavedOnly = parsed.filter(t => t.id !== 'trip-qatar-002' && t.id !== 'trip-lagos-003');
+              if (userSavedOnly.length !== parsed.length) {
+                localStorage.setItem('wayfind_saved_trips', JSON.stringify(userSavedOnly));
+              }
+              return userSavedOnly;
+            }
+          }
         } catch (e) {}
-        return JSON.parse(JSON.stringify(WAYFIND_DATA.savedTrips));
+        return [];
       })(),
       
       // Modals
@@ -317,12 +327,18 @@ class WayfindStore {
     } else {
       this.state.savedTrips.unshift(tripToSave);
     }
+    if (this.state.user) {
+      this.state.user.tripsCount = this.state.savedTrips.length;
+    }
     this.persistSavedTrips();
     this.notify();
   }
 
   deleteSavedTrip(tripId) {
     this.state.savedTrips = this.state.savedTrips.filter(t => t.id !== tripId);
+    if (this.state.user) {
+      this.state.user.tripsCount = this.state.savedTrips.length;
+    }
     this.persistSavedTrips();
     this.notify();
   }
