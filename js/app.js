@@ -605,21 +605,21 @@ function updateWizardDatesDisplay() {
     `;
   } else if (wizardStartDate) {
     statusContainer.innerHTML = `
-      <div class="dates-status-active animate-fade-in">
+      <div class="dates-status-active animate-fade-in" onclick="openDateOverlay('planner')" style="cursor: pointer;" title="Click to choose End date">
         <div class="date-status-pill">
           <span class="date-status-tag"><i class="ph ph-airplane-takeoff"></i> Start date:</span>
           <strong class="date-status-val">${formatCalendarDisplayDate(wizardStartDate)}</strong>
         </div>
         <span style="font-size: 0.85rem; color: var(--color-primary-dark); font-weight: 600;">
-          Next: Click an End date on the calendar below
+          Next: Click to choose an End date
         </span>
       </div>
     `;
   } else {
     statusContainer.innerHTML = `
-      <div class="dates-status-empty">
+      <div class="dates-status-empty" onclick="openDateOverlay('planner')" style="cursor: pointer;" title="Click to select dates">
         <i class="ph ph-calendar-check icon-sm" aria-hidden="true"></i>
-        <span>No travel dates selected yet. Click any day on the calendar below to choose your start and end dates.</span>
+        <span>No travel dates selected yet. Click here or on the fields above to choose your Start date and End date in advance.</span>
       </div>
     `;
   }
@@ -1142,10 +1142,9 @@ function setupPlannerForms() {
       e.preventDefault();
       if (!wizardStartDate || !wizardEndDate) {
         if (typeof showToast === 'function') {
-          showToast('Please select your travel dates on the calendar.', 'ph-calendar');
+          showToast('Please select your travel dates in advance.', 'ph-calendar');
         }
-        const cal = document.getElementById('wizardCalendarCard');
-        if (cal) cal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        openDateOverlay('planner');
         return;
       }
       triggerAIGeneration();
@@ -1205,8 +1204,7 @@ function setupPlannerForms() {
   [startInput, endInput].forEach(inp => {
     if (inp) {
       inp.addEventListener('click', () => {
-        const cal = document.getElementById('wizardCalendarCard');
-        if (cal) cal.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        openDateOverlay('planner');
       });
     }
   });

@@ -925,7 +925,7 @@
                 <i class="ph ph-calendar-blank icon-sm" aria-hidden="true"></i> Travel Dates
               </h4>
               <button type="button" class="btn btn-secondary btn-xs" onclick="openDateOverlay('planner')">
-                <i class="ph ph-arrows-out-simple"></i> <span>Pop Out Calendar</span>
+                <i class="ph ph-calendar-plus"></i> <span>Select Dates</span>
               </button>
             </div>
             <div class="wizard-dates-grid">
@@ -940,43 +940,11 @@
             </div>
 
             <!-- Stated Start Date and End Date below the fields -->
-            <div class="wizard-dates-status" id="wizardDatesStatus">
+            <div class="wizard-dates-status" id="wizardDatesStatus" onclick="openDateOverlay('planner')" style="cursor: pointer;" title="Click to select dates">
               <div class="dates-status-empty">
                 <i class="ph ph-calendar-check icon-sm" aria-hidden="true"></i>
-                <span>No travel dates selected yet. Click any day on the calendar below to choose your start and end dates.</span>
+                <span>No travel dates selected yet. Click here or on the fields above to choose your Start date and End date in advance.</span>
               </div>
-            </div>
-
-            <!-- Integrated Interactive Calendar (Select dates in advance) -->
-            <div class="integrated-calendar-card" id="wizardCalendarCard">
-              <div class="cal-header">
-                <button type="button" class="cal-nav-btn" id="calPrevMonthBtn" aria-label="Previous Month">
-                  <i class="ph ph-caret-left" aria-hidden="true"></i>
-                </button>
-                <div class="cal-title-group">
-                  <h5 class="cal-month-heading" id="calMonthHeading">November 2026</h5>
-                  <span class="cal-hint-sub">Click start date, then click end date to select advance dates</span>
-                </div>
-                <button type="button" class="cal-nav-btn" id="calNextMonthBtn" aria-label="Next Month">
-                  <i class="ph ph-caret-right" aria-hidden="true"></i>
-                </button>
-              </div>
-
-              <!-- Quick Advance Shortcuts -->
-              <div class="cal-advance-shortcuts">
-                <button type="button" class="cal-quick-pill" onclick="wizardCalendarQuickSelect('thisWeekend')">This Weekend</button>
-                <button type="button" class="cal-quick-pill" onclick="wizardCalendarQuickSelect('nextWeek')">Next Week (7 Days)</button>
-                <button type="button" class="cal-quick-pill" onclick="wizardCalendarQuickSelect('inOneMonth')">Next Month (5 Days)</button>
-                <button type="button" class="cal-quick-pill" onclick="wizardCalendarClear()">Clear Dates</button>
-              </div>
-
-              <!-- Weekdays Row -->
-              <div class="cal-weekdays-grid">
-                <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
-              </div>
-
-              <!-- Days Grid -->
-              <div class="cal-days-grid" id="calDaysGrid"></div>
             </div>
           </div>
 
