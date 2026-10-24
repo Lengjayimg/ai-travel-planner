@@ -3112,6 +3112,30 @@ html.high-contrast-mode input:checked + .toggle-slider:before {
   color: var(--color-primary-dark);
 }
 
+.a11y-menu-item.active {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-dark);
+  font-weight: 700;
+}
+
+.a11y-menu-item.active i {
+  color: var(--color-primary-dark);
+}
+
+[data-theme="dark"] .a11y-menu-item.active {
+  background: rgba(141, 180, 142, 0.22);
+  color: var(--color-primary-light);
+}
+
+[data-theme="dark"] .a11y-menu-item.active i {
+  color: var(--color-primary-light);
+}
+
+html.high-contrast-mode .a11y-menu-item.active {
+  background: var(--color-primary-subtle) !important;
+  border: 1.5px solid var(--color-primary) !important;
+}
+
 .a11y-menu-item.a11y-item-reset {
   margin-top: 4px;
   padding-top: 8px;

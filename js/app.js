@@ -53,12 +53,14 @@ function initApp() {
     updateThemeLogos(state.theme);
     updateUserUI(state.user);
     if (typeof updateBudgetUI === 'function') updateBudgetUI();
+    if (typeof updateA11yContrastUI === 'function') updateA11yContrastUI();
   });
 
   // Initial user UI sync & dashboard/saved trips initial render
   updateUserUI(store.getState().user);
   renderDashboardView(store.getState());
   renderSavedTripsView(store.getState());
+  if (typeof updateA11yContrastUI === 'function') updateA11yContrastUI();
 
   // Handle URL hash on boot
   handleHashChange();
@@ -4463,6 +4465,26 @@ function handleA11yColorTheme() {
   showToast(`Theme: ${A11Y_THEME_LABELS[nextTheme] || nextTheme}`, 'ph-paint-bucket');
 }
 
+function handleA11yHighContrast() {
+  const current = Boolean(store && store.getState && store.getState().isHighContrast);
+  if (store && store.setAccessibility) {
+    store.setAccessibility(!current);
+  }
+  updateA11yContrastUI();
+}
+
+function updateA11yContrastUI() {
+  const isHighContrast = Boolean(store && store.getState && store.getState().isHighContrast);
+  document.querySelectorAll('.a11y-item-contrast').forEach(btn => {
+    btn.classList.toggle('active', isHighContrast);
+    btn.setAttribute('aria-pressed', isHighContrast ? 'true' : 'false');
+  });
+  const switchEl = document.getElementById('settingsAccessibilitySwitch');
+  if (switchEl) {
+    switchEl.checked = isHighContrast;
+  }
+}
+
 function handleA11ySimplifyContent() {
   const isSimplified = document.documentElement.getAttribute('data-a11y-simplify') === 'true';
   if (isSimplified) {
@@ -4490,6 +4512,12 @@ function handleA11yResetDefaults() {
   localStorage.removeItem('wayfind_a11y_theme');
   localStorage.removeItem('wayfind_a11y_simplify');
 
+  // Reset High-Contrast & Large Touch Targets
+  if (store && store.setAccessibility) {
+    store.setAccessibility(false);
+  }
+  updateA11yContrastUI();
+
   showToast('Accessibility settings reset to default', 'ph-arrows-counter-clockwise');
 }
 
@@ -4511,6 +4539,7 @@ function setupA11yMenus() {
   if (savedSimplify === 'true') {
     document.documentElement.setAttribute('data-a11y-simplify', 'true');
   }
+  updateA11yContrastUI();
 
   // Reset dismissed state on mouseleave so hovering again works freshly
   document.querySelectorAll('.a11y-dropdown-container').forEach(container => {
@@ -4572,6 +4601,8 @@ window.handleA11yDecreaseFont = handleA11yDecreaseFont;
 window.handleA11yIncreaseFont = handleA11yIncreaseFont;
 window.handleA11yFontFamily = handleA11yFontFamily;
 window.handleA11yColorTheme = handleA11yColorTheme;
+window.handleA11yHighContrast = handleA11yHighContrast;
+window.updateA11yContrastUI = updateA11yContrastUI;
 window.handleA11ySimplifyContent = handleA11ySimplifyContent;
 window.handleA11yResetDefaults = handleA11yResetDefaults;
 
