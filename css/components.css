@@ -3676,6 +3676,66 @@ html[data-a11y-simplify="true"] * {
 }
 
 /* ==========================================================================
+   IN-PLACE SWAP & MUTATION HIGHLIGHT ANIMATIONS
+   Ensures updated cards remain in-place and clearly signal changes to user.
+   ========================================================================== */
+@keyframes swappedCardPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(90, 126, 100, 0.7);
+    border-color: var(--color-primary);
+    transform: translateY(-2px) scale(1.01);
+  }
+  30% {
+    box-shadow: 0 0 20px 4px rgba(90, 126, 100, 0.4);
+    border-color: var(--color-primary-dark);
+    transform: translateY(-2px) scale(1.01);
+  }
+  70% {
+    box-shadow: 0 0 12px 2px rgba(90, 126, 100, 0.25);
+    border-color: var(--color-primary);
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    box-shadow: var(--shadow-sm);
+    border-color: var(--color-border);
+    transform: translateY(0) scale(1);
+  }
+}
+
+.timeline-activity-card.swapped-highlight {
+  animation: swappedCardPulse 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+  border-color: var(--color-primary) !important;
+}
+
+@keyframes swappedCardPulseDark {
+  0% {
+    box-shadow: 0 0 0 0 rgba(141, 180, 142, 0.75);
+    border-color: var(--color-primary-light);
+    transform: translateY(-2px) scale(1.01);
+  }
+  30% {
+    box-shadow: 0 0 22px 5px rgba(141, 180, 142, 0.45);
+    border-color: var(--color-primary-light);
+    transform: translateY(-2px) scale(1.01);
+  }
+  70% {
+    box-shadow: 0 0 12px 2px rgba(141, 180, 142, 0.25);
+    border-color: var(--color-primary);
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    box-shadow: none;
+    border-color: var(--color-border);
+    transform: translateY(0) scale(1);
+  }
+}
+
+[data-theme="dark"] .timeline-activity-card.swapped-highlight {
+  animation: swappedCardPulseDark 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+  border-color: var(--color-primary-light) !important;
+}
+
+/* ==========================================================================
    BOOK HOTEL & BOOK FLIGHT BUTTONS (BELOW ESTIMATED TOTAL)
    ========================================================================== */
 .itinerary-booking-actions {

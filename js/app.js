@@ -258,20 +258,29 @@ function updateThemeLogos(theme) {
 /* ==========================================================================
    VIEW RENDERING LOGIC
    ========================================================================== */
+let currentRenderedView = null;
+
 function renderCurrentView(state) {
   // Track universal view history
   trackViewNavigation(state.currentView);
+
+  const isViewChange = (currentRenderedView !== state.currentView);
+  currentRenderedView = state.currentView;
 
   // Update view containers visibility
   document.querySelectorAll('.view-container').forEach(container => {
     const viewName = container.getAttribute('data-view');
     if (viewName === state.currentView) {
       container.classList.add('active-view');
-      window.scrollTo({ top: 0, behavior: 'instant' });
     } else {
       container.classList.remove('active-view');
     }
   });
+
+  // ONLY scroll to top when genuinely switching to a different view page
+  if (isViewChange) {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
 
   // Update active state in nav links (Desktop & Mobile Drawer)
   document.querySelectorAll('.nav-link, .mobile-nav-card').forEach(link => {
@@ -419,7 +428,11 @@ function renderItineraryView(state) {
 }
 
 function selectDayIndex(idx) {
+  const currentScrollY = window.scrollY || document.documentElement.scrollTop;
   store.setDayIndex(idx);
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+  });
   // Auto-scroll the active tab into view horizontally in the swipeable days bar
   setTimeout(() => {
     const daysNav = document.getElementById('itineraryDaysNav');
@@ -433,15 +446,32 @@ function selectDayIndex(idx) {
 }
 
 function deleteActivityAction(activityId) {
+  const currentScrollY = window.scrollY || document.documentElement.scrollTop;
   const state = store.getState();
   store.deleteActivity(state.activeDayIndex, activityId);
   showToast("Activity removed from schedule", "ph-trash");
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+  });
 }
 
 function swapActivityAction(activityId) {
+  const currentScrollY = window.scrollY || document.documentElement.scrollTop;
   const state = store.getState();
   store.swapActivity(state.activeDayIndex, activityId);
   showToast("AI suggested alternative applied!", "ph-sparkle");
+
+  // Keep scroll position exactly in-place and highlight what changed
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+    const swappedEl = document.getElementById(activityId);
+    if (swappedEl) {
+      swappedEl.classList.remove('swapped-highlight');
+      void swappedEl.offsetWidth; // Force reflow to re-trigger keyframes
+      swappedEl.classList.add('swapped-highlight');
+      swappedEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
 }
 
 /* ==========================================================================
@@ -709,11 +739,15 @@ function deleteSavedTrip(tripId, event) {
     event.stopPropagation();
     event.preventDefault();
   }
+  const currentScrollY = window.scrollY || document.documentElement.scrollTop;
   const state = store.getState();
   const trip = (state.savedTrips || []).find(t => t.id === tripId);
   const tripTitle = trip ? trip.title : 'this trip';
   if (confirm(`Are you sure you want to remove "${tripTitle}" from your saved trips?`)) {
     store.deleteSavedTrip(tripId);
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+    });
     showToast("Trip removed from saved trips", "ph-trash");
   }
 }
@@ -2539,9 +2573,22 @@ function setupModals() {
         aiBadge: "Custom Addition"
       };
 
+      const currentScrollY = window.scrollY || document.documentElement.scrollTop;
       store.addActivity(store.getState().activeDayIndex, newAct);
       closeAllModals();
       showToast("Activity added to day schedule!");
+
+      requestAnimationFrame(() => {
+        const newEl = document.getElementById(newAct.id);
+        if (newEl) {
+          newEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          newEl.classList.remove('swapped-highlight');
+          void newEl.offsetWidth;
+          newEl.classList.add('swapped-highlight');
+        } else {
+          window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+        }
+      });
     });
   }
 

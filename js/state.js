@@ -257,9 +257,21 @@ class WayfindStore {
         act.title = "Sunset Catamaran Cruise & Chill at Jabi Lake";
         act.notes = "Relaxed group cruise with tropical drinks and acoustic music.";
         act.aiBadge = "AI Alternative Swapped";
+      } else if (act.title.includes("Catamaran")) {
+        act.title = "Kayaking & Paddleboarding on Jabi Lake";
+        act.notes = "Morning watersports session with certified lake safety instructor.";
+        act.aiBadge = "AI Original Restored";
       } else if (act.title.includes("Thought Pyramid")) {
         act.title = "Bature Cultural Lounge & Art Exhibition";
         act.notes = "Indie gallery pop-up with local artisanal craft tasting.";
+        act.aiBadge = "AI Alternative Swapped";
+      } else if (act.title.includes("Bature")) {
+        act.title = "Thought Pyramid Art Centre & Sculpture Garden";
+        act.notes = "Curated private walkthrough of contemporary West African artworks.";
+        act.aiBadge = "AI Original Restored";
+      } else if (act.title.includes("Curated Scenic")) {
+        act.title = "Artisanal Pottery Workshop & Local Tea Tasting";
+        act.notes = "Hands-on creative clay session guided by master local artisans.";
         act.aiBadge = "AI Alternative Swapped";
       } else {
         act.title = "Curated Scenic Viewpoint & Coffee Stop";
