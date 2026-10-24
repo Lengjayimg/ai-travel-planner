@@ -1249,18 +1249,130 @@
   color: var(--color-text-headline);
 }
 
-/* Success Modal */
+/* Success Modal & Animated Checkmark */
 .success-icon-badge {
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   background: var(--color-primary-subtle);
-  color: var(--color-primary-dark);
+  border: 2px solid rgba(90, 126, 100, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 20px;
-  font-size: 1.8rem;
+  position: relative;
+  box-shadow: 0 4px 14px rgba(90, 126, 100, 0.15);
+  transform-origin: center center;
+}
+
+[data-theme="dark"] .success-icon-badge {
+  background: rgba(141, 180, 142, 0.15);
+  border-color: rgba(141, 180, 142, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.success-checkmark-svg {
+  width: 46px;
+  height: 46px;
+  display: block;
+}
+
+.checkmark-circle {
+  stroke: var(--color-primary);
+  stroke-width: 3.2;
+  stroke-miterlimit: 10;
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  fill: none;
+}
+
+[data-theme="dark"] .checkmark-circle {
+  stroke: var(--color-primary-light);
+}
+
+.checkmark-check {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  stroke: var(--color-primary-dark);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+[data-theme="dark"] .checkmark-check {
+  stroke: var(--color-primary);
+}
+
+/* Animations Triggered when Modal is Active or has .play-check-motion */
+#saveSuccessModal.active .success-icon-badge,
+.success-icon-badge.play-check-motion {
+  animation: badgeRipple 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+#saveSuccessModal.active .checkmark-circle,
+.success-icon-badge.play-check-motion .checkmark-circle {
+  animation: strokeCircle 0.5s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+#saveSuccessModal.active .checkmark-check,
+.success-icon-badge.play-check-motion .checkmark-check {
+  animation: strokeCheck 0.38s 0.22s cubic-bezier(0.65, 0, 0.45, 1) forwards,
+             checkmarkPopMotion 0.65s 0.12s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes badgeRipple {
+  0% {
+    transform: scale(0.4);
+    box-shadow: 0 0 0 0 rgba(90, 126, 100, 0.5);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  70% {
+    box-shadow: 0 0 0 16px rgba(90, 126, 100, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(90, 126, 100, 0);
+  }
+}
+
+@keyframes strokeCircle {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes strokeCheck {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes checkmarkPopMotion {
+  0% {
+    transform: scale(0) rotate(-35deg);
+    opacity: 0;
+  }
+  40% {
+    transform: scale(0.4) rotate(-22deg);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1.25) rotate(10deg);
+  }
+  85% {
+    transform: scale(0.92) rotate(-5deg);
+  }
+  95% {
+    transform: scale(1.06) rotate(3deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
 }
 
 /* QR Code Screen Modal */

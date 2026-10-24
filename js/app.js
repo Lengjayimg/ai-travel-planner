@@ -2173,6 +2173,27 @@ function openShareModal() {
 
 function openSaveSuccessModal() {
   store.saveCurrentTrip();
+
+  // Dynamic message based on current trip title and duration
+  const trip = store.getState().currentTrip;
+  const msgEl = document.getElementById('saveSuccessMessage');
+  if (msgEl && trip) {
+    const destName = trip.destination ? trip.destination.split(',')[0] : 'Abuja';
+    const durStr = trip.duration || (trip.days ? `${trip.days.length} Days` : 'plan');
+    msgEl.innerHTML = `Your <strong>${trip.title || `${destName} ${durStr}`}</strong> has been synchronized to your account and is available anytime under <strong>'My Trips'</strong>, even when offline.`;
+  }
+
+  // Trigger/restart checkmark motion animation
+  const modal = document.getElementById('saveSuccessModal');
+  if (modal) {
+    const checkBadge = modal.querySelector('.success-icon-badge');
+    if (checkBadge) {
+      checkBadge.classList.remove('play-check-motion');
+      void checkBadge.offsetWidth; // Force DOM reflow to re-trigger CSS keyframes
+      checkBadge.classList.add('play-check-motion');
+    }
+  }
+
   openModal('saveSuccessModal');
 }
 

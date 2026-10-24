@@ -1943,9 +1943,14 @@
   <div class="modal-backdrop" id="saveSuccessModal">
     <div class="modal-dialog" style="text-align: center;">
       <button class="modal-close-btn" aria-label="Close modal"><i class="ph ph-x" aria-hidden="true"></i></button>
-      <div class="success-icon-badge"><i class="ph-fill ph-check-circle" aria-hidden="true"></i></div>
+      <div class="success-icon-badge">
+        <svg class="success-checkmark-svg" viewBox="0 0 52 52" aria-hidden="true">
+          <circle class="checkmark-circle" cx="26" cy="26" r="23" fill="none" />
+          <path class="checkmark-check" fill="none" d="M14.5 27.2l7.2 7.2 16.5-16.8" />
+        </svg>
+      </div>
       <h3 style="margin-bottom: 8px;">Trip Saved Successfully</h3>
-      <p style="font-size: 0.92rem; color: var(--color-text-muted); margin-bottom: 24px;">
+      <p style="font-size: 0.92rem; color: var(--color-text-muted); margin-bottom: 24px;" id="saveSuccessMessage">
         Your Abuja 4-day plan has been synchronized to your account and is available anytime under <strong>'My Trips'</strong>, even when offline.
       </p>
 
