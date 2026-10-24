@@ -1883,40 +1883,88 @@
 
   <!-- Share Itinerary Sheet Modal -->
   <div class="modal-backdrop" id="shareSheetModal">
-    <div class="modal-dialog">
+    <div class="modal-dialog share-modal-dialog">
       <button class="modal-close-btn" aria-label="Close modal"><i class="ph ph-x" aria-hidden="true"></i></button>
-      <h3 style="margin-bottom: 6px;">Share Your Trip</h3>
-      <p style="font-size: 0.9rem; margin-bottom: 20px;">Send this curated Abuja itinerary to travel companions or export as a file.</p>
+      
+      <div class="share-modal-header">
+        <div class="share-badge-icon">
+          <i class="ph-fill ph-share-network" aria-hidden="true"></i>
+        </div>
+        <h3 class="share-modal-title">Share Your Trip</h3>
+        <p class="share-modal-desc" id="shareModalDescription">
+          Send this curated Abuja itinerary to travel companions, save offline, or export as a clean PDF.
+        </p>
+      </div>
 
-      <div style="display: flex; gap: 8px; margin-bottom: 20px;">
-        <input type="text" readonly value="https://wayfind.travel/trips/abuja-art-nature-001" class="form-control" style="background: var(--color-bg-secondary);" />
-        <button class="btn btn-secondary" onclick="copyTripLink()">
-          <i class="ph ph-copy icon-sm" aria-hidden="true"></i> Copy
+      <!-- Share Link Copy Group -->
+      <div class="share-link-group">
+        <div class="share-link-input-wrapper">
+          <i class="ph ph-link share-input-icon" aria-hidden="true"></i>
+          <input type="text" id="shareTripLinkInput" readonly value="https://wayfind.travel/trips/abuja-art-nature-001" class="form-control share-link-input" aria-label="Trip link URL" />
+        </div>
+        <button type="button" class="btn btn-secondary share-copy-btn" id="shareCopyBtn" onclick="copyTripLink()" title="Copy link to clipboard">
+          <i class="ph ph-copy icon-sm" aria-hidden="true"></i>
+          <span>Copy</span>
         </button>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
-        <button class="btn btn-secondary" onclick="showToast('Itinerary PDF exported!', 'ph-file-pdf')">
-          <i class="ph ph-file-pdf icon-sm" aria-hidden="true"></i> Export PDF
+      <!-- Primary Export Actions Grid (Export PDF & Show QR Code) -->
+      <div class="share-actions-grid">
+        <button type="button" class="btn btn-secondary share-action-card" id="shareExportPdfBtn" onclick="exportTripPDF()" aria-label="Export itinerary as clean PDF">
+          <div class="share-action-icon-wrap pdf-icon-wrap">
+            <i class="ph-fill ph-file-pdf" aria-hidden="true"></i>
+          </div>
+          <div class="share-action-info">
+            <span class="share-action-label">Export PDF</span>
+            <span class="share-action-hint">Download clean file</span>
+          </div>
         </button>
-        <button class="btn btn-secondary" onclick="openQRCodeModal()">
-          <i class="ph ph-qr-code icon-sm" aria-hidden="true"></i> Show QR Code
+
+        <button type="button" class="btn btn-secondary share-action-card" id="shareShowQrBtn" onclick="openQRCodeModal()" aria-label="Show trip QR code">
+          <div class="share-action-icon-wrap qr-icon-wrap">
+            <i class="ph-fill ph-qr-code" aria-hidden="true"></i>
+          </div>
+          <div class="share-action-info">
+            <span class="share-action-label">Show QR Code</span>
+            <span class="share-action-hint">Scan with camera</span>
+          </div>
         </button>
       </div>
 
-      <div style="font-size: 0.85rem; font-weight: 600; text-align: center; margin-bottom: 12px;">Direct Share</div>
-      <div class="social-share-row">
-        <button class="social-share-btn" title="Share via WhatsApp" aria-label="Share via WhatsApp" onclick="shareOnWhatsApp()">
-          <i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>
+      <!-- Direct Share Section -->
+      <div class="share-section-divider">
+        <span class="share-divider-line"></span>
+        <span class="share-divider-text">Direct Share</span>
+        <span class="share-divider-line"></span>
+      </div>
+
+      <div class="social-share-grid">
+        <button type="button" class="social-share-tile social-tile-whatsapp" title="Share via WhatsApp" aria-label="Share via WhatsApp" onclick="shareOnWhatsApp()">
+          <div class="social-tile-icon-box">
+            <i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>
+          </div>
+          <span class="social-tile-name">WhatsApp</span>
         </button>
-        <button class="social-share-btn" title="Telegram" aria-label="Share via Telegram" onclick="showToast('Shared via Telegram', 'ph-telegram-logo')">
-          <i class="ph-fill ph-telegram-logo" aria-hidden="true"></i>
+
+        <button type="button" class="social-share-tile social-tile-telegram" title="Share via Telegram" aria-label="Share via Telegram" onclick="shareOnTelegram()">
+          <div class="social-tile-icon-box">
+            <i class="ph-fill ph-telegram-logo" aria-hidden="true"></i>
+          </div>
+          <span class="social-tile-name">Telegram</span>
         </button>
-        <button class="social-share-btn" title="Bluetooth Nearby" aria-label="Share via Bluetooth" onclick="showToast('Nearby Bluetooth discovery activated', 'ph-bluetooth')">
-          <i class="ph ph-bluetooth" aria-hidden="true"></i>
+
+        <button type="button" class="social-share-tile social-tile-x" title="Share on X" aria-label="Share on X" onclick="shareOnX()">
+          <div class="social-tile-icon-box">
+            <i class="ph-fill ph-x-logo" aria-hidden="true"></i>
+          </div>
+          <span class="social-tile-name">X</span>
         </button>
-        <button class="social-share-btn" title="Share on X" aria-label="Share on X" onclick="showToast('Opening X / Twitter share', 'ph-x-logo')">
-          <i class="ph-fill ph-x-logo" aria-hidden="true"></i>
+
+        <button type="button" class="social-share-tile social-tile-bluetooth" title="Share via Bluetooth or Nearby Share" aria-label="Share via Bluetooth" onclick="shareViaBluetooth()">
+          <div class="social-tile-icon-box">
+            <i class="ph ph-bluetooth" aria-hidden="true"></i>
+          </div>
+          <span class="social-tile-name">Bluetooth</span>
         </button>
       </div>
     </div>
@@ -1924,18 +1972,33 @@
 
   <!-- QR Code Modal -->
   <div class="modal-backdrop" id="qrCodeModal">
-    <div class="modal-dialog" style="text-align: center;">
+    <div class="modal-dialog qr-modal-dialog">
       <button class="modal-close-btn" aria-label="Close modal"><i class="ph ph-x" aria-hidden="true"></i></button>
-      <h3 style="margin-bottom: 6px;">Scan Trip QR Code</h3>
-      <p style="font-size: 0.9rem; margin-bottom: 16px;">To share with people nearby, let them scan this code with their phone camera.</p>
-
-      <div class="qr-card-container">
-        <canvas id="qrCanvas"></canvas>
+      
+      <div class="qr-modal-header">
+        <div class="qr-badge-icon">
+          <i class="ph-fill ph-qr-code" aria-hidden="true"></i>
+        </div>
+        <h3 class="qr-modal-title">Scan Trip QR Code</h3>
+        <p class="qr-modal-desc">
+          Scan with any smartphone camera to open and sync this itinerary instantly.
+        </p>
       </div>
 
-      <button class="btn btn-primary btn-sm" onclick="showToast('QR Code image downloaded to device.', 'ph-download-simple')">
-        <i class="ph ph-download-simple icon-sm" aria-hidden="true"></i> Download QR Code
-      </button>
+      <div class="qr-card-container">
+        <div id="qrCanvasContainer" class="qr-code-display"></div>
+        <div class="qr-trip-caption" id="qrModalTripTitle">Abuja: Capital Art & Nature Retreat</div>
+      </div>
+
+      <div class="qr-modal-actions">
+        <button type="button" class="btn btn-primary btn-sm qr-action-btn" onclick="downloadQRCodeImage()">
+          <i class="ph ph-download-simple icon-sm" aria-hidden="true"></i>
+          <span>Download QR Code</span>
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm qr-action-btn" onclick="closeModal('qrCodeModal')">
+          <span>Back to Share</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1961,8 +2024,10 @@
     </div>
   </div>
 
-  <!-- JavaScript Modules -->
+  <!-- JavaScript Modules & Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/jspdf.umd.min.js"></script>
+  <script src="js/qrcode.min.js"></script>
   <script src="js/supabase.js"></script>
   <script src="js/data.js"></script>
   <script src="js/state.js"></script>

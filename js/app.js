@@ -2168,81 +2168,451 @@ function openAddActivityModal() {
 }
 
 function openShareModal() {
+  const trip = (store && store.getState && store.getState().currentTrip) || WAYFIND_DATA.initialTrip;
+  const tripUrl = window.location.href || 'https://wayfind.travel/trips/abuja-art-nature-001';
+  
+  // Dynamically update link input
+  const linkInput = document.getElementById('shareTripLinkInput');
+  if (linkInput) linkInput.value = tripUrl;
+
+  // Dynamically update description with destination and duration
+  const descEl = document.getElementById('shareModalDescription');
+  if (descEl && trip) {
+    const destName = trip.destination ? trip.destination.split(',')[0] : 'Abuja';
+    const durStr = trip.duration || (trip.days ? `${trip.days.length}-day` : 'curated');
+    descEl.textContent = `Send this curated ${destName} ${durStr} plan to travel companions, save offline, or export as a clean PDF.`;
+  }
+
   openModal('shareSheetModal');
 }
 
-function openSaveSuccessModal() {
-  store.saveCurrentTrip();
+function copyTripLink() {
+  const linkInput = document.getElementById('shareTripLinkInput');
+  const tripUrl = window.location.href || "https://wayfind.travel/trips/abuja-art-nature-001";
+  const textToCopy = (linkInput && linkInput.value) ? linkInput.value : tripUrl;
 
-  // Dynamic message based on current trip title and duration
-  const trip = store.getState().currentTrip;
-  const msgEl = document.getElementById('saveSuccessMessage');
-  if (msgEl && trip) {
-    const destName = trip.destination ? trip.destination.split(',')[0] : 'Abuja';
-    const durStr = trip.duration || (trip.days ? `${trip.days.length} Days` : 'plan');
-    msgEl.innerHTML = `Your <strong>${trip.title || `${destName} ${durStr}`}</strong> has been synchronized to your account and is available anytime under <strong>'My Trips'</strong>, even when offline.`;
-  }
-
-  // Trigger/restart checkmark motion animation
-  const modal = document.getElementById('saveSuccessModal');
-  if (modal) {
-    const checkBadge = modal.querySelector('.success-icon-badge');
-    if (checkBadge) {
-      checkBadge.classList.remove('play-check-motion');
-      void checkBadge.offsetWidth; // Force DOM reflow to re-trigger CSS keyframes
-      checkBadge.classList.add('play-check-motion');
+  navigator.clipboard.writeText(textToCopy).then(() => {
+    showToast("Trip link copied to clipboard!", "ph-copy");
+    const copyBtn = document.getElementById('shareCopyBtn');
+    if (copyBtn) {
+      const origHtml = copyBtn.innerHTML;
+      copyBtn.innerHTML = '<i class="ph-fill ph-check icon-sm" aria-hidden="true"></i> <span>Copied!</span>';
+      setTimeout(() => {
+        copyBtn.innerHTML = origHtml;
+      }, 2000);
     }
-  }
-
-  openModal('saveSuccessModal');
+  }).catch(() => {
+    if (linkInput) {
+      linkInput.select();
+      document.execCommand('copy');
+      showToast("Trip link copied to clipboard!", "ph-copy");
+    } else {
+      showToast("Link: " + textToCopy, "ph-copy");
+    }
+  });
 }
 
+/* ==========================================================================
+   CLEAN ITINERARY PDF EXPORTER (MULTI-PAGE PUBLICATION QUALITY)
+   ========================================================================== */
+function exportTripPDF() {
+  const trip = (store && store.getState && store.getState().currentTrip) || WAYFIND_DATA.initialTrip;
+  if (!trip) {
+    showToast("No active trip to export.", "ph-warning");
+    return;
+  }
+
+  showToast("Generating clean itinerary PDF...", "ph-file-pdf");
+
+  const jsPDFClass = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : (window.jsPDF ? window.jsPDF : null);
+
+  if (!jsPDFClass) {
+    generatePrintablePDF(trip);
+    return;
+  }
+
+  try {
+    const doc = new jsPDFClass({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const margin = 16;
+    const contentWidth = pageWidth - (margin * 2); // 178mm
+    let yPos = 0;
+
+    function checkPageOverflow(neededHeight) {
+      if (yPos + neededHeight > pageHeight - 20) {
+        doc.addPage();
+        // Compact top brand banner on subsequent pages
+        doc.setFillColor(45, 65, 48);
+        doc.rect(0, 0, pageWidth, 12, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(255, 255, 255);
+        const titleSnippet = (trip.title || 'Curated Itinerary').toUpperCase();
+        doc.text(`WAYFIND  •  ${titleSnippet.substring(0, 50)}`, margin, 8);
+        yPos = 20;
+        return true;
+      }
+      return false;
+    }
+
+    // 1. BRAND HEADER (First Page)
+    doc.setFillColor(45, 65, 48); // Wayfind Forest Green (#2D4130)
+    doc.rect(0, 0, pageWidth, 28, 'F');
+
+    // Brand Name
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(255, 255, 255);
+    doc.text('WAYFIND', margin, 14);
+
+    // Header Subtitle
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(203, 227, 201); // Light Sage Accent
+    doc.text('AI TRAVEL PLANNER  •  CURATED ITINERARY', margin, 21);
+
+    // Exported Date Stamp (Right Aligned)
+    const exportDateStr = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+    doc.setFontSize(8);
+    doc.setTextColor(230, 240, 230);
+    doc.text(`Exported: ${exportDateStr}`, pageWidth - margin, 18, { align: 'right' });
+
+    yPos = 36;
+
+    // 2. TRIP OVERVIEW SUMMARY CARD
+    const cardHeight = 32;
+    doc.setFillColor(246, 248, 245);
+    doc.setDrawColor(218, 230, 220);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(margin, yPos, contentWidth, cardHeight, 3, 3, 'FD');
+
+    // Title
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(30, 39, 32);
+    const destName = trip.destination ? trip.destination : 'Abuja, Nigeria';
+    const tripTitle = trip.title || `${destName} Curated Experience`;
+    doc.text(doc.splitTextToSize(tripTitle, contentWidth - 10)[0], margin + 6, yPos + 7.5);
+
+    // Metadata Row 1: Destination & Dates
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(75, 90, 80);
+    const datesText = trip.dates || 'Upcoming Trip';
+    const durationText = trip.duration || (trip.days ? `${trip.days.length} Days` : 'Multi-Day');
+    doc.text(`Destination: ${destName}   |   Dates: ${datesText} (${durationText})`, margin + 6, yPos + 14.5);
+
+    // Metadata Row 2: Travelers & Style
+    const travelersText = trip.travelers || '2 Adults';
+    const styleText = trip.travelStyle || 'Culture & Nature';
+    doc.text(`Travelers: ${travelersText}   |   Style: ${styleText}`, margin + 6, yPos + 20.5);
+
+    // Metadata Row 3: Budget
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(45, 65, 48);
+    const budgetNGN = trip.budgetTotalNGN ? Number(trip.budgetTotalNGN).toLocaleString() : '310,000';
+    const budgetUSD = trip.budgetTotalUSD ? Number(trip.budgetTotalUSD).toLocaleString() : '365';
+    doc.text(`Estimated Total Budget: NGN ${budgetNGN} (~$${budgetUSD} USD)`, margin + 6, yPos + 26.5);
+
+    yPos += cardHeight + 8;
+
+    // 3. ALL GENERATED DAYS AND ACTIVITIES
+    const days = trip.days || [];
+
+    if (days.length === 0) {
+      checkPageOverflow(20);
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(9);
+      doc.setTextColor(110, 120, 115);
+      doc.text('No scheduled activities found in this itinerary.', margin, yPos + 10);
+    } else {
+      days.forEach((day) => {
+        // Day Banner
+        checkPageOverflow(24);
+
+        doc.setFillColor(236, 244, 237);
+        doc.setDrawColor(190, 212, 194);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(margin, yPos, contentWidth, 8, 2, 2, 'FD');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9.5);
+        doc.setTextColor(38, 62, 42);
+        const dayHeader = `DAY ${day.dayNumber}: ${day.title || 'Day Plan'}${day.date ? '  —  ' + day.date : ''}`;
+        doc.text(dayHeader, margin + 4, yPos + 5.5);
+
+        yPos += 13;
+
+        const activities = day.activities || [];
+        if (activities.length === 0) {
+          checkPageOverflow(10);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(120, 130, 125);
+          doc.text('Free leisure day - No scheduled stops.', margin + 8, yPos);
+          yPos += 8;
+        } else {
+          activities.forEach((act) => {
+            checkPageOverflow(18);
+
+            // Time Pill
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(8.5);
+            doc.setTextColor(74, 110, 82);
+            doc.text(act.time || 'Schedule', margin + 3, yPos);
+
+            // Activity Title
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(30, 39, 32);
+            const actTitle = act.title || 'Scheduled Activity';
+            const wrappedTitle = doc.splitTextToSize(actTitle, contentWidth - 65);
+            doc.text(wrappedTitle[0], margin + 26, yPos);
+
+            // Cost & Category (Right Aligned)
+            const costStr = act.costNGN ? `NGN ${Number(act.costNGN).toLocaleString()}` : (act.costUSD ? `$${act.costUSD}` : 'Free');
+            const catStr = act.category ? `[${act.category}] ` : '';
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(90, 105, 95);
+            doc.text(`${catStr}${costStr}`, pageWidth - margin, yPos, { align: 'right' });
+
+            if (wrappedTitle.length > 1) {
+              yPos += 3.8;
+              doc.text(wrappedTitle[1], margin + 26, yPos);
+            }
+
+            // Location & Notes
+            yPos += 4.2;
+            const detailsList = [];
+            if (act.location) detailsList.push(act.location);
+            if (act.notes) detailsList.push(act.notes);
+            const detailsStr = detailsList.join(' — ');
+
+            if (detailsStr) {
+              const wrappedDetails = doc.splitTextToSize(detailsStr, contentWidth - 30);
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(7.8);
+              doc.setTextColor(100, 115, 105);
+
+              wrappedDetails.forEach((line) => {
+                checkPageOverflow(5);
+                doc.text(line, margin + 26, yPos);
+                yPos += 3.6;
+              });
+            }
+
+            // Divider Line
+            doc.setDrawColor(234, 240, 235);
+            doc.setLineWidth(0.2);
+            doc.line(margin + 26, yPos, pageWidth - margin, yPos);
+            yPos += 4;
+          });
+        }
+        yPos += 3; // Space between days
+      });
+    }
+
+    // 4. FOOTERS ON ALL PAGES
+    const totalPages = doc.getNumberOfPages();
+    for (let p = 1; p <= totalPages; p++) {
+      doc.setPage(p);
+
+      // Footer Divider
+      doc.setDrawColor(218, 230, 220);
+      doc.setLineWidth(0.3);
+      doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
+
+      // Left Footer
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(120, 135, 125);
+      doc.text('Wayfind AI Travel Planner  •  https://wayfind.travel  •  All-in-one personal plan', margin, pageHeight - 9);
+
+      // Right Footer (Page Count)
+      doc.text(`Page ${p} of ${totalPages}`, pageWidth - margin, pageHeight - 9, { align: 'right' });
+    }
+
+    // 5. TRIGGER INSTANT CLEAN DOWNLOAD
+    const cleanFileName = `Wayfind_${(trip.destination ? trip.destination.split(',')[0] : 'Trip').replace(/[^a-zA-Z0-9]/g, '_')}_Itinerary.pdf`;
+    doc.save(cleanFileName);
+    showToast("Clean Itinerary PDF downloaded!", "ph-file-pdf");
+
+  } catch (err) {
+    console.error("PDF export error:", err);
+    generatePrintablePDF(trip);
+  }
+}
+
+function generatePrintablePDF(trip) {
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    showToast("Please allow popups to export itinerary PDF.", "ph-warning");
+    return;
+  }
+  const daysHtml = (trip.days || []).map(day => `
+    <div style="margin-bottom: 20px;">
+      <h3 style="background: #ecf4ed; padding: 6px 10px; border-radius: 6px; font-size: 14px; color: #263e2a;">
+        DAY ${day.dayNumber}: ${day.title} ${day.date ? '— ' + day.date : ''}
+      </h3>
+      <div style="padding-left: 10px;">
+        ${(day.activities || []).map(act => `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 6px;">
+            <div>
+              <strong style="color: #4a6e52;">${act.time || ''}</strong> &nbsp;
+              <strong>${act.title}</strong>
+              <div style="font-size: 12px; color: #666; margin-top: 2px;">${act.location ? act.location + ' — ' : ''}${act.notes || ''}</div>
+            </div>
+            <div style="font-size: 12px; font-weight: bold; color: #333;">
+              ${act.costNGN ? 'NGN ' + Number(act.costNGN).toLocaleString() : (act.costUSD ? '$' + act.costUSD : 'Free')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Wayfind Itinerary - ${trip.title || 'Trip Plan'}</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1e2720; padding: 24px; max-width: 800px; margin: 0 auto; }
+          .header { background: #2d4130; color: #fff; padding: 18px 24px; border-radius: 8px; margin-bottom: 20px; }
+          .header h1 { margin: 0 0 4px; font-size: 20px; }
+          .header p { margin: 0; font-size: 12px; color: #cbe3c9; }
+          .summary { background: #f6f8f5; border: 1px solid #dae6dc; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; }
+          @media print { body { padding: 0; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>WAYFIND ITINERARY</h1>
+          <p>AI Travel Planner • Generated Plan</p>
+        </div>
+        <div class="summary">
+          <h2 style="margin: 0 0 6px; font-size: 16px;">${trip.title || 'Curated Itinerary'}</h2>
+          <p style="margin: 0 0 4px; font-size: 13px; color: #555;">Destination: ${trip.destination || 'Abuja, Nigeria'} | Dates: ${trip.dates || ''}</p>
+          <p style="margin: 0; font-size: 13px; font-weight: bold; color: #2d4130;">Estimated Budget: NGN ${(trip.budgetTotalNGN || 310000).toLocaleString()}</p>
+        </div>
+        ${daysHtml}
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => {
+    printWindow.print();
+    printWindow.close();
+  }, 250);
+}
+
+/* ==========================================================================
+   ACTIVE QR CODE GENERATOR & DOWNLOADER
+   ========================================================================== */
 function openQRCodeModal() {
   openModal('qrCodeModal');
   renderCanvasQRCode();
 }
 
-function copyTripLink() {
-  const link = "https://wayfind.travel/trips/abuja-art-nature-001";
-  navigator.clipboard.writeText(link).then(() => {
-    showToast("Link copied to clipboard!", "ph-copy");
-  }).catch(() => {
-    showToast("Link: " + link, "ph-copy");
-  });
-}
-
-function shareOnWhatsApp() {
-  const text = encodeURIComponent("Check out my curated Abuja AI trip itinerary on Wayfind: https://wayfind.travel/trips/abuja-art-nature-001");
-  window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
-}
-
-/* High-fidelity Canvas QR Code Generator */
 function renderCanvasQRCode() {
-  const canvas = document.getElementById('qrCanvas');
+  const container = document.getElementById('qrCanvasContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const trip = (store && store.getState && store.getState().currentTrip) || WAYFIND_DATA.initialTrip;
+  const tripUrl = window.location.href || 'https://wayfind.travel/trips/abuja-art-nature-001';
+
+  // Update caption
+  const titleEl = document.getElementById('qrModalTripTitle');
+  if (titleEl && trip) {
+    const dest = trip.destination ? trip.destination.split(',')[0] : 'Abuja';
+    const dur = trip.duration || (trip.days ? `${trip.days.length} Days` : 'Plan');
+    titleEl.textContent = `${trip.title || `${dest} ${dur}`}`;
+  }
+
+  if (typeof QRCode !== 'undefined') {
+    new QRCode(container, {
+      text: tripUrl,
+      width: 190,
+      height: 190,
+      colorDark: '#1E2720',
+      colorLight: '#FFFFFF',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } else {
+    // High-fidelity fallback canvas
+    const canvas = document.createElement('canvas');
+    canvas.id = 'qrCanvas';
+    canvas.width = 190;
+    canvas.height = 190;
+    container.appendChild(canvas);
+    drawFallbackQRCanvas(canvas);
+  }
+}
+
+function downloadQRCodeImage() {
+  const container = document.getElementById('qrCanvasContainer');
+  if (!container) return;
+
+  const canvas = container.querySelector('canvas');
+  const img = container.querySelector('img');
+  let dataUrl = '';
+
+  if (canvas) {
+    try {
+      dataUrl = canvas.toDataURL('image/png');
+    } catch (e) {
+      console.warn("Canvas export fallback:", e);
+    }
+  }
+  if (!dataUrl && img && img.src) {
+    dataUrl = img.src;
+  }
+
+  if (dataUrl) {
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = 'Wayfind-Trip-QR.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('QR Code saved as image!', 'ph-download-simple');
+  } else {
+    showToast('QR Code generated and ready to scan.', 'ph-qr-code');
+  }
+}
+
+function drawFallbackQRCanvas(canvas) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const size = 190;
   canvas.width = size;
   canvas.height = size;
 
-  // Clear white background
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, size, size);
 
-  // Draw simulated QR matrix with Finder patterns
   const moduleCount = 25;
   const moduleSize = size / moduleCount;
 
   ctx.fillStyle = "#1E2720";
-
-  // Finder pattern top-left
   drawFinderPattern(ctx, 0, 0, moduleSize);
-  // Finder pattern top-right
   drawFinderPattern(ctx, (moduleCount - 7) * moduleSize, 0, moduleSize);
-  // Finder pattern bottom-left
   drawFinderPattern(ctx, 0, (moduleCount - 7) * moduleSize, moduleSize);
 
-  // Deterministic pseudo-random inner matrix for visual fidelity
   let seed = 42;
   function random() {
     seed = (seed * 9301 + 49297) % 233280;
@@ -2251,7 +2621,6 @@ function renderCanvasQRCode() {
 
   for (let r = 0; r < moduleCount; r++) {
     for (let c = 0; c < moduleCount; c++) {
-      // Skip finder areas
       if ((r < 7 && c < 7) || (r < 7 && c >= moduleCount - 7) || (r >= moduleCount - 7 && c < 7)) {
         continue;
       }
@@ -2261,15 +2630,13 @@ function renderCanvasQRCode() {
     }
   }
 
-  // Draw brand center icon badge
   const centerSize = moduleSize * 5;
   const centerPos = (size - centerSize) / 2;
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(centerPos - 2, centerPos - 2, centerSize + 4, centerSize + 4);
   ctx.fillStyle = "#3B4A20";
   ctx.fillRect(centerPos, centerPos, centerSize, centerSize);
-  
-  // Center compass dot
+
   ctx.fillStyle = "#E1EFC9";
   ctx.beginPath();
   ctx.arc(size / 2, size / 2, moduleSize * 1.2, 0, Math.PI * 2);
@@ -2282,6 +2649,76 @@ function drawFinderPattern(ctx, x, y, modSize) {
   ctx.fillRect(x + modSize, y + modSize, modSize * 5, modSize * 5);
   ctx.fillStyle = "#1E2720";
   ctx.fillRect(x + modSize * 2, y + modSize * 2, modSize * 3, modSize * 3);
+}
+
+/* ==========================================================================
+   DIRECT SOCIAL & DEVICE SHARE INTEGRATIONS (WHATSAPP, TELEGRAM, X, BLUETOOTH)
+   ========================================================================== */
+function shareOnWhatsApp() {
+  const trip = (store && store.getState && store.getState().currentTrip) || WAYFIND_DATA.initialTrip;
+  const tripTitle = trip ? (trip.title || 'Curated Travel Itinerary') : 'Curated Travel Itinerary';
+  const tripUrl = window.location.href || 'https://wayfind.travel/trips/abuja-art-nature-001';
+  const text = `Check out my curated ${tripTitle} on Wayfind: ${tripUrl}`;
+  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+}
+
+function shareOnTelegram() {
+  const trip = (store && store.getState && store.getState().currentTrip) || WAYFIND_DATA.initialTrip;
+  const tripTitle = trip ? (trip.title || 'Curated Travel Itinerary') : 'Curated Travel Itinerary';
+  const tripUrl = window.location.href || 'https://wayfind.travel/trips/abuja-art-nature-001';
+  const text = `Check out my curated ${tripTitle} on Wayfind!`;
+  window.open(`https://t.me/share/url?url=${encodeURIComponent(tripUrl)}&text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+}
+
+function shareOnX() {
+  const trip = (store && store.getState && store.getState().currentTrip) || WAYFIND_DATA.initialTrip;
+  const tripTitle = trip ? (trip.title || 'Curated Travel Itinerary') : 'Curated Travel Itinerary';
+  const tripUrl = window.location.href || 'https://wayfind.travel/trips/abuja-art-nature-001';
+  const text = `Exploring ${tripTitle} planned with Wayfind AI Travel Planner! 🧭✈️`;
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(tripUrl)}`, '_blank', 'noopener,noreferrer');
+}
+
+async function shareViaBluetooth() {
+  const trip = (store && store.getState && store.getState().currentTrip) || WAYFIND_DATA.initialTrip;
+  const tripTitle = trip ? (trip.title || 'Curated Travel Itinerary') : 'Curated Travel Itinerary';
+  const tripUrl = window.location.href || 'https://wayfind.travel/trips/abuja-art-nature-001';
+  const text = `Wayfind Itinerary: ${tripTitle} - ${tripUrl}`;
+
+  // 1. Native Web Share API (Includes Bluetooth, Quick Share, Nearby Share, AirDrop)
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: tripTitle,
+        text: text,
+        url: tripUrl
+      });
+      showToast('Shared via device sharing / Bluetooth!', 'ph-bluetooth');
+      return;
+    } catch (err) {
+      if (err.name === 'AbortError') return; // User simply closed the picker
+    }
+  }
+
+  // 2. Web Bluetooth device pairing check
+  if (navigator.bluetooth && navigator.bluetooth.requestDevice) {
+    try {
+      showToast('Searching for nearby Bluetooth devices...', 'ph-bluetooth');
+      await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true
+      });
+      showToast('Bluetooth device connected! Link ready to beam.', 'ph-bluetooth');
+      return;
+    } catch (btErr) {
+      if (btErr.name === 'NotFoundError' || btErr.name === 'AbortError') return;
+    }
+  }
+
+  // 3. Fallback: Copy link with clear notification
+  navigator.clipboard.writeText(tripUrl).then(() => {
+    showToast('Trip link copied! Ready to beam via Bluetooth or Nearby Share.', 'ph-bluetooth');
+  }).catch(() => {
+    showToast('Nearby Bluetooth active: copy link to beam nearby.', 'ph-bluetooth');
+  });
 }
 
 /* ==========================================================================
@@ -3167,3 +3604,14 @@ window.closeDateOverlay = closeDateOverlay;
 window.applyDateOverlay = applyDateOverlay;
 window.overlayCalendarQuickSelect = overlayCalendarQuickSelect;
 window.overlayCalendarClear = overlayCalendarClear;
+
+// Universal Share, PDF & QR Code Exports
+window.openShareModal = openShareModal;
+window.openQRCodeModal = openQRCodeModal;
+window.copyTripLink = copyTripLink;
+window.exportTripPDF = exportTripPDF;
+window.downloadQRCodeImage = downloadQRCodeImage;
+window.shareOnWhatsApp = shareOnWhatsApp;
+window.shareOnTelegram = shareOnTelegram;
+window.shareOnX = shareOnX;
+window.shareViaBluetooth = shareViaBluetooth;

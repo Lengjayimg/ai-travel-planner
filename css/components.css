@@ -1375,25 +1375,368 @@
   }
 }
 
-/* QR Code Screen Modal */
-.qr-card-container {
-  background: #FFFFFF;
-  padding: 24px;
+/* ==========================================================================
+   SHARE ITINERARY MODAL & QR CODE MODAL (RESPONSIVE ON ALL VIEWS & SCREENS)
+   ========================================================================== */
+.share-modal-dialog {
+  max-width: 480px;
+  padding: 28px 24px;
+  border-radius: var(--radius-xl);
+}
+
+.share-modal-header,
+.qr-modal-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.share-badge-icon,
+.qr-badge-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+  border: 1px solid rgba(90, 126, 100, 0.25);
+  box-shadow: 0 4px 12px rgba(90, 126, 100, 0.12);
+}
+
+[data-theme="dark"] .share-badge-icon,
+[data-theme="dark"] .qr-badge-icon {
+  background: rgba(141, 180, 142, 0.15);
+  color: var(--color-primary-light);
+  border-color: rgba(141, 180, 142, 0.35);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.share-modal-title,
+.qr-modal-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-text-headline);
+  margin-bottom: 6px;
+}
+
+.share-modal-desc,
+.qr-modal-desc {
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* Share Link Copy Row */
+.share-link-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  width: 100%;
+}
+
+.share-link-input-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.share-input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.share-link-input {
+  width: 100%;
+  padding-left: 36px !important;
+  font-size: 0.86rem !important;
+  background: var(--color-bg-secondary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  height: 42px;
+}
+
+.share-copy-btn {
+  height: 42px;
+  padding: 0 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Primary Export Actions Grid (Export PDF & Show QR Code) */
+.share-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.share-action-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
   border-radius: var(--radius-lg);
+  background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  width: 100%;
+  min-height: 56px;
+}
+
+.share-action-card:hover {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(90, 126, 100, 0.15);
+}
+
+.share-action-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.pdf-icon-wrap {
+  background: rgba(220, 53, 69, 0.12);
+  color: #dc3545;
+}
+
+[data-theme="dark"] .pdf-icon-wrap {
+  background: rgba(255, 107, 107, 0.18);
+  color: #ff8787;
+}
+
+.qr-icon-wrap {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-dark);
+}
+
+[data-theme="dark"] .qr-icon-wrap {
+  background: rgba(141, 180, 142, 0.2);
+  color: var(--color-primary-light);
+}
+
+.share-action-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.share-action-label {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--color-text-headline);
+  line-height: 1.2;
+}
+
+.share-action-hint {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+/* Divider */
+.share-section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 16px;
+}
+
+.share-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.share-divider-text {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+/* Direct Share Grid */
+.social-share-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.social-share-tile {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 20px 0;
+  gap: 6px;
+  padding: 10px 4px;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--color-text-headline);
+  text-decoration: none;
 }
 
-#qrCanvas {
+.social-share-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.social-tile-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  transition: all var(--transition-fast);
+}
+
+.social-tile-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-headline);
+  white-space: nowrap;
+}
+
+/* Individual Brand Tiles */
+.social-tile-whatsapp .social-tile-icon-box {
+  background: rgba(37, 211, 102, 0.12);
+  color: #25D366;
+}
+.social-tile-whatsapp:hover {
+  border-color: #25D366;
+  background: rgba(37, 211, 102, 0.08);
+}
+
+.social-tile-telegram .social-tile-icon-box {
+  background: rgba(34, 158, 217, 0.12);
+  color: #229ED9;
+}
+.social-tile-telegram:hover {
+  border-color: #229ED9;
+  background: rgba(34, 158, 217, 0.08);
+}
+
+.social-tile-x .social-tile-icon-box {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--color-text-headline);
+}
+[data-theme="dark"] .social-tile-x .social-tile-icon-box {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+.social-tile-x:hover {
+  border-color: var(--color-text-headline);
+}
+
+.social-tile-bluetooth .social-tile-icon-box {
+  background: rgba(0, 130, 252, 0.12);
+  color: #0082FC;
+}
+.social-tile-bluetooth:hover {
+  border-color: #0082FC;
+  background: rgba(0, 130, 252, 0.08);
+}
+
+/* QR Code Screen Modal */
+.qr-modal-dialog {
+  max-width: 420px;
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.qr-card-container {
+  background: #FFFFFF;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 18px auto 20px;
+  max-width: 250px;
+  width: 100%;
+}
+
+.qr-code-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 190px;
   height: 190px;
+  min-width: 190px;
+  min-height: 190px;
+}
+
+.qr-code-display canvas,
+.qr-code-display img {
+  max-width: 100%;
+  height: auto;
   display: block;
 }
 
-/* Social Share Row */
+.qr-trip-caption {
+  margin-top: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1E2720;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.qr-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.qr-action-btn {
+  flex: 1;
+  min-width: 140px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+/* Legacy Fallbacks */
 .social-share-row {
   display: flex;
   align-items: center;
@@ -1422,6 +1765,97 @@
   background: var(--color-primary-subtle);
   color: var(--color-primary-dark);
   transform: translateY(-2px);
+}
+
+/* Responsive Media Queries for Share & QR Modals */
+@media (max-width: 640px) {
+  .share-modal-dialog,
+  .qr-modal-dialog {
+    padding: 22px 16px !important;
+    width: calc(100% - 24px) !important;
+    max-width: calc(100% - 24px) !important;
+    margin: 12px auto !important;
+  }
+
+  .share-badge-icon,
+  .qr-badge-icon {
+    width: 46px;
+    height: 46px;
+    font-size: 1.35rem;
+    margin-bottom: 8px;
+  }
+
+  .share-modal-title,
+  .qr-modal-title {
+    font-size: 1.18rem;
+  }
+
+  .share-actions-grid {
+    gap: 8px;
+  }
+
+  .share-action-card {
+    padding: 10px 10px;
+    gap: 8px;
+    min-height: 52px;
+  }
+
+  .share-action-icon-wrap {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+  }
+
+  .share-action-label {
+    font-size: 0.86rem;
+  }
+
+  .share-action-hint {
+    font-size: 0.72rem;
+  }
+
+  .social-share-grid {
+    gap: 6px;
+  }
+
+  .social-share-tile {
+    padding: 8px 2px;
+  }
+
+  .social-tile-icon-box {
+    width: 38px;
+    height: 38px;
+    font-size: 1.2rem;
+  }
+
+  .social-tile-name {
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 440px) {
+  .share-link-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .share-copy-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .share-actions-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .qr-modal-actions {
+    flex-direction: column;
+  }
+
+  .qr-action-btn {
+    width: 100%;
+  }
 }
 
 /* --- AI Travel Companion Chatbot Drawer --- */
