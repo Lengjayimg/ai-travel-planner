@@ -136,7 +136,7 @@
                 <i class="ph ph-gear-six icon-sm" aria-hidden="true"></i>
                 <span>Manage your account</span>
               </a>
-              <button type="button" class="profile-menu-item logout-item" id="menuLogoutBtn" onclick="authService.signOut()">
+              <button type="button" class="profile-menu-item logout-item" id="menuLogoutBtn" onclick="handleUserSignOut()">
                 <i class="ph ph-sign-out icon-sm" aria-hidden="true"></i>
                 <span>Log Out</span>
               </button>
@@ -1381,7 +1381,7 @@
           <button class="btn btn-secondary btn-sm" onclick="handleResetPassword()">
             <i class="ph ph-lock-key icon-sm" aria-hidden="true"></i> Change Password
           </button>
-          <button class="btn btn-ghost btn-sm" onclick="authService.signOut()">
+          <button class="btn btn-ghost btn-sm" onclick="handleUserSignOut()">
             <i class="ph ph-sign-out icon-sm" aria-hidden="true"></i> Log Out
           </button>
           <button class="btn btn-ghost btn-sm" style="color: var(--color-error);" onclick="showToast('Account deletion protection enabled.', 'ph-trash')">
@@ -1566,6 +1566,12 @@
       <p style="font-size: 0.9rem; margin-bottom: 24px;">Sign in to continue planning your journeys.</p>
 
       <form id="signInForm">
+        <!-- Session Inactivity Expiry Notice Banner -->
+        <div id="signInNotice" style="display: none; padding: 12px 14px; background: rgba(90, 126, 100, 0.12); border: 1px solid var(--color-primary); border-radius: var(--radius-sm); color: var(--color-primary-dark); font-size: 0.88rem; line-height: 1.4; margin-bottom: 14px; text-align: left; align-items: flex-start; gap: 8px;">
+          <i class="ph ph-clock-countdown" style="font-size: 1.25rem; color: var(--color-primary); margin-top: 1px; flex-shrink: 0;" aria-hidden="true"></i>
+          <span id="signInNoticeText">Your session expired due to inactivity. Please sign in again to continue planning your trip.</span>
+        </div>
+
         <div id="signInError" style="display: none; padding: 10px 14px; background: rgba(214, 106, 106, 0.12); border: 1px solid var(--color-error); border-radius: var(--radius-sm); color: var(--color-error); font-size: 0.85rem; margin-bottom: 14px; text-align: left;"></div>
         
         <div class="form-group" style="margin-bottom: 16px;">
@@ -2120,6 +2126,46 @@
     </div>
   </div>
 
+  <!-- Session Inactivity Warning Modal -->
+  <div class="modal-backdrop" id="sessionTimeoutModal" role="alertdialog" aria-modal="true" aria-labelledby="sessionTimeoutHeading" aria-describedby="sessionTimeoutMsg" style="z-index: 3600;">
+    <div class="modal-dialog session-timeout-dialog">
+      <!-- Icon Badge -->
+      <div class="session-timeout-icon-badge">
+        <i class="ph ph-clock-countdown" aria-hidden="true"></i>
+      </div>
+
+      <!-- Live Screen Reader Announcement (Polite, hidden visually) -->
+      <div id="sessionA11yLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+      <!-- Heading & Explanatory Text -->
+      <h3 id="sessionTimeoutHeading" class="session-timeout-title">Are you still there?</h3>
+      <p id="sessionTimeoutMsg" class="session-timeout-desc">
+        You've been inactive for a while. For your security, we'll sign you out in 5 minutes. Would you like to continue planning your trip?
+      </p>
+
+      <!-- Visual Live Countdown Timer Badge -->
+      <div class="session-countdown-wrapper">
+        <span class="session-countdown-label">Time Remaining</span>
+        <div class="session-countdown-pill" aria-hidden="true">
+          <i class="ph ph-hourglass-high" aria-hidden="true"></i>
+          <span id="sessionCountdownTimer" class="session-countdown-digits">05:00</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="session-timeout-actions">
+        <button type="button" class="btn btn-primary btn-full session-btn-continue" id="btnContinueSession">
+          <i class="ph ph-arrows-clockwise icon-sm" aria-hidden="true"></i>
+          <span>Continue Session</span>
+        </button>
+        <button type="button" class="btn btn-ghost btn-full session-btn-signout" id="btnSignOutSession">
+          <i class="ph ph-sign-out icon-sm" aria-hidden="true"></i>
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- JavaScript Modules & Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/jspdf.umd.min.js"></script>
@@ -2128,6 +2174,7 @@
   <script src="js/supabase.js"></script>
   <script src="js/data.js"></script>
   <script src="js/state.js"></script>
+  <script src="js/session-manager.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

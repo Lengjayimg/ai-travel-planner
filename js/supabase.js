@@ -81,18 +81,41 @@ const authService = {
   /**
    * Log out the active session
    */
-  async signOut() {
+  async signOut(options = {}) {
     if (!supabaseClient) return;
-    const { error } = await supabaseClient.auth.signOut();
-    if (error) {
-      console.error('Sign out error:', error.message);
+    try {
+      await supabaseClient.auth.signOut();
+    } catch (error) {
+      console.warn('Sign out warning:', error.message);
     }
     if (window.store) {
       window.store.setUser(null);
     }
-    if (typeof showToast === 'function') {
+    if (!options.silent && typeof showToast === 'function') {
       showToast('Logged out successfully.', 'ph-sign-out');
     }
+  },
+
+  /**
+   * Explicitly refresh the current session using the refresh token
+   */
+  async refreshSession() {
+    if (!supabaseClient) {
+      throw new Error('Supabase client failed to load.');
+    }
+    const { data, error } = await supabaseClient.auth.refreshSession();
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Get the current active session
+   */
+  async getSession() {
+    if (!supabaseClient) return null;
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    if (error) throw error;
+    return session;
   },
 
   /**

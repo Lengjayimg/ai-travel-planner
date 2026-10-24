@@ -38,6 +38,11 @@ function initApp() {
     window.authService.init(store);
   }
 
+  // 6b. Setup Secure Session & Inactivity Manager (5h limit, 5m warning countdown)
+  if (window.WayfindSessionManager) {
+    window.WayfindSessionManager.init(store, window.authService);
+  }
+
   // 7. Setup Chatbot Interactivity
   setupChatbot();
 
@@ -234,6 +239,10 @@ function handleHashChange() {
   }
 
   if (validViews.includes(hash)) {
+    // Route Protection for Authenticated Views
+    if (window.WayfindSessionManager && !window.WayfindSessionManager.protectRoute(hash)) {
+      return;
+    }
     trackViewNavigation(hash);
     store.setView(hash);
   } else if (['features', 'how-it-works', 'destinations'].includes(hash)) {
@@ -2801,6 +2810,8 @@ function setupModals() {
   // Modal backdrop click to close
   document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
     backdrop.addEventListener('click', (e) => {
+      // Inactivity warning dialog must never be dismissed via backdrop click
+      if (backdrop.id === 'sessionTimeoutModal') return;
       if (e.target === backdrop) {
         closeAllModals();
       }
@@ -3016,15 +3027,25 @@ function setupModals() {
 }
 
 function openModal(modalId) {
-  closeAllModals();
+  closeAllModals(modalId);
   const target = document.getElementById(modalId);
   if (target) {
     target.classList.add('active');
+    if (modalId === 'signInModal' && window.WayfindSessionManager) {
+      window.WayfindSessionManager.checkAndDisplayExpiryNotice();
+    }
   }
 }
 
-function closeAllModals() {
-  document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('active'));
+function closeAllModals(exceptId) {
+  document.querySelectorAll('.modal-backdrop').forEach(m => {
+    if (exceptId && m.id === exceptId) return;
+    // Keep session warning dialog visible unless explicitly dismissed
+    if (m.id === 'sessionTimeoutModal' && window.WayfindSessionManager && window.WayfindSessionManager.isWarningShown && exceptId !== 'sessionTimeoutModal') {
+      return;
+    }
+    m.classList.remove('active');
+  });
 }
 
 function openEditProfileModal() {
@@ -4069,7 +4090,31 @@ function setupAuth() {
 
         closeAllModals();
         signInForm.reset();
-        showToast('Signed in successfully!', 'ph-check-circle');
+
+        // Clear session expiry notice & reset activity timestamp
+        if (window.WayfindSessionManager) {
+          window.WayfindSessionManager.clearExpiryNotice();
+          window.WayfindSessionManager.lastActiveTime = Date.now();
+          try {
+            localStorage.setItem('wayfind_last_active_time', Date.now().toString());
+          } catch (e) {}
+        }
+
+        // Restore input progress and recoverable drafts
+        if (typeof window.restoreInputProgress === 'function') {
+          window.restoreInputProgress();
+        }
+
+        // Return user to intended destination if redirected due to auth requirement / session expiry
+        const intendedRoute = sessionStorage.getItem('wayfind_redirect_after_auth');
+        if (intendedRoute) {
+          sessionStorage.removeItem('wayfind_redirect_after_auth');
+          if (intendedRoute !== 'landing') {
+            window.location.hash = intendedRoute;
+          }
+        }
+
+        showToast('Signed in successfully! Progress restored.', 'ph-check-circle');
       } catch (err) {
         if (signInError) {
           signInError.textContent = err.message || 'Unable to sign in. Please verify your credentials.';
@@ -4307,7 +4352,7 @@ function updateUserUI(user) {
       mobileAuthBtn.innerHTML = '<span>Manage Account</span>';
       mobileAuthBtn.onclick = () => { closeMobileMenu(); window.location.hash = 'profile'; };
       mobileGetStartedBtn.innerHTML = '<span>Log Out</span>';
-      mobileGetStartedBtn.onclick = () => { closeMobileMenu(); if (window.authService) window.authService.signOut(); };
+      mobileGetStartedBtn.onclick = () => { closeMobileMenu(); handleUserSignOut(); };
     } else {
       mobileAuthBtn.innerHTML = '<span>Log In</span>';
       mobileAuthBtn.onclick = () => { closeMobileMenu(); openModal('signInModal'); };
@@ -4792,6 +4837,21 @@ window.applyDateOverlay = applyDateOverlay;
 window.overlayCalendarQuickSelect = overlayCalendarQuickSelect;
 window.overlayCalendarClear = overlayCalendarClear;
 
+async function handleUserSignOut() {
+  if (window.WayfindSessionManager) {
+    window.WayfindSessionManager.preservePlanningProgress();
+  }
+  sessionStorage.removeItem('wayfind_redirect_after_auth');
+  sessionStorage.removeItem('wayfind_session_expired_notice');
+  try {
+    localStorage.setItem('wayfind_session_sync_state', 'logged_out_' + Date.now());
+  } catch (e) {}
+  if (window.authService) {
+    await window.authService.signOut();
+  }
+  window.location.hash = 'landing';
+}
+
 // Universal Share, PDF & QR Code Exports
 window.openShareModal = openShareModal;
 window.openQRCodeModal = openQRCodeModal;
@@ -4804,6 +4864,7 @@ window.shareOnX = shareOnX;
 window.shareViaBluetooth = shareViaBluetooth;
 window.openSaveSuccessModal = openSaveSuccessModal;
 window.navigateToPlannerOrPrevious = navigateToPlannerOrPrevious;
+window.handleUserSignOut = handleUserSignOut;
 
 // Universal Back Navigation, Saved Trips & Booking Modal Exports
 window.navigateBack = navigateBack;
