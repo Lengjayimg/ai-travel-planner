@@ -251,12 +251,17 @@ function renderItineraryView(state) {
   if (titleEl && trip.title) titleEl.textContent = trip.title;
   const datesEl = document.getElementById('itineraryDatesText');
   if (datesEl && trip.dates) {
-    datesEl.textContent = `${trip.dates} (${trip.duration || '4 Days / 3 Nights'})`;
+    datesEl.textContent = `${trip.dates} (${trip.duration || `${trip.days.length} Days`})`;
   }
 
-  // 1. Render Days Tab Bar
+  // Ensure activeDayIndex is within bounds of current trip days
+  if (state.activeDayIndex >= trip.days.length) {
+    state.activeDayIndex = 0;
+  }
+
+  // 1. Render Days Tab Bar (Always corresponds to trip.days count and dates)
   daysNav.innerHTML = trip.days.map((day, idx) => `
-    <button class="day-tab-btn ${idx === state.activeDayIndex ? 'active' : ''}" onclick="selectDayIndex(${idx})">
+    <button class="day-tab-btn ${idx === state.activeDayIndex ? 'active' : ''}" onclick="selectDayIndex(${idx})" role="tab" aria-selected="${idx === state.activeDayIndex ? 'true' : 'false'}" title="${day.title || ''}">
       Day ${day.dayNumber}: ${day.date.split(',')[0]}
     </button>
   `).join('');
@@ -264,7 +269,7 @@ function renderItineraryView(state) {
   // 2. Render Activities Timeline for Active Day
   const activeDay = trip.days[state.activeDayIndex] || trip.days[0];
   const dayTitleEl = document.getElementById('itineraryActiveDayTitle');
-  if (dayTitleEl) {
+  if (dayTitleEl && activeDay) {
     dayTitleEl.textContent = `Day ${activeDay.dayNumber} — ${activeDay.title}`;
   }
 
@@ -914,6 +919,617 @@ function overlayCalendarClear() {
   renderOverlayCalendar();
 }
 
+// --- Curated Day & Activity Templates Pool for Dynamic Itineraries ---
+const CURATED_DAY_TEMPLATES = [
+  {
+    dayTheme: "Arrival, Lakeside Unwind & Sunset",
+    activities: [
+      {
+        id: "act-t1-1",
+        time: "10:30 AM",
+        title: "Arrive at Nnamdi Azikiwe Airport (ABV)",
+        location: "Airport Road, Abuja",
+        category: "Transport",
+        costNGN: 18000,
+        costUSD: 22,
+        duration: "1h 15m",
+        notes: "Private pre-booked airport transfer to hotel via express highway.",
+        image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=600&q=80",
+        aiBadge: "Optimized Route"
+      },
+      {
+        id: "act-t1-2",
+        time: "12:00 PM",
+        title: "Check-in at Fraser Suites / Wells Carlton",
+        location: "Central Area / Asokoro, Abuja",
+        category: "Stay",
+        costNGN: 48000,
+        costUSD: 58,
+        duration: "1h 30m",
+        notes: "Freshen up, enjoy terrace welcome drinks overlooking the city skyline.",
+        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "act-t1-3",
+        time: "1:45 PM",
+        title: "Welcome Lunch at Nkoyo or Jollof Bistro",
+        location: "Bathurst Street, Kado / Wuse 2",
+        category: "Food",
+        costNGN: 16000,
+        costUSD: 20,
+        duration: "1h 15m",
+        notes: "Authentic Nigerian delicacies: charcoal-grilled tilapia, fragrant party jollof, and freshly squeezed Chapman.",
+        image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80",
+        aiBadge: "Local Culinary Favorite"
+      },
+      {
+        id: "act-t1-4",
+        time: "4:00 PM",
+        title: "Kayaking & Sunset at Jabi Lake Boat Club",
+        location: "Alex Ekwueme Way, Jabi, Abuja",
+        category: "Activity",
+        costNGN: 12000,
+        costUSD: 15,
+        duration: "2h 30m",
+        notes: "Rent tandem kayaks, take scenic waterfront photography, and enjoy fresh breeze as the sun dips over the lake.",
+        image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80",
+        aiBadge: "Weather-Adaptive Timing"
+      },
+      {
+        id: "act-t1-5",
+        time: "7:30 PM",
+        title: "Starlight Dinner at Cilantro / Wuse Dining",
+        location: "Maitama Amusement Park Grounds",
+        category: "Food",
+        costNGN: 22000,
+        costUSD: 26,
+        duration: "2h",
+        notes: "Relaxed open-air garden seating under soft fairy lights with fusion grills and mocktails.",
+        image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80"
+      }
+    ]
+  },
+  {
+    dayTheme: "Artisan Galleries, Craft Village & Botanical Stroll",
+    activities: [
+      {
+        id: "act-t2-1",
+        time: "9:00 AM",
+        title: "Artisan Breakfast at The Pavillion",
+        location: "Wuse 2, Abuja",
+        category: "Food",
+        costNGN: 10000,
+        costUSD: 12,
+        duration: "1h",
+        notes: "Sourdough toast, tropical fruit bowls, and rich African single-origin coffee.",
+        image: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "act-t2-2",
+        time: "10:30 AM",
+        title: "Thought Pyramid Art Centre & Nike Art Gallery Abuja",
+        location: "Libreville Street, Wuse 2",
+        category: "Culture",
+        costNGN: 6000,
+        costUSD: 7,
+        duration: "2h",
+        notes: "Explore avant-garde African installations, modern oil paintings, and wood carvings.",
+        image: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=600&q=80",
+        aiBadge: "Curated Art Collection"
+      },
+      {
+        id: "act-t2-3",
+        time: "1:00 PM",
+        title: "Abuja Arts & Crafts Village",
+        location: "Central Business District (CBD)",
+        category: "Culture",
+        costNGN: 15000,
+        costUSD: 18,
+        duration: "1h 30m",
+        notes: "Meet local leather artisans, bead makers, and bronze sculptors. Perfect for handmade souvenirs.",
+        image: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "act-t2-4",
+        time: "3:30 PM",
+        title: "Mindful Stroll through Millennium Park",
+        location: "Maitama District, Abuja",
+        category: "Nature",
+        costNGN: 4000,
+        costUSD: 5,
+        duration: "2h",
+        notes: "Designed by Italian architect Manfredi Nicoletti; expansive fountains, indigenous flora, and view of Aso Rock.",
+        image: "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=600&q=80",
+        aiBadge: "Peaceful & Shaded"
+      },
+      {
+        id: "act-t2-5",
+        time: "7:00 PM",
+        title: "Social Evening at Bature Brewery",
+        location: "Adetokunbo Ademola Crescent, Wuse 2",
+        category: "Nightlife",
+        costNGN: 18000,
+        costUSD: 21,
+        duration: "2h 30m",
+        notes: "West Africa's pioneering craft micro-brewery; live indie acoustic session and artisanal woodfired pizzas.",
+        image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=600&q=80"
+      }
+    ]
+  },
+  {
+    dayTheme: "Day Excursion: Gurara Waterfalls & Zuma Monolith",
+    activities: [
+      {
+        id: "act-t3-1",
+        time: "8:00 AM",
+        title: "Scenic Countryside Drive to Gurara Falls",
+        location: "Suleja – Minna Road, Niger State",
+        category: "Transport",
+        costNGN: 25000,
+        costUSD: 30,
+        duration: "1h 30m",
+        notes: "Private air-conditioned SUV transfer through picturesque savannah hills.",
+        image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=600&q=80",
+        aiBadge: "Best Early Morning Lighting"
+      },
+      {
+        id: "act-t3-2",
+        time: "10:00 AM",
+        title: "Guided Gorge Walk & Waterfall Photography",
+        location: "Gurara Nature Reserve",
+        category: "Nature",
+        costNGN: 8000,
+        costUSD: 10,
+        duration: "2h 30m",
+        notes: "Walk along the roaring freshwater cascades and tranquil rock pools with certified nature guides.",
+        image: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=600&q=80",
+        aiBadge: "Top Nature Highlight"
+      },
+      {
+        id: "act-t3-3",
+        time: "1:00 PM",
+        title: "Riverbank Gourmet Picnic",
+        location: "Gurara Shaded Pavilions",
+        category: "Food",
+        costNGN: 14000,
+        costUSD: 17,
+        duration: "1h 30m",
+        notes: "Packed artisan lunch: grilled chicken skewers, plantain chips, jollof parcels, and chilled zobo tea.",
+        image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "act-t3-4",
+        time: "3:30 PM",
+        title: "Zuma Rock Viewpoint & Cultural Photo Stop",
+        location: "Abuja-Kaduna Highway",
+        category: "Sightseeing",
+        costNGN: 3000,
+        costUSD: 4,
+        duration: "1h",
+        notes: "Stand before Nigeria's majestic 725m natural monolith with iconic human face contours in the rock face.",
+        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "act-t3-5",
+        time: "7:30 PM",
+        title: "Dinner & Rooftop Views at The Vue",
+        location: "Novare Central, Wuse Zone 5",
+        category: "Food",
+        costNGN: 24000,
+        costUSD: 28,
+        duration: "2h",
+        notes: "Upscale pan-Asian rooftop dining overlooking the night lights of the capital city.",
+        image: "https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=600&q=80"
+      }
+    ]
+  },
+  {
+    dayTheme: "Architectural Wonders, Monolith Overlooks & Sunset Tea",
+    activities: [
+      {
+        id: "act-t4-1",
+        time: "9:00 AM",
+        title: "Breakfast & Fresh Pastries at Charcoal Grill",
+        location: "Aminu Kano Crescent, Wuse 2",
+        category: "Food",
+        costNGN: 11000,
+        costUSD: 13,
+        duration: "1h",
+        notes: "Artisanal croissants, avocado toast, and freshly pressed tropical juice.",
+        image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "act-t4-2",
+        time: "10:30 AM",
+        title: "National Mosque & Christian Centre Architectural Tour",
+        location: "Independence Avenue, Central District",
+        category: "Culture",
+        costNGN: 5000,
+        costUSD: 6,
+        duration: "2h",
+        notes: "Guided exploration of Abuja's iconic monumental architecture with golden domes and stained glass.",
+        image: "https://images.unsplash.com/photo-1548625361-16dd80a562cf?auto=format&fit=crop&w=600&q=80",
+        aiBadge: "Architectural Landmark"
+      },
+      {
+        id: "act-t4-3",
+        time: "1:15 PM",
+        title: "Traditional Lunch at Yellow Chili Bistro",
+        location: "Gana Street, Maitama",
+        category: "Food",
+        costNGN: 17000,
+        costUSD: 20,
+        duration: "1h 30m",
+        notes: "Savor seafood okra, slow-braised goat meat pepper soup, and pounded yam.",
+        image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "act-t4-4",
+        time: "3:45 PM",
+        title: "Aso Rock Panorama & Presidential Hillside Overlook",
+        location: "Asokoro Overlook, Abuja",
+        category: "Sightseeing",
+        costNGN: 4000,
+        costUSD: 5,
+        duration: "1h 30m",
+        notes: "Spectacular vantage point overlooking the presidential complex and the 400m granite monolith.",
+        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "act-t4-5",
+        time: "7:00 PM",
+        title: "Live Afro-Jazz & Dinner at Dunes Center",
+        location: "Aguiyi Ironsi Way, Maitama",
+        category: "Nightlife",
+        costNGN: 26000,
+        costUSD: 31,
+        duration: "2h 30m",
+        notes: "Upscale dining terrace with curated wine selection and live acoustic saxophone.",
+        image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80"
+      }
+    ]
+  },
+  {
+    dayTheme: "Nature Reserves, Eco-Canopy & Farm Retreat",
+    activities: [
+      {
+        id: "act-t5-1",
+        time: "8:30 AM",
+        title: "Morning Eco-Walk at National Park & Zoo",
+        location: "Three Arms Zone, Asokoro",
+        category: "Nature",
+        costNGN: 6000,
+        costUSD: 7,
+        duration: "2h",
+        notes: "Tranquil trail with giraffes, zebras, and indigenous birds at the foot of Aso Rock.",
+        image: "https://images.unsplash.com/photo-1534567153574-2b12153a87f0?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "act-t5-2",
+        time: "11:00 AM",
+        title: "Abuja Botanical Gardens & Tropical Orchid Trail",
+        location: "Maitama Extension",
+        category: "Nature",
+        costNGN: 4000,
+        costUSD: 5,
+        duration: "1h 30m",
+        notes: "Shaded canopy pathways and rare West African flora photography.",
+        image: "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "act-t5-3",
+        time: "1:30 PM",
+        title: "Farm-to-Table Lunch at Bwari Organic Retreat",
+        location: "Bwari Hills Scenic Valley",
+        category: "Food",
+        costNGN: 15000,
+        costUSD: 18,
+        duration: "2h",
+        notes: "Organic salad platters, wood-roasted chicken, and fresh passion fruit smoothies.",
+        image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "act-t5-4",
+        time: "4:00 PM",
+        title: "Traditional Ushafa Pottery Village Workshop",
+        location: "Ushafa Pottery Center, Bwari",
+        category: "Culture",
+        costNGN: 7000,
+        costUSD: 8,
+        duration: "2h",
+        notes: "Hands-on pottery throwing session with master matriarch artisans who hosted Queen Elizabeth II in 1991.",
+        image: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=600&q=80",
+        aiBadge: "Heritage Handcraft"
+      },
+      {
+        id: "act-t5-5",
+        time: "7:30 PM",
+        title: "Terrace Dinner at Sky Bar Rooftop",
+        location: "Summerset Continental Hotel, Maitama",
+        category: "Food",
+        costNGN: 23000,
+        costUSD: 27,
+        duration: "2h",
+        notes: "Panoramic city night lights, signature mocktails, and Mediterranean grills.",
+        image: "https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=600&q=80"
+      }
+    ]
+  },
+  {
+    dayTheme: "Culinary Tasting, Bazaars & Sunset Wellness",
+    activities: [
+      {
+        id: "act-t6-1",
+        time: "9:30 AM",
+        title: "Artisan Pastries & Espresso at Café de Vie",
+        location: "Adetokunbo Ademola, Wuse 2",
+        category: "Food",
+        costNGN: 9000,
+        costUSD: 11,
+        duration: "1h",
+        notes: "Handmade pain au chocolat, cappuccino, and fruit bowls in a serene courtyard.",
+        image: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "act-t6-2",
+        time: "11:00 AM",
+        title: "Wuse Market Spice & Textile Guided Tour",
+        location: "Wuse Zone 5, Abuja",
+        category: "Culture",
+        costNGN: 12000,
+        costUSD: 14,
+        duration: "2h",
+        notes: "Experience the vibrant heartbeat of the city: Ankara prints, dried habaneros, and handmade baskets.",
+        image: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "act-t6-3",
+        time: "1:30 PM",
+        title: "Gourmet Suya & Street Food Tasting Experience",
+        location: "Yahuza Suya Spot, Wuse 2",
+        category: "Food",
+        costNGN: 11000,
+        costUSD: 13,
+        duration: "1h 30m",
+        notes: "Authentic wood-smoked beef suya, masa cakes, and cold freshly brewed hibiscus zobo.",
+        image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80",
+        aiBadge: "Signature Street Flavors"
+      },
+      {
+        id: "act-t6-4",
+        time: "3:30 PM",
+        title: "Luxury Hammam & Wellness Spa Session",
+        location: "Wells Carlton Hotel Spa, Asokoro",
+        category: "Wellness",
+        costNGN: 28000,
+        costUSD: 33,
+        duration: "2h",
+        notes: "Rejuvenating Moroccan hammam body scrub, steam bath, and tension-relief massage.",
+        image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "act-t6-5",
+        time: "7:00 PM",
+        title: "Candlelit Fusion Dinner at BluCabana",
+        location: "Shehu Yar'adua Way, Mabushi",
+        category: "Food",
+        costNGN: 25000,
+        costUSD: 29,
+        duration: "2h 30m",
+        notes: "Poolside cabana dining with woodfired flatbreads, grilled salmon, and acoustic jazz.",
+        image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80"
+      }
+    ]
+  },
+  {
+    dayTheme: "Usman Dam Reservoir Walk & Farewell Departure",
+    activities: [
+      {
+        id: "act-t7-1",
+        time: "8:30 AM",
+        title: "Morning Fresh Air Walk at Usman Dam",
+        location: "Bwari Road, Ushafa",
+        category: "Nature",
+        costNGN: 5000,
+        costUSD: 6,
+        duration: "2h",
+        notes: "Panoramic mountain-framed reservoir offering calm reflective waters and peaceful morning breeze.",
+        image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=600&q=80",
+        aiBadge: "Gentle Morning Pace"
+      },
+      {
+        id: "act-t7-2",
+        time: "11:30 AM",
+        title: "Brunch & Specialty Coffee at Salamander Café",
+        location: "Bujumbura Street, Wuse 2",
+        category: "Food",
+        costNGN: 12000,
+        costUSD: 14,
+        duration: "1h 30m",
+        notes: "Popular literary cafe and garden with fresh waffles, eggs benedict, and literary magazine browsing.",
+        image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: "act-t7-3",
+        time: "1:30 PM",
+        title: "Hotel Check-out & Airport Express Transfer",
+        location: "Central Area to Nnamdi Azikiwe Airport (ABV)",
+        category: "Transport",
+        costNGN: 18000,
+        costUSD: 22,
+        duration: "1h 15m",
+        notes: "Comfortable air-conditioned ride to ABV airport with flight check-in reminders in the app.",
+        image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=600&q=80"
+      }
+    ]
+  }
+];
+
+function generateTripDaysForCount(daysCount, startDate) {
+  const generatedDays = [];
+  const baseDate = startDate ? new Date(startDate.getTime()) : new Date(2026, 10, 12);
+  const middleTemplates = CURATED_DAY_TEMPLATES.slice(1, 6);
+
+  for (let i = 0; i < daysCount; i++) {
+    const dayNumber = i + 1;
+    const dayDate = new Date(baseDate.getTime() + i * 24 * 60 * 60 * 1000);
+    const dayName = CAL_DAY_NAMES[dayDate.getDay()];
+    const monthShort = CAL_SHORT_MONTHS[dayDate.getMonth()];
+    const dayFormatted = `${dayName}, ${monthShort} ${dayDate.getDate()}`;
+
+    let template;
+    if (daysCount === 1) {
+      template = {
+        dayTheme: "Abuja City Highlights & Departure",
+        activities: [
+          {
+            id: `act-d${dayNumber}-1`,
+            time: "9:00 AM",
+            title: "Arrive in Abuja & Welcome Transfer",
+            location: "Nnamdi Azikiwe Airport to Central District",
+            category: "Transport",
+            costNGN: 18000,
+            costUSD: 22,
+            duration: "1h 30m",
+            notes: "Private pre-booked transfer into the city centre with luggage storage.",
+            image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=600&q=80",
+            aiBadge: "Express Route"
+          },
+          {
+            id: `act-d${dayNumber}-2`,
+            time: "11:00 AM",
+            title: "Thought Pyramid & Arts Village Tour",
+            location: "Wuse 2 & CBD",
+            category: "Culture",
+            costNGN: 10000,
+            costUSD: 12,
+            duration: "2h",
+            notes: "Quick immersion into contemporary African art and handcrafted souvenirs.",
+            image: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=600&q=80"
+          },
+          {
+            id: `act-d${dayNumber}-3`,
+            time: "1:30 PM",
+            title: "Authentic Welcome Lunch at Nkoyo",
+            location: "Kado District",
+            category: "Food",
+            costNGN: 16000,
+            costUSD: 20,
+            duration: "1h 30m",
+            notes: "Delight in smoky party jollof, grilled tilapia, and Chapman.",
+            image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80"
+          },
+          {
+            id: `act-d${dayNumber}-4`,
+            time: "3:30 PM",
+            title: "Kayaking & Sunset at Jabi Lake",
+            location: "Jabi Lake Park",
+            category: "Activity",
+            costNGN: 12000,
+            costUSD: 15,
+            duration: "2h",
+            notes: "Waterfront breeze and skyline photography as the sun dips.",
+            image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80"
+          },
+          {
+            id: `act-d${dayNumber}-5`,
+            time: "6:30 PM",
+            title: "Airport Express Transfer & Evening Flight",
+            location: "Nnamdi Azikiwe Airport (ABV)",
+            category: "Transport",
+            costNGN: 18000,
+            costUSD: 22,
+            duration: "1h 15m",
+            notes: "Seamless private transfer back to the terminal with mobile boarding assistance.",
+            image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=600&q=80"
+          }
+        ]
+      };
+    } else if (i === 0) {
+      template = CURATED_DAY_TEMPLATES[0];
+    } else if (i === daysCount - 1) {
+      template = CURATED_DAY_TEMPLATES[CURATED_DAY_TEMPLATES.length - 1];
+    } else {
+      const midIdx = (i - 1) % middleTemplates.length;
+      template = middleTemplates[midIdx];
+    }
+
+    const activitiesClone = template.activities.map((act, actIdx) => ({
+      ...act,
+      id: `act-d${dayNumber}-${actIdx + 1}`
+    }));
+
+    generatedDays.push({
+      dayNumber: dayNumber,
+      title: template.dayTheme,
+      date: dayFormatted,
+      activities: activitiesClone
+    });
+  }
+
+  return generatedDays;
+}
+
+function synchronizeTripDaysForDateRange(startDate, endDate) {
+  if (!startDate) return;
+  const validStart = new Date(startDate.getTime());
+  const validEnd = endDate ? new Date(endDate.getTime()) : new Date(startDate.getTime());
+
+  if (validEnd.getTime() < validStart.getTime()) {
+    validEnd.setTime(validStart.getTime());
+  }
+
+  const diffMs = validEnd.getTime() - validStart.getTime();
+  const daysCount = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1);
+  const nightsCount = Math.max(1, daysCount - 1);
+  const formattedRange = `${formatShortInputDate(validStart)} - ${formatShortInputDate(validEnd)}`;
+  const durationStr = `${daysCount} ${daysCount === 1 ? 'Day' : 'Days'} / ${nightsCount} ${nightsCount === 1 ? 'Night' : 'Nights'}`;
+
+  const state = store.getState();
+  const trip = state.currentTrip;
+  if (!trip) return;
+
+  trip.dates = formattedRange;
+  trip.duration = durationStr;
+
+  // Always generate/adapt trip.days to match the EXACT number of selected days
+  trip.days = generateTripDaysForCount(daysCount, validStart);
+
+  // Keep activeDayIndex within bounds
+  if (state.activeDayIndex >= daysCount) {
+    state.activeDayIndex = 0;
+  }
+
+  // Recalculate trip budget for new days
+  store.recalculateBudget();
+
+  // Dynamically allocate budget categories based on the recalculated budget
+  const totalUSD = trip.budgetTotalUSD || (daysCount * 90);
+  const totalNGN = trip.budgetTotalNGN || (totalUSD * 850);
+  trip.budgetBreakdown = [
+    { category: "Accommodation", allocatedNGN: Math.round(totalNGN * 0.46), allocatedUSD: Math.round(totalUSD * 0.46), color: "#3B4A20", percent: 46 },
+    { category: "Dining & Food", allocatedNGN: Math.round(totalNGN * 0.24), allocatedUSD: Math.round(totalUSD * 0.24), color: "#5A7E64", percent: 24 },
+    { category: "Transport & Transit", allocatedNGN: Math.round(totalNGN * 0.16), allocatedUSD: Math.round(totalUSD * 0.16), color: "#8DB48E", percent: 16 },
+    { category: "Activities & Culture", allocatedNGN: Math.round(totalNGN * 0.14), allocatedUSD: Math.round(totalUSD * 0.14), color: "#D87D4A", percent: 14 }
+  ];
+
+  // Update header text in itinerary view
+  const datesEl = document.getElementById('itineraryDatesText');
+  if (datesEl) {
+    datesEl.textContent = `${formattedRange} (${durationStr})`;
+  }
+
+  const dashDatesVal = document.getElementById('dashActiveDatesVal');
+  if (dashDatesVal) {
+    dashDatesVal.textContent = `${trip.destination || 'Abuja, Nigeria'} • ${formattedRange}`;
+  }
+
+  // Re-render itinerary view if currently on itinerary
+  if (state.currentView === 'itinerary') {
+    renderItineraryView(state);
+  }
+}
+
 function applyDateOverlay() {
   if (!overlayStartDate) {
     if (typeof showToast === 'function') {
@@ -928,17 +1544,14 @@ function applyDateOverlay() {
 
   const diffMs = overlayEndDate.getTime() - overlayStartDate.getTime();
   const days = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1);
-  const nights = Math.max(1, days - 1);
   const formattedRange = `${formatShortInputDate(overlayStartDate)} - ${formatShortInputDate(overlayEndDate)}`;
-  const durationStr = `${days} ${days === 1 ? 'Day' : 'Days'} / ${nights} ${nights === 1 ? 'Night' : 'Nights'}`;
 
-  // 1. Sync to Planner Wizard
+  // 1. Sync to Planner Wizard state
   wizardStartDate = new Date(overlayStartDate.getTime());
   wizardEndDate = new Date(overlayEndDate.getTime());
   calViewMonth = overlayCalViewMonth;
   calViewYear = overlayCalViewYear;
   updateWizardDatesDisplay();
-  renderWizardCalendar();
 
   // 2. Sync to Landing Quick Planner
   const quickInput = document.getElementById('quickFormDates');
@@ -946,35 +1559,11 @@ function applyDateOverlay() {
     quickInput.value = formattedRange;
   }
 
-  // 3. Sync to Itinerary & Dashboard
-  const trip = store.getState().currentTrip;
-  if (trip) {
-    trip.dates = formattedRange;
-    trip.duration = durationStr;
-    if (Array.isArray(trip.days)) {
-      trip.days.forEach((d, idx) => {
-        const dayDate = new Date(overlayStartDate.getTime() + idx * 24 * 60 * 60 * 1000);
-        d.date = `${CAL_SHORT_MONTHS[dayDate.getMonth()]} ${dayDate.getDate()}, ${dayDate.getFullYear()}`;
-      });
-    }
-  }
-
-  const itinDates = document.getElementById('itineraryDatesText');
-  if (itinDates) {
-    itinDates.textContent = `${formattedRange} (${durationStr})`;
-  }
-
-  const dashDatesVal = document.getElementById('dashActiveDatesVal');
-  if (dashDatesVal) {
-    dashDatesVal.textContent = `${(trip && trip.destination) || 'Abuja, Nigeria'} • ${formattedRange}`;
-  }
-
-  if (store.getState().currentView === 'itinerary') {
-    renderItineraryView(store.getState());
-  }
+  // 3. Synchronize Trip Days and Dates so sticky swipeable days exactly match selection
+  synchronizeTripDaysForDateRange(overlayStartDate, overlayEndDate);
 
   if (typeof showToast === 'function') {
-    showToast(`Travel dates updated: ${formattedRange} (${days} Days)`, 'ph-calendar-check');
+    showToast(`Travel dates applied: ${formattedRange} (${days} ${days === 1 ? 'Day' : 'Days'})`, 'ph-calendar-check');
   }
 
   closeDateOverlay();
@@ -1294,26 +1883,15 @@ function setupPlannerForms() {
 }
 
 function triggerAIGeneration() {
-  // Synchronize trip dates from planner selection if present
-  if (wizardStartDate && wizardEndDate) {
-    const diffMs = wizardEndDate.getTime() - wizardStartDate.getTime();
-    const daysCount = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1);
-    const nightsCount = Math.max(1, daysCount - 1);
-    const formattedRange = `${formatShortInputDate(wizardStartDate)} - ${formatShortInputDate(wizardEndDate)}`;
-    const durationStr = `${daysCount} ${daysCount === 1 ? 'Day' : 'Days'} / ${nightsCount} ${nightsCount === 1 ? 'Night' : 'Nights'}`;
+  // Determine start & end dates from planner wizard or fallback
+  const startDate = wizardStartDate || new Date(2026, 10, 12);
+  const endDate = wizardEndDate || new Date(2026, 10, 15);
 
-    const trip = store.getState().currentTrip;
-    if (trip) {
-      trip.dates = formattedRange;
-      trip.duration = durationStr;
-      if (Array.isArray(trip.days)) {
-        trip.days.forEach((d, idx) => {
-          const dayDate = new Date(wizardStartDate.getTime() + idx * 24 * 60 * 60 * 1000);
-          d.date = `${CAL_SHORT_MONTHS[dayDate.getMonth()]} ${dayDate.getDate()}, ${dayDate.getFullYear()}`;
-        });
-      }
-    }
-  }
+  // Synchronize trip days and dates so sticky swipeable days correspond to the exact date range
+  synchronizeTripDaysForDateRange(startDate, endDate);
+
+  const diffMs = endDate.getTime() - startDate.getTime();
+  const daysCount = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1);
 
   // Navigate to 'generating' state
   store.setView('generating');
@@ -1322,7 +1900,7 @@ function triggerAIGeneration() {
     { text: "Analyzing travel preferences and companion needs...", delay: 600 },
     { text: "Optimizing scenic routes across Abuja & Niger State...", delay: 1300 },
     { text: "Balancing curated dining, admission fees, and lodging...", delay: 1900 },
-    { text: "Assembling custom 4-day itinerary...", delay: 2400 }
+    { text: `Assembling custom ${daysCount}-day itinerary...`, delay: 2400 }
   ];
 
   steps.forEach((s, idx) => {
@@ -1342,7 +1920,7 @@ function triggerAIGeneration() {
 
   setTimeout(() => {
     window.location.hash = 'itinerary';
-    showToast("Your personalized Abuja itinerary is ready!", "ph-sparkle");
+    showToast(`Your personalized ${daysCount}-day itinerary is ready!`, "ph-sparkle");
   }, 2800);
 }
 
