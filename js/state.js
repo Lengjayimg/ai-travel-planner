@@ -26,11 +26,23 @@ class WayfindStore {
         isLoggedIn: true
       },
 
-      // Working Trip (Restored from localStorage if customized, else deep copy of Abuja Initial Trip)
+      // Working Trip (Restored from localStorage if customized, else deep copy of latest saved trip or Abuja Initial Trip)
       currentTrip: (() => {
         try {
           const stored = localStorage.getItem('wayfind_current_trip');
-          if (stored) return JSON.parse(stored);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && typeof parsed === 'object') return parsed;
+          }
+        } catch (e) {}
+        try {
+          const savedStored = localStorage.getItem('wayfind_saved_trips');
+          if (savedStored) {
+            const savedParsed = JSON.parse(savedStored);
+            if (Array.isArray(savedParsed) && savedParsed.length > 0) {
+              return JSON.parse(JSON.stringify(savedParsed[0]));
+            }
+          }
         } catch (e) {}
         return JSON.parse(JSON.stringify(WAYFIND_DATA.initialTrip));
       })(),
@@ -41,9 +53,11 @@ class WayfindStore {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed)) {
               // Only user-saved trips; strip pre-seeded mock trips from earlier sessions
-              const userSavedOnly = parsed.filter(t => t.id !== 'trip-qatar-002' && t.id !== 'trip-lagos-003');
+              const userSavedOnly = parsed.filter(t => t && typeof t === 'object' && t.id !== 'trip-qatar-002' && t.id !== 'trip-lagos-003');
               if (userSavedOnly.length !== parsed.length) {
-                localStorage.setItem('wayfind_saved_trips', JSON.stringify(userSavedOnly));
+                try {
+                  localStorage.setItem('wayfind_saved_trips', JSON.stringify(userSavedOnly));
+                } catch (err) {}
               }
               return userSavedOnly;
             }
@@ -92,6 +106,7 @@ class WayfindStore {
   }
 
   setUser(supabaseUser) {
+    const currentTripsCount = (this.state.savedTrips && Array.isArray(this.state.savedTrips)) ? this.state.savedTrips.length : 0;
     if (supabaseUser) {
       const metadata = supabaseUser.user_metadata || {};
       const fullName = metadata.full_name || supabaseUser.email.split('@')[0];
@@ -110,7 +125,7 @@ class WayfindStore {
         avatarText: initials,
         avatarUrl: metadata.avatar_url || localStorage.getItem('wayfind_avatar') || null,
         location: metadata.location || 'Nigeria',
-        tripsCount: this.state.savedTrips.length,
+        tripsCount: currentTripsCount,
         isLoggedIn: true
       };
     } else {
@@ -121,7 +136,7 @@ class WayfindStore {
         avatarText: 'GT',
         avatarUrl: null,
         location: 'Explorer',
-        tripsCount: 0,
+        tripsCount: currentTripsCount,
         isLoggedIn: false
       };
     }
@@ -319,9 +334,16 @@ class WayfindStore {
 
   saveCurrentTrip() {
     const curr = this.state.currentTrip;
+    // Ensure every distinct trip gets a unique ID so it is reliably saved and never accidentally collides
+    if (!curr.id || curr.id === 'trip-abuja-001') {
+      const cityName = (curr.destination ? curr.destination.split(',')[0].trim().toLowerCase().replace(/\s+/g, '-') : 'trip');
+      curr.id = `trip-${cityName}-${Date.now()}`;
+    }
+    curr.status = "Saved Itinerary";
+    curr.isSaved = true;
+
     const existsIdx = this.state.savedTrips.findIndex(t => t.id === curr.id);
     const tripToSave = JSON.parse(JSON.stringify(curr));
-    tripToSave.status = "Saved Itinerary";
     if (existsIdx >= 0) {
       this.state.savedTrips[existsIdx] = tripToSave;
     } else {
@@ -330,6 +352,7 @@ class WayfindStore {
     if (this.state.user) {
       this.state.user.tripsCount = this.state.savedTrips.length;
     }
+    this.persistCurrentTrip();
     this.persistSavedTrips();
     this.notify();
   }
@@ -338,6 +361,11 @@ class WayfindStore {
     this.state.savedTrips = this.state.savedTrips.filter(t => t.id !== tripId);
     if (this.state.user) {
       this.state.user.tripsCount = this.state.savedTrips.length;
+    }
+    if (this.state.currentTrip && this.state.currentTrip.id === tripId) {
+      this.state.currentTrip.isSaved = false;
+      this.state.currentTrip.status = "Confirmed Plan";
+      this.persistCurrentTrip();
     }
     this.persistSavedTrips();
     this.notify();
@@ -351,6 +379,8 @@ class WayfindStore {
       Object.assign(merged, savedTrip);
       this.state.currentTrip = merged;
     }
+    this.state.currentTrip.isSaved = true;
+    this.state.currentTrip.status = "Saved Itinerary";
     this.persistCurrentTrip();
     this.state.activeDayIndex = 0;
     this.notify();

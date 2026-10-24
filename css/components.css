@@ -3761,6 +3761,35 @@ html[data-a11y-simplify="true"] * {
 }
 
 /* ==========================================================================
+   SAVED TRIP BUTTON STATE (ITINERARY HEADER)
+   ========================================================================== */
+.btn-trip-saved {
+  background: var(--color-surface) !important;
+  color: var(--color-primary) !important;
+  border: 1.5px solid var(--color-primary) !important;
+  font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  box-shadow: var(--shadow-xs);
+}
+
+.btn-trip-saved i {
+  color: var(--color-primary) !important;
+  font-size: 1.05rem;
+}
+
+[data-theme="dark"] .btn-trip-saved {
+  background: rgba(141, 180, 142, 0.16) !important;
+  color: var(--color-primary-light) !important;
+  border-color: var(--color-primary-light) !important;
+}
+
+[data-theme="dark"] .btn-trip-saved i {
+  color: var(--color-primary-light) !important;
+}
+
+/* ==========================================================================
    MANUAL "OTHERS" INPUT FIELD FOR COMPANION & INTERESTS
    ========================================================================== */
 .custom-chip-input-row {

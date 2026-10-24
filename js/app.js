@@ -216,9 +216,23 @@ function navigateBack() {
 }
 
 function handleHashChange() {
-  const hash = window.location.hash.replace('#', '') || 'landing';
+  let hash = window.location.hash.replace('#', '').trim();
   const validViews = ['landing', 'dashboard', 'planner', 'generating', 'itinerary', 'saved-trips', 'profile'];
   
+  // If hash is missing (e.g. mobile pull-to-refresh reload), restore the last active view if it was saved
+  if (!hash) {
+    const savedView = localStorage.getItem('wayfind_active_view');
+    if (savedView && validViews.includes(savedView) && savedView !== 'landing' && savedView !== 'generating') {
+      hash = savedView;
+      window.location.hash = hash;
+      return;
+    } else {
+      hash = 'landing';
+    }
+  } else if (validViews.includes(hash)) {
+    localStorage.setItem('wayfind_active_view', hash);
+  }
+
   if (validViews.includes(hash)) {
     trackViewNavigation(hash);
     store.setView(hash);
@@ -327,6 +341,23 @@ function renderItineraryView(state) {
   const travelersEl = document.getElementById('itineraryTravelersText');
   if (travelersEl && trip.travelers) {
     travelersEl.textContent = trip.travelers;
+  }
+
+  // Update "Save Trip" button state
+  const saveBtn = document.getElementById('itinerarySaveTripBtn') || document.querySelector('.btn-save-trip');
+  const isTripSaved = trip.isSaved || (state.savedTrips || []).some(t => t.id === trip.id || (t.title === trip.title && t.destination === trip.destination));
+  if (saveBtn) {
+    if (isTripSaved) {
+      saveBtn.classList.remove('btn-primary');
+      saveBtn.classList.add('btn-secondary', 'btn-trip-saved');
+      saveBtn.innerHTML = '<i class="ph ph-check icon-sm" aria-hidden="true"></i> <span id="itinerarySaveTripBtnText">Saved</span>';
+      saveBtn.title = 'This trip is saved in My Trips';
+    } else {
+      saveBtn.classList.remove('btn-secondary', 'btn-trip-saved');
+      saveBtn.classList.add('btn-primary');
+      saveBtn.innerHTML = '<i class="ph ph-bookmark-simple icon-sm" aria-hidden="true"></i> <span id="itinerarySaveTripBtnText">Save Trip</span>';
+      saveBtn.title = 'Save trip to My Trips';
+    }
   }
 
   // Ensure activeDayIndex is within bounds of current trip days
@@ -579,6 +610,15 @@ function renderDashboardView(state) {
 
 function renderSavedTripsView(state) {
   const container = document.getElementById('savedTripsGrid');
+  const badgeEl = document.getElementById('dashSavedTripsBadge');
+
+  // Keep badge in sync with saved trips count
+  if (badgeEl) {
+    const count = (state.savedTrips || []).length;
+    badgeEl.textContent = count;
+    badgeEl.style.display = count > 0 ? 'inline-block' : 'none';
+  }
+
   if (!container) return;
 
   if (!state.savedTrips || state.savedTrips.length === 0) {
@@ -816,6 +856,7 @@ function editSavedTrip(tripId, event) {
   saveInputProgress();
 
   // 8. Navigate directly to Trip Planner input page
+  localStorage.setItem('wayfind_active_view', 'planner');
   window.location.hash = 'planner';
 
   // 9. Feedback toast
@@ -830,6 +871,7 @@ function openSavedTrip(tripId, event) {
   const trip = (state.savedTrips || []).find(t => t.id === tripId);
   if (!trip) return;
   store.setCurrentTripFromSaved(trip);
+  localStorage.setItem('wayfind_active_view', 'itinerary');
   window.location.hash = 'itinerary';
 }
 
@@ -2653,6 +2695,9 @@ function triggerAIGeneration() {
     const userDest = (destInput && destInput.value.trim()) ? destInput.value.trim() : (quickDest && quickDest.value.trim() ? quickDest.value.trim() : (trip.destination || 'Abuja, Nigeria'));
     trip.destination = userDest;
     const cityName = userDest.split(',')[0].trim();
+    trip.id = `trip-${cityName.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
+    trip.isSaved = false;
+    trip.status = 'Confirmed Plan';
     trip.title = `${cityName}: Tailored Companion Itinerary`;
     trip.startDate = startDate.toISOString();
     trip.endDate = endDate.toISOString();
@@ -2743,6 +2788,7 @@ function triggerAIGeneration() {
   });
 
   setTimeout(() => {
+    localStorage.setItem('wayfind_active_view', 'itinerary');
     window.location.hash = 'itinerary';
     showToast(`Your personalized ${daysCount}-day itinerary is ready!`, "ph-sparkle");
   }, 2800);
@@ -3052,6 +3098,8 @@ function copyTripLink() {
 function openSaveSuccessModal() {
   store.saveCurrentTrip();
   renderDashboardView(store.getState());
+  renderSavedTripsView(store.getState());
+  renderItineraryView(store.getState());
 
   // Dynamic message based on current trip title and duration
   const trip = store.getState().currentTrip;
