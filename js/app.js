@@ -2023,7 +2023,23 @@ function getCurrencyConfig(code) {
   return { ...cfg, step, max, mid };
 }
 
+function blurActivePlannerInput(keepElement = null) {
+  try {
+    const active = document.activeElement;
+    if (active && typeof active.blur === 'function') {
+      if (active !== keepElement && active !== document.body && active !== document.documentElement) {
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName)) {
+          active.blur();
+        }
+      }
+    }
+  } catch (e) {
+    // Ignore any focus errors
+  }
+}
+
 function updateBudgetUI(opts = {}) {
+  const currentScrollY = (typeof window !== 'undefined') ? (window.scrollY || document.documentElement.scrollTop) : 0;
   const currencyCode = store.getState().currency || 'USD';
   const cfg = getCurrencyConfig(currencyCode);
 
@@ -2083,9 +2099,15 @@ function updateBudgetUI(opts = {}) {
   if (budgetDisplay) {
     budgetDisplay.textContent = `${cfg.symbol}${numVal.toLocaleString()}`;
   }
+
+  // Prevent browser viewport jump if programmatic value update triggers scroll anchoring
+  if (typeof window !== 'undefined' && Math.abs((window.scrollY || document.documentElement.scrollTop) - currentScrollY) > 2) {
+    window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+  }
 }
 
 function handleBudgetStep(direction) {
+  blurActivePlannerInput();
   const currencyCode = store.getState().currency || 'USD';
   const cfg = getCurrencyConfig(currencyCode);
 
@@ -2110,6 +2132,8 @@ function handleBudgetManualInput(val) {
 }
 
 function handleBudgetSliderInput(val) {
+  const budgetSlider = document.getElementById('wizardBudgetSlider');
+  blurActivePlannerInput(budgetSlider);
   wizardBudgetValue = Math.max(0, parseInt(val, 10) || 0);
   updateBudgetUI();
   if (typeof saveInputProgress === 'function') saveInputProgress();
@@ -2459,13 +2483,32 @@ function setupPlannerForms() {
 
   const budgetSlider = document.getElementById('wizardBudgetSlider');
   if (budgetSlider) {
+    const handleSliderPointer = () => blurActivePlannerInput(budgetSlider);
+    budgetSlider.addEventListener('pointerdown', handleSliderPointer);
+    budgetSlider.addEventListener('touchstart', handleSliderPointer, { passive: true });
+    budgetSlider.addEventListener('mousedown', handleSliderPointer);
+
     budgetSlider.addEventListener('input', (e) => {
       handleBudgetSliderInput(e.target.value);
     });
   }
 
+  const budgetWrapper = document.querySelector('.budget-slider-wrapper');
+  if (budgetWrapper) {
+    const handleWrapperPointer = (e) => {
+      if (e.target && e.target.id === 'wizardBudgetInput') return;
+      blurActivePlannerInput();
+    };
+    budgetWrapper.addEventListener('pointerdown', handleWrapperPointer);
+    budgetWrapper.addEventListener('touchstart', handleWrapperPointer, { passive: true });
+    budgetWrapper.addEventListener('mousedown', handleWrapperPointer);
+  }
+
   const currencySelect = document.getElementById('wizardCurrencySelect');
   if (currencySelect) {
+    currencySelect.addEventListener('pointerdown', () => blurActivePlannerInput(currencySelect));
+    currencySelect.addEventListener('touchstart', () => blurActivePlannerInput(currencySelect), { passive: true });
+    currencySelect.addEventListener('mousedown', () => blurActivePlannerInput(currencySelect));
     currencySelect.addEventListener('change', (e) => {
       handleWizardCurrencyChange(e.target.value);
     });
@@ -2474,6 +2517,7 @@ function setupPlannerForms() {
   // 5. Choice Chip Toggles (Companions & Interests)
   document.querySelectorAll('.choice-chip').forEach(chip => {
     chip.addEventListener('click', () => {
+      blurActivePlannerInput();
       const parent = chip.parentElement;
       if (parent.classList.contains('single-select')) {
         const wasActive = chip.classList.contains('active');
@@ -2509,6 +2553,24 @@ function setupPlannerForms() {
     });
   }
 
+  // Auto-blur off-screen inputs in fullPlannerForm on scroll so browser never auto-jumps back to them
+  let plannerScrollBlurTimer = null;
+  window.addEventListener('scroll', () => {
+    if (plannerScrollBlurTimer) clearTimeout(plannerScrollBlurTimer);
+    plannerScrollBlurTimer = setTimeout(() => {
+      const active = document.activeElement;
+      if (active && ['INPUT', 'TEXTAREA'].includes(active.tagName)) {
+        if (active.closest && active.closest('#fullPlannerForm')) {
+          const rect = active.getBoundingClientRect();
+          // If the active input has been scrolled out of visible view (above header or below visible viewport)
+          if (rect.bottom < 64 || rect.top > window.innerHeight) {
+            active.blur();
+          }
+        }
+      }
+    }, 60);
+  }, { passive: true });
+
   // 6. Restore previously saved progress if any
   restoreInputProgress();
 
@@ -2530,6 +2592,10 @@ function setupBudgetStepperHold(stepUpBtn, stepDownBtn) {
 
     function start(e) {
       if (e.type === 'mousedown' && e.button !== 0) return;
+
+      // Blur any active input before preventDefault so focus is cleanly released
+      blurActivePlannerInput();
+
       e.preventDefault();
       isHolding = true;
       handleBudgetStep(direction);
