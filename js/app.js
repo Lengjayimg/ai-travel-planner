@@ -2250,11 +2250,20 @@ function exportTripPDF() {
         // Compact top brand banner on subsequent pages
         doc.setFillColor(45, 65, 48);
         doc.rect(0, 0, pageWidth, 12, 'F');
+
+        const logoDark = (typeof WAYFIND_LOGO_DARK !== 'undefined') ? WAYFIND_LOGO_DARK : null;
+        if (logoDark) {
+          try {
+            doc.addImage(logoDark, 'PNG', margin, 2, 8, 8);
+          } catch (e) {}
+        }
+
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(8.5);
         doc.setTextColor(255, 255, 255);
+        const subStartX = logoDark ? margin + 11 : margin;
         const titleSnippet = (trip.title || 'Curated Itinerary').toUpperCase();
-        doc.text(`WAYFIND  •  ${titleSnippet.substring(0, 50)}`, margin, 8);
+        doc.text(`WAYFIND  •  ${titleSnippet.substring(0, 50)}`, subStartX, 8);
         yPos = 20;
         return true;
       }
@@ -2265,17 +2274,30 @@ function exportTripPDF() {
     doc.setFillColor(45, 65, 48); // Wayfind Forest Green (#2D4130)
     doc.rect(0, 0, pageWidth, 28, 'F');
 
-    // Brand Name
+    // Wayfind Official Logo Icon in Header Banner
+    const logoDark = (typeof WAYFIND_LOGO_DARK !== 'undefined') ? WAYFIND_LOGO_DARK : null;
+    let textStartX = margin;
+    if (logoDark) {
+      try {
+        // Place crisp 16x16mm compass logo at left margin
+        doc.addImage(logoDark, 'PNG', margin, 6, 16, 16);
+        textStartX = margin + 20;
+      } catch (imgErr) {
+        console.warn("Logo render note:", imgErr);
+      }
+    }
+
+    // Brand Name beside logo
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
     doc.setTextColor(255, 255, 255);
-    doc.text('WAYFIND', margin, 14);
+    doc.text('WAYFIND', textStartX, 14);
 
     // Header Subtitle
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
     doc.setTextColor(203, 227, 201); // Light Sage Accent
-    doc.text('AI TRAVEL PLANNER  •  CURATED ITINERARY', margin, 21);
+    doc.text('AI TRAVEL PLANNER  •  CURATED ITINERARY', textStartX, 21);
 
     // Exported Date Stamp (Right Aligned)
     const exportDateStr = new Date().toLocaleDateString('en-US', {
@@ -2434,11 +2456,17 @@ function exportTripPDF() {
       doc.setLineWidth(0.3);
       doc.line(margin, pageHeight - 14, pageWidth - margin, pageHeight - 14);
 
-      // Left Footer
+      // Left Footer with Wayfind Logo
+      if (logoDark) {
+        try {
+          doc.addImage(logoDark, 'PNG', margin, pageHeight - 12.5, 4.5, 4.5);
+        } catch (e) {}
+      }
+      const footerTextX = logoDark ? margin + 6.5 : margin;
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7.5);
       doc.setTextColor(120, 135, 125);
-      doc.text('Wayfind AI Travel Planner  •  https://wayfind.travel  •  All-in-one personal plan', margin, pageHeight - 9);
+      doc.text('Wayfind AI Travel Planner  •  https://wayfind.travel  •  All-in-one personal plan', footerTextX, pageHeight - 9);
 
       // Right Footer (Page Count)
       doc.text(`Page ${p} of ${totalPages}`, pageWidth - margin, pageHeight - 9, { align: 'right' });
@@ -2461,6 +2489,8 @@ function generatePrintablePDF(trip) {
     showToast("Please allow popups to export itinerary PDF.", "ph-warning");
     return;
   }
+  const logoDark = (typeof WAYFIND_LOGO_DARK !== 'undefined') ? WAYFIND_LOGO_DARK : 'Logo for Dark Mode.png';
+
   const daysHtml = (trip.days || []).map(day => `
     <div style="margin-bottom: 20px;">
       <h3 style="background: #ecf4ed; padding: 6px 10px; border-radius: 6px; font-size: 14px; color: #263e2a;">
@@ -2490,8 +2520,9 @@ function generatePrintablePDF(trip) {
         <title>Wayfind Itinerary - ${trip.title || 'Trip Plan'}</title>
         <style>
           body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1e2720; padding: 24px; max-width: 800px; margin: 0 auto; }
-          .header { background: #2d4130; color: #fff; padding: 18px 24px; border-radius: 8px; margin-bottom: 20px; }
-          .header h1 { margin: 0 0 4px; font-size: 20px; }
+          .header { background: #2d4130; color: #fff; padding: 18px 24px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px; }
+          .header img { width: 44px; height: 44px; object-fit: contain; }
+          .header h1 { margin: 0 0 4px; font-size: 20px; color: #fff; }
           .header p { margin: 0; font-size: 12px; color: #cbe3c9; }
           .summary { background: #f6f8f5; border: 1px solid #dae6dc; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; }
           @media print { body { padding: 0; } }
@@ -2499,8 +2530,11 @@ function generatePrintablePDF(trip) {
       </head>
       <body>
         <div class="header">
-          <h1>WAYFIND ITINERARY</h1>
-          <p>AI Travel Planner • Generated Plan</p>
+          <img src="${logoDark}" alt="Wayfind Logo" />
+          <div>
+            <h1>WAYFIND ITINERARY</h1>
+            <p>AI Travel Planner • Generated Plan</p>
+          </div>
         </div>
         <div class="summary">
           <h2 style="margin: 0 0 6px; font-size: 16px;">${trip.title || 'Curated Itinerary'}</h2>
