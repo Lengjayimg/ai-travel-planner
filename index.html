@@ -753,6 +753,14 @@
   <div class="view-container" data-view="dashboard">
     <div class="container section">
       
+      <!-- Back Navigation Row (Top Left inbetween header & heading) -->
+      <div class="page-top-back-row">
+        <button type="button" class="view-back-btn" onclick="navigateBack()" title="Back to previous page" aria-label="Back to previous page">
+          <i class="ph ph-arrow-left" aria-hidden="true"></i>
+          <span>Back</span>
+        </button>
+      </div>
+
       <div class="app-header-bar">
         <div class="app-title-group">
           <h2>Welcome back, <span id="dashGreetingName">Anabel</span></h2>
@@ -895,6 +903,14 @@
   <div class="view-container" data-view="planner">
     <div class="container section">
       
+      <!-- Back Navigation Row (Top Left inbetween header & heading) -->
+      <div class="page-top-back-row">
+        <button type="button" class="view-back-btn" onclick="navigateBack()" title="Back to previous page" aria-label="Back to previous page">
+          <i class="ph ph-arrow-left" aria-hidden="true"></i>
+          <span>Back</span>
+        </button>
+      </div>
+
       <div class="app-header-bar">
         <div class="app-title-group">
           <h2>Plan Your Next Trip</h2>
@@ -1097,9 +1113,9 @@
   <div class="view-container" data-view="itinerary">
     <div class="container section">
       
-      <!-- Back Navigation Bar (Top Left inbetween header & heading) -->
-      <div class="itinerary-nav-back-bar">
-        <button type="button" class="itinerary-back-btn" onclick="navigateToPlannerOrPrevious()" title="Back to Trip Planner" aria-label="Back to Trip Planner">
+      <!-- Back Navigation Row (Top Left inbetween header & heading) -->
+      <div class="itinerary-nav-back-bar page-top-back-row">
+        <button type="button" class="itinerary-back-btn view-back-btn" onclick="navigateBack()" title="Back to previous page" aria-label="Back to previous page">
           <i class="ph ph-arrow-left" aria-hidden="true"></i>
           <span>Back</span>
         </button>
@@ -1204,6 +1220,14 @@
   <div class="view-container" data-view="saved-trips">
     <div class="container section">
       
+      <!-- Back Navigation Row (Top Left inbetween header & heading) -->
+      <div class="page-top-back-row">
+        <button type="button" class="view-back-btn" onclick="navigateBack()" title="Back to previous page" aria-label="Back to previous page">
+          <i class="ph ph-arrow-left" aria-hidden="true"></i>
+          <span>Back</span>
+        </button>
+      </div>
+
       <div class="app-header-bar">
         <div class="app-title-group">
           <h2>My Saved Trips</h2>
@@ -2025,6 +2049,52 @@
       <div style="display: flex; gap: 12px;">
         <button class="btn btn-secondary btn-full" onclick="closeAllModals()">Close</button>
         <button class="btn btn-primary btn-full" onclick="closeAllModals(); window.location.hash = 'saved-trips';">Go to My Trips</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hotel & Flight Booking Modal -->
+  <div class="modal-backdrop" id="bookingModal">
+    <div class="modal-dialog booking-modal-dialog">
+      <button class="modal-close-btn" aria-label="Close modal"><i class="ph ph-x" aria-hidden="true"></i></button>
+      
+      <div class="booking-modal-header">
+        <div class="booking-badge-icon" id="bookingModalBadgeIcon">
+          <i class="ph-fill ph-buildings" aria-hidden="true"></i>
+        </div>
+        <h3 class="booking-modal-title" id="bookingModalTitle">Book Accommodations</h3>
+        <p class="booking-modal-desc" id="bookingModalDesc">
+          Verified boutique stays in Abuja matching your dates and allocated trip budget.
+        </p>
+      </div>
+
+      <!-- Pre-populated Trip Meta Card -->
+      <div class="booking-trip-meta-card">
+        <div class="booking-meta-row">
+          <span class="booking-meta-label"><i class="ph ph-map-pin"></i> Destination:</span>
+          <strong id="bookingMetaDest" class="booking-meta-value">Abuja, Nigeria</strong>
+        </div>
+        <div class="booking-meta-row">
+          <span class="booking-meta-label"><i class="ph ph-calendar"></i> Travel Dates:</span>
+          <strong id="bookingMetaDates" class="booking-meta-value">Nov 12 – 15, 2026</strong>
+        </div>
+        <div class="booking-meta-row">
+          <span class="booking-meta-label"><i class="ph ph-wallet"></i> Allocated Budget:</span>
+          <strong id="bookingMetaBudget" class="booking-meta-value">₦310,000 (~$365 USD)</strong>
+        </div>
+      </div>
+
+      <!-- Partner Recommendations List -->
+      <div class="booking-partner-list" id="bookingPartnerList">
+        <!-- Rendered dynamically by JS -->
+      </div>
+
+      <!-- Primary Partner Search Actions -->
+      <div class="booking-action-footer">
+        <a href="#" id="bookingPrimaryActionBtn" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-full booking-primary-btn">
+          <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+          <span id="bookingPrimaryActionText">Search All Hotel Deals</span>
+        </a>
       </div>
     </div>
   </div>

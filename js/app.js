@@ -159,20 +159,75 @@ function closeMobileMenu() {
   if (navLinks) navLinks.classList.remove('mobile-open');
 }
 
+/* ==========================================================================
+   NAVIGATION HISTORY & BACK CONTROLLER
+   ========================================================================== */
+const wayfindViewHistory = [];
+let isNavigatingBackAction = false;
+let lastRecordedView = 'landing';
+
+function trackViewNavigation(nextView) {
+  if (isNavigatingBackAction) {
+    lastRecordedView = nextView;
+    return;
+  }
+  // Ignore transient loading screens
+  if (!nextView || nextView === 'generating') return;
+  if (lastRecordedView && lastRecordedView !== nextView && lastRecordedView !== 'generating') {
+    // Avoid duplicate pushes
+    if (wayfindViewHistory.length === 0 || wayfindViewHistory[wayfindViewHistory.length - 1] !== lastRecordedView) {
+      wayfindViewHistory.push(lastRecordedView);
+      if (wayfindViewHistory.length > 40) {
+        wayfindViewHistory.shift();
+      }
+    }
+  }
+  lastRecordedView = nextView;
+}
+
+function navigateBack() {
+  if (wayfindViewHistory.length > 0) {
+    const prevView = wayfindViewHistory.pop();
+    isNavigatingBackAction = true;
+    lastRecordedView = prevView;
+    window.location.hash = '#' + prevView;
+    setTimeout(() => {
+      isNavigatingBackAction = false;
+    }, 200);
+  } else {
+    // Sensible fallback based on current view
+    const currentView = (store && store.getState) ? store.getState().currentView : 'dashboard';
+    let fallback = 'landing';
+    if (currentView === 'itinerary') fallback = 'planner';
+    else if (currentView === 'planner' || currentView === 'saved-trips' || currentView === 'profile') fallback = 'dashboard';
+    else if (currentView === 'dashboard') fallback = 'landing';
+
+    isNavigatingBackAction = true;
+    lastRecordedView = fallback;
+    window.location.hash = '#' + fallback;
+    setTimeout(() => {
+      isNavigatingBackAction = false;
+    }, 200);
+  }
+}
+
 function handleHashChange() {
   const hash = window.location.hash.replace('#', '') || 'landing';
   const validViews = ['landing', 'dashboard', 'planner', 'generating', 'itinerary', 'saved-trips', 'profile'];
   
   if (validViews.includes(hash)) {
+    trackViewNavigation(hash);
     store.setView(hash);
   } else if (['features', 'how-it-works', 'destinations'].includes(hash)) {
     // Scroll to section on landing page
+    trackViewNavigation('landing');
     store.setView('landing');
     setTimeout(() => {
       const sectionEl = document.getElementById(hash);
       if (sectionEl) sectionEl.scrollIntoView({ behavior: 'smooth' });
     }, 100);
   } else {
+    trackViewNavigation('landing');
     store.setView('landing');
   }
 }
@@ -204,6 +259,9 @@ function updateThemeLogos(theme) {
    VIEW RENDERING LOGIC
    ========================================================================== */
 function renderCurrentView(state) {
+  // Track universal view history
+  trackViewNavigation(state.currentView);
+
   // Update view containers visibility
   document.querySelectorAll('.view-container').forEach(container => {
     const viewName = container.getAttribute('data-view');
@@ -326,6 +384,16 @@ function renderItineraryView(state) {
             `).join('')}
           </select>
         </div>
+        <div class="itinerary-booking-actions">
+          <button type="button" class="btn btn-booking btn-book-hotel" onclick="openBookHotelModal()" aria-label="Book Hotel Accommodations">
+            <i class="ph ph-buildings" aria-hidden="true"></i>
+            <span>Book Hotel</span>
+          </button>
+          <button type="button" class="btn btn-booking btn-book-flight" onclick="openBookFlightModal()" aria-label="Book Flight Tickets">
+            <i class="ph ph-airplane-tilt" aria-hidden="true"></i>
+            <span>Book Flight</span>
+          </button>
+        </div>
       </div>
       <div class="budget-category-list">
         ${trip.budgetBreakdown.map(cat => {
@@ -399,11 +467,26 @@ function renderSavedTripsView(state) {
   const container = document.getElementById('savedTripsGrid');
   if (!container) return;
 
+  if (!state.savedTrips || state.savedTrips.length === 0) {
+    container.innerHTML = `
+      <div class="empty-saved-trips" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+        <i class="ph ph-folder-dashed" style="font-size: 3.2rem; color: var(--color-text-muted); opacity: 0.6;"></i>
+        <h3 style="margin-top: 16px; font-size: 1.3rem;">No saved trips yet</h3>
+        <p style="color: var(--color-text-muted); max-width: 420px; margin: 8px auto 20px;">Your saved itineraries and customized adventures will appear here.</p>
+        <a href="#planner" class="btn btn-primary">Plan Your Next Trip</a>
+      </div>
+    `;
+    return;
+  }
+
   container.innerHTML = state.savedTrips.map(trip => `
-    <div class="saved-trip-card animate-fade-in">
+    <div class="saved-trip-card animate-fade-in" onclick="openSavedTrip('${trip.id}', event)" role="button" tabindex="0" aria-label="Open ${trip.title}">
       <div class="saved-trip-cover">
         <img src="${trip.coverImage}" alt="${trip.title}" loading="lazy" />
         <span class="destination-badge">${trip.status}</span>
+        <button type="button" class="btn-delete-saved-trip" onclick="deleteSavedTrip('${trip.id}', event)" title="Delete saved trip" aria-label="Delete saved trip">
+          <i class="ph ph-trash" aria-hidden="true"></i>
+        </button>
       </div>
       <div class="saved-trip-body">
         <span style="font-size: 0.8rem; font-weight: 600; color: var(--color-primary); text-transform: uppercase;">
@@ -415,11 +498,36 @@ function renderSavedTripsView(state) {
           <span style="font-family: var(--font-display); font-weight: 700; color: var(--color-text-headline);">
             ${formatCurrency(trip.budgetTotalUSD, state.currency)}
           </span>
-          <button class="btn btn-secondary btn-sm" onclick="window.location.hash = 'itinerary'">Open Plan</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="openSavedTrip('${trip.id}', event)">Open Plan</button>
         </div>
       </div>
     </div>
   `).join('');
+}
+
+function openSavedTrip(tripId, event) {
+  if (event) {
+    event.stopPropagation();
+  }
+  const state = store.getState();
+  const trip = (state.savedTrips || []).find(t => t.id === tripId);
+  if (!trip) return;
+  store.setCurrentTripFromSaved(trip);
+  window.location.hash = 'itinerary';
+}
+
+function deleteSavedTrip(tripId, event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  const state = store.getState();
+  const trip = (state.savedTrips || []).find(t => t.id === tripId);
+  const tripTitle = trip ? trip.title : 'this trip';
+  if (confirm(`Are you sure you want to remove "${tripTitle}" from your saved trips?`)) {
+    store.deleteSavedTrip(tripId);
+    showToast("Trip removed from saved trips", "ph-trash");
+  }
 }
 
 /* ==========================================================================
@@ -1567,6 +1675,9 @@ function applyDateOverlay() {
   }
 
   closeDateOverlay();
+  if (typeof saveInputProgress === 'function') {
+    saveInputProgress();
+  }
 }
 
 // --- Target Budget & Multi-Currency Engine ---
@@ -1667,6 +1778,7 @@ function handleBudgetStep(direction) {
   }
 
   updateBudgetUI();
+  if (typeof saveInputProgress === 'function') saveInputProgress();
 }
 
 function handleBudgetManualInput(val) {
@@ -1676,11 +1788,13 @@ function handleBudgetManualInput(val) {
     wizardBudgetValue = Math.max(0, parseInt(val, 10) || 0);
   }
   updateBudgetUI({ skipInput: true });
+  if (typeof saveInputProgress === 'function') saveInputProgress();
 }
 
 function handleBudgetSliderInput(val) {
   wizardBudgetValue = Math.max(0, parseInt(val, 10) || 0);
   updateBudgetUI();
+  if (typeof saveInputProgress === 'function') saveInputProgress();
 }
 
 function handleWizardCurrencyChange(newCurrency) {
@@ -1697,6 +1811,169 @@ function handleWizardCurrencyChange(newCurrency) {
 
   store.setCurrency(newCurrency);
   updateBudgetUI();
+  if (typeof saveInputProgress === 'function') saveInputProgress();
+}
+
+/* ==========================================================================
+   INPUT PROGRESS AUTO-SAVE & RESTORATION ENGINE
+   Persists planner form inputs, dates, budget, chips, and quick planner
+   to localStorage so users never lose progress on minimize or login.
+   ========================================================================== */
+const INPUT_PROGRESS_STORAGE_KEY = 'wayfind_planner_input_progress';
+
+function saveInputProgress() {
+  try {
+    const destInput = document.getElementById('wizardDestination');
+    const companionChips = Array.from(document.querySelectorAll('#fullPlannerForm .choice-chips-grid.single-select .choice-chip'))
+      .map(c => ({ text: c.textContent.trim(), active: c.classList.contains('active') }));
+    const interestChips = Array.from(document.querySelectorAll('#fullPlannerForm .choice-chips-grid:not(.single-select) .choice-chip'))
+      .map(c => ({ text: c.textContent.trim(), active: c.classList.contains('active') }));
+
+    const quickDest = document.getElementById('quickFormDestination');
+    const quickDates = document.getElementById('quickFormDates');
+    const quickBudget = document.getElementById('quickFormBudget');
+    const quickStyle = document.getElementById('quickFormStyle');
+
+    const progress = {
+      destination: destInput ? destInput.value : '',
+      startDate: wizardStartDate ? wizardStartDate.toISOString() : null,
+      endDate: wizardEndDate ? wizardEndDate.toISOString() : null,
+      budgetValue: wizardBudgetValue,
+      currency: (store && store.getState) ? store.getState().currency : 'USD',
+      companionChips: companionChips,
+      interestChips: interestChips,
+      quickTrip: {
+        destination: quickDest ? quickDest.value : '',
+        dates: quickDates ? quickDates.value : '',
+        budget: quickBudget ? quickBudget.value : '',
+        style: quickStyle ? quickStyle.value : ''
+      },
+      updatedAt: Date.now()
+    };
+
+    localStorage.setItem(INPUT_PROGRESS_STORAGE_KEY, JSON.stringify(progress));
+  } catch (e) {
+    console.warn('Failed to save input progress:', e);
+  }
+}
+
+function restoreInputProgress() {
+  try {
+    const raw = localStorage.getItem(INPUT_PROGRESS_STORAGE_KEY);
+    if (!raw) return;
+    const progress = JSON.parse(raw);
+    if (!progress) return;
+
+    // 1. Restore destination
+    const destInput = document.getElementById('wizardDestination');
+    if (destInput && progress.destination && !destInput.value) {
+      destInput.value = progress.destination;
+    }
+
+    // 2. Restore travel dates
+    if (progress.startDate) {
+      wizardStartDate = new Date(progress.startDate);
+    }
+    if (progress.endDate) {
+      wizardEndDate = new Date(progress.endDate);
+    }
+    if (wizardStartDate) {
+      calViewMonth = wizardStartDate.getMonth();
+      calViewYear = wizardStartDate.getFullYear();
+      overlayCalViewMonth = wizardStartDate.getMonth();
+      overlayCalViewYear = wizardStartDate.getFullYear();
+      overlayStartDate = new Date(wizardStartDate.getTime());
+      if (wizardEndDate) {
+        overlayEndDate = new Date(wizardEndDate.getTime());
+      }
+      updateWizardDatesDisplay();
+    }
+
+    // 3. Restore currency
+    if (progress.currency && store && store.setCurrency) {
+      store.setCurrency(progress.currency);
+      const currSelect = document.getElementById('wizardCurrencySelect');
+      if (currSelect) currSelect.value = progress.currency;
+    }
+
+    // 4. Restore budget
+    if (typeof progress.budgetValue === 'number' && !isNaN(progress.budgetValue)) {
+      wizardBudgetValue = progress.budgetValue;
+      updateBudgetUI();
+    }
+
+    // 5. Restore companion chips
+    if (Array.isArray(progress.companionChips) && progress.companionChips.length > 0) {
+      const companionDoms = document.querySelectorAll('#fullPlannerForm .choice-chips-grid.single-select .choice-chip');
+      companionDoms.forEach(chip => {
+        const match = progress.companionChips.find(c => c.text === chip.textContent.trim());
+        if (match && match.active) {
+          chip.classList.add('active');
+        } else if (match && !match.active) {
+          chip.classList.remove('active');
+        }
+      });
+    }
+
+    // 6. Restore interest chips
+    if (Array.isArray(progress.interestChips) && progress.interestChips.length > 0) {
+      const interestDoms = document.querySelectorAll('#fullPlannerForm .choice-chips-grid:not(.single-select) .choice-chip');
+      interestDoms.forEach(chip => {
+        const match = progress.interestChips.find(c => c.text === chip.textContent.trim());
+        if (match && match.active) {
+          chip.classList.add('active');
+        } else if (match && !match.active) {
+          chip.classList.remove('active');
+        }
+      });
+    }
+
+    // 7. Restore quick trip form
+    if (progress.quickTrip) {
+      const quickDest = document.getElementById('quickFormDestination');
+      if (quickDest && progress.quickTrip.destination) quickDest.value = progress.quickTrip.destination;
+      const quickDates = document.getElementById('quickFormDates');
+      if (quickDates && progress.quickTrip.dates) quickDates.value = progress.quickTrip.dates;
+      const quickBudget = document.getElementById('quickFormBudget');
+      if (quickBudget && progress.quickTrip.budget) quickBudget.value = progress.quickTrip.budget;
+      const quickStyle = document.getElementById('quickFormStyle');
+      if (quickStyle && progress.quickTrip.style) quickStyle.value = progress.quickTrip.style;
+    }
+  } catch (e) {
+    console.warn('Failed to restore input progress:', e);
+  }
+}
+
+function attachInputProgressAutoSave() {
+  let debounceTimer = null;
+  function debouncedSave() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(saveInputProgress, 250);
+  }
+
+  // 1. Planner Wizard inputs
+  const fullForm = document.getElementById('fullPlannerForm');
+  if (fullForm) {
+    fullForm.addEventListener('input', debouncedSave);
+    fullForm.addEventListener('change', debouncedSave);
+  }
+
+  // 2. Quick trip form inputs
+  const quickForm = document.getElementById('quickTripForm');
+  if (quickForm) {
+    quickForm.addEventListener('input', debouncedSave);
+    quickForm.addEventListener('change', debouncedSave);
+  }
+
+  // 3. Window lifecycle events (minimize, tab switch, pagehide, blur, unload)
+  window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      saveInputProgress();
+    }
+  });
+  window.addEventListener('blur', saveInputProgress);
+  window.addEventListener('pagehide', saveInputProgress);
+  window.addEventListener('beforeunload', saveInputProgress);
 }
 
 function setupPlannerForms() {
@@ -1829,13 +2106,20 @@ function setupPlannerForms() {
       } else {
         chip.classList.toggle('active');
       }
+      if (typeof saveInputProgress === 'function') saveInputProgress();
     });
   });
+
+  // 6. Restore previously saved progress if any
+  restoreInputProgress();
 
   // Initial render of calendar & budget
   renderWizardCalendar();
   updateWizardDatesDisplay();
   updateBudgetUI();
+
+  // Attach persistent input auto-save listeners
+  attachInputProgressAutoSave();
 }
 
 function setupBudgetStepperHold(stepUpBtn, stepDownBtn) {
@@ -2262,7 +2546,185 @@ function openSaveSuccessModal() {
 }
 
 function navigateToPlannerOrPrevious() {
-  window.location.hash = 'planner';
+  navigateBack();
+}
+
+/* ==========================================================================
+   HOTEL & FLIGHT BOOKING MODAL CONTROLLERS
+   ========================================================================== */
+function openBookHotelModal() {
+  const trip = (store && store.getState && store.getState().currentTrip) || WAYFIND_DATA.initialTrip;
+  const currency = (store && store.getState) ? store.getState().currency : 'USD';
+  const dest = trip.destination || 'Abuja, Nigeria';
+  const dates = trip.dates || 'Selected Dates';
+
+  // Lodging budget calculation from breakdown or estimated ratio
+  const lodgingCat = (trip.budgetBreakdown || []).find(b => 
+    b.category.toLowerCase().includes('lodging') || b.category.toLowerCase().includes('hotel')
+  );
+  const lodgingAmount = lodgingCat ? lodgingCat.allocatedUSD : Math.round((trip.budgetTotalUSD || 420) * 0.38);
+  const budgetStr = formatCurrency(lodgingAmount, currency);
+
+  const titleEl = document.getElementById('bookingModalTitle');
+  const descEl = document.getElementById('bookingModalDesc');
+  const iconEl = document.getElementById('bookingModalBadgeIcon');
+  const metaDestEl = document.getElementById('bookingMetaDest');
+  const metaDatesEl = document.getElementById('bookingMetaDates');
+  const metaBudgetEl = document.getElementById('bookingMetaBudget');
+  const partnerList = document.getElementById('bookingPartnerList');
+  const primaryBtn = document.getElementById('bookingPrimaryActionBtn');
+  const primaryText = document.getElementById('bookingPrimaryActionText');
+
+  if (titleEl) titleEl.textContent = 'Book Accommodations';
+  if (descEl) descEl.textContent = `Verified boutique stays, luxury suites, and central lodging in ${dest} matched to your dates.`;
+  if (iconEl) iconEl.innerHTML = '<i class="ph-fill ph-buildings" aria-hidden="true"></i>';
+  if (metaDestEl) metaDestEl.textContent = dest;
+  if (metaDatesEl) metaDatesEl.textContent = dates;
+  if (metaBudgetEl) metaBudgetEl.textContent = `${budgetStr} (Lodging Allocation)`;
+
+  const partners = [
+    {
+      name: 'Booking.com',
+      badge: 'Best Rates & Free Cancellation',
+      rate: 'From $45/night',
+      logoIcon: 'ph-buildings',
+      url: `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(dest)}`
+    },
+    {
+      name: 'Hotels.com',
+      badge: 'Boutique & Luxury Suites',
+      rate: 'Top Rated',
+      logoIcon: 'ph-bed',
+      url: `https://www.hotels.com/Hotel-Search?destination=${encodeURIComponent(dest)}`
+    },
+    {
+      name: 'Expedia Stays',
+      badge: 'Member Savings & Verified Reviews',
+      rate: 'Exclusive Deals',
+      logoIcon: 'ph-house-line',
+      url: `https://www.expedia.com/Hotel-Search?destination=${encodeURIComponent(dest)}`
+    },
+    {
+      name: 'Airbnb Stays',
+      badge: 'Unique Apartments & Local Homes',
+      rate: 'Superhosts',
+      logoIcon: 'ph-armchair',
+      url: `https://www.airbnb.com/s/${encodeURIComponent(dest)}/homes`
+    }
+  ];
+
+  if (partnerList) {
+    partnerList.innerHTML = partners.map(p => `
+      <div class="booking-partner-card">
+        <div class="booking-partner-info">
+          <div class="booking-partner-icon"><i class="ph ${p.logoIcon}" aria-hidden="true"></i></div>
+          <div class="booking-partner-details">
+            <span class="booking-partner-name">${p.name}</span>
+            <span class="booking-partner-sub">${p.badge}</span>
+          </div>
+        </div>
+        <div class="booking-partner-action">
+          <span class="booking-rate-badge">${p.rate}</span>
+          <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs">
+            <span>Check Rates</span>
+            <i class="ph ph-arrow-square-out" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  if (primaryBtn) primaryBtn.href = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(dest)}`;
+  if (primaryText) primaryText.textContent = `Search All Lodging in ${dest.split(',')[0]}`;
+
+  openModal('bookingModal');
+}
+
+function openBookFlightModal() {
+  const trip = (store && store.getState && store.getState().currentTrip) || WAYFIND_DATA.initialTrip;
+  const currency = (store && store.getState) ? store.getState().currency : 'USD';
+  const dest = trip.destination || 'Abuja, Nigeria';
+  const dates = trip.dates || 'Selected Dates';
+
+  const transCat = (trip.budgetBreakdown || []).find(b => 
+    b.category.toLowerCase().includes('flight') || b.category.toLowerCase().includes('transport') || b.category.toLowerCase().includes('travel')
+  );
+  const transAmount = transCat ? transCat.allocatedUSD : Math.round((trip.budgetTotalUSD || 420) * 0.28);
+  const budgetStr = formatCurrency(transAmount, currency);
+
+  const titleEl = document.getElementById('bookingModalTitle');
+  const descEl = document.getElementById('bookingModalDesc');
+  const iconEl = document.getElementById('bookingModalBadgeIcon');
+  const metaDestEl = document.getElementById('bookingMetaDest');
+  const metaDatesEl = document.getElementById('bookingMetaDates');
+  const metaBudgetEl = document.getElementById('bookingMetaBudget');
+  const partnerList = document.getElementById('bookingPartnerList');
+  const primaryBtn = document.getElementById('bookingPrimaryActionBtn');
+  const primaryText = document.getElementById('bookingPrimaryActionText');
+
+  if (titleEl) titleEl.textContent = 'Book Flight Tickets';
+  if (descEl) descEl.textContent = `Live competitive flight fares, schedules, and carrier routes directly to ${dest}.`;
+  if (iconEl) iconEl.innerHTML = '<i class="ph-fill ph-airplane-tilt" aria-hidden="true"></i>';
+  if (metaDestEl) metaDestEl.textContent = `To: ${dest}`;
+  if (metaDatesEl) metaDatesEl.textContent = dates;
+  if (metaBudgetEl) metaBudgetEl.textContent = `${budgetStr} (Flight / Transit Budget)`;
+
+  const partners = [
+    {
+      name: 'Google Flights',
+      badge: 'Fastest Multi-Airline Comparison & Price Graph',
+      rate: 'Live Tracking',
+      logoIcon: 'ph-airplane-takeoff',
+      url: `https://www.google.com/travel/flights?q=flights%20to%20${encodeURIComponent(dest)}`
+    },
+    {
+      name: 'Skyscanner',
+      badge: 'Compare All Major & Regional Budget Airlines',
+      rate: 'Cheapest Month',
+      logoIcon: 'ph-compass',
+      url: `https://www.skyscanner.com/transport/flights/to/${encodeURIComponent(dest.toLowerCase().replace(/[^a-z0-9]/g, ''))}/`
+    },
+    {
+      name: 'Expedia Flights',
+      badge: 'Bundle & Save on Flexible Roundtrips',
+      rate: 'Points Eligible',
+      logoIcon: 'ph-airplane-landing',
+      url: `https://www.expedia.com/Flights-Search?trip=roundtrip&leg1=from:Any,to:${encodeURIComponent(dest)}`
+    },
+    {
+      name: 'Kayak Flights',
+      badge: 'Price Predictor & Hacker Fares Combo',
+      rate: 'Best Value',
+      logoIcon: 'ph-ticket',
+      url: `https://www.kayak.com/flights/to-${encodeURIComponent(dest)}`
+    }
+  ];
+
+  if (partnerList) {
+    partnerList.innerHTML = partners.map(p => `
+      <div class="booking-partner-card">
+        <div class="booking-partner-info">
+          <div class="booking-partner-icon"><i class="ph ${p.logoIcon}" aria-hidden="true"></i></div>
+          <div class="booking-partner-details">
+            <span class="booking-partner-name">${p.name}</span>
+            <span class="booking-partner-sub">${p.badge}</span>
+          </div>
+        </div>
+        <div class="booking-partner-action">
+          <span class="booking-rate-badge">${p.rate}</span>
+          <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs">
+            <span>Find Flights</span>
+            <i class="ph ph-arrow-square-out" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  if (primaryBtn) primaryBtn.href = `https://www.google.com/travel/flights?q=flights%20to%20${encodeURIComponent(dest)}`;
+  if (primaryText) primaryText.textContent = `Search Flights to ${dest.split(',')[0]} on Google Flights`;
+
+  openModal('bookingModal');
 }
 
 /* ==========================================================================
@@ -3704,3 +4166,12 @@ window.shareOnX = shareOnX;
 window.shareViaBluetooth = shareViaBluetooth;
 window.openSaveSuccessModal = openSaveSuccessModal;
 window.navigateToPlannerOrPrevious = navigateToPlannerOrPrevious;
+
+// Universal Back Navigation, Saved Trips & Booking Modal Exports
+window.navigateBack = navigateBack;
+window.openSavedTrip = openSavedTrip;
+window.deleteSavedTrip = deleteSavedTrip;
+window.openBookHotelModal = openBookHotelModal;
+window.openBookFlightModal = openBookFlightModal;
+window.saveInputProgress = saveInputProgress;
+window.restoreInputProgress = restoreInputProgress;

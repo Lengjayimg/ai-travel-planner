@@ -26,9 +26,21 @@ class WayfindStore {
         isLoggedIn: true
       },
 
-      // Working Trip (Deep copy of Abuja Initial Trip for real-time mutations)
-      currentTrip: JSON.parse(JSON.stringify(WAYFIND_DATA.initialTrip)),
-      savedTrips: JSON.parse(JSON.stringify(WAYFIND_DATA.savedTrips)),
+      // Working Trip (Restored from localStorage if customized, else deep copy of Abuja Initial Trip)
+      currentTrip: (() => {
+        try {
+          const stored = localStorage.getItem('wayfind_current_trip');
+          if (stored) return JSON.parse(stored);
+        } catch (e) {}
+        return JSON.parse(JSON.stringify(WAYFIND_DATA.initialTrip));
+      })(),
+      savedTrips: (() => {
+        try {
+          const stored = localStorage.getItem('wayfind_saved_trips');
+          if (stored) return JSON.parse(stored);
+        } catch (e) {}
+        return JSON.parse(JSON.stringify(WAYFIND_DATA.savedTrips));
+      })(),
       
       // Modals
       activeModal: null, // 'signIn', 'signUp', 'saveSuccess', 'shareSheet', 'qrCode', 'addActivity'
@@ -220,6 +232,7 @@ class WayfindStore {
     if (day) {
       day.activities = day.activities.filter(a => a.id !== activityId);
       this.recalculateBudget();
+      this.persistCurrentTrip();
       this.notify();
     }
   }
@@ -230,6 +243,7 @@ class WayfindStore {
       day.activities.push(newActivity);
       // Sort roughly by time string
       this.recalculateBudget();
+      this.persistCurrentTrip();
       this.notify();
     }
   }
@@ -252,6 +266,7 @@ class WayfindStore {
         act.notes = "Special panoramic break suggested by Wayfind companion.";
         act.aiBadge = "AI Alternative Swapped";
       }
+      this.persistCurrentTrip();
       this.notify();
     }
   }
@@ -265,25 +280,51 @@ class WayfindStore {
     }
     this.state.currentTrip.budgetTotalNGN = totalNGN;
     this.state.currentTrip.budgetTotalUSD = Math.round(totalNGN / 850);
+    this.persistCurrentTrip();
+  }
+
+  persistCurrentTrip() {
+    try {
+      localStorage.setItem('wayfind_current_trip', JSON.stringify(this.state.currentTrip));
+    } catch (e) {}
+  }
+
+  persistSavedTrips() {
+    try {
+      localStorage.setItem('wayfind_saved_trips', JSON.stringify(this.state.savedTrips));
+    } catch (e) {}
   }
 
   saveCurrentTrip() {
-    const exists = this.state.savedTrips.find(t => t.id === this.state.currentTrip.id);
-    if (!exists) {
-      this.state.savedTrips.unshift({
-        id: this.state.currentTrip.id,
-        title: this.state.currentTrip.title,
-        destination: this.state.currentTrip.destination,
-        dates: this.state.currentTrip.dates,
-        duration: this.state.currentTrip.duration,
-        travelers: this.state.currentTrip.travelers,
-        travelStyle: this.state.currentTrip.travelStyle,
-        budgetTotalUSD: this.state.currentTrip.budgetTotalUSD,
-        budgetTotalNGN: this.state.currentTrip.budgetTotalNGN,
-        status: "Active Itinerary",
-        coverImage: this.state.currentTrip.coverImage
-      });
+    const curr = this.state.currentTrip;
+    const existsIdx = this.state.savedTrips.findIndex(t => t.id === curr.id);
+    const tripToSave = JSON.parse(JSON.stringify(curr));
+    tripToSave.status = "Saved Itinerary";
+    if (existsIdx >= 0) {
+      this.state.savedTrips[existsIdx] = tripToSave;
+    } else {
+      this.state.savedTrips.unshift(tripToSave);
     }
+    this.persistSavedTrips();
+    this.notify();
+  }
+
+  deleteSavedTrip(tripId) {
+    this.state.savedTrips = this.state.savedTrips.filter(t => t.id !== tripId);
+    this.persistSavedTrips();
+    this.notify();
+  }
+
+  setCurrentTripFromSaved(savedTrip) {
+    if (savedTrip.days && savedTrip.days.length > 0) {
+      this.state.currentTrip = JSON.parse(JSON.stringify(savedTrip));
+    } else {
+      const merged = JSON.parse(JSON.stringify(WAYFIND_DATA.initialTrip));
+      Object.assign(merged, savedTrip);
+      this.state.currentTrip = merged;
+    }
+    this.persistCurrentTrip();
+    this.state.activeDayIndex = 0;
     this.notify();
   }
 }

@@ -3461,3 +3461,319 @@ html[data-a11y-simplify="true"] * {
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(59, 74, 32, 0.38);
 }
+
+/* ==========================================================================
+   UNIVERSAL TOP-LEFT BACK NAVIGATION BUTTON
+   ========================================================================== */
+.page-top-back-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 14px;
+  padding-top: 2px;
+}
+
+.view-back-btn,
+.itinerary-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-headline);
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.view-back-btn i,
+.itinerary-back-btn i {
+  font-size: 1.15rem;
+  color: var(--color-primary-dark);
+  transition: transform var(--transition-fast);
+}
+
+.view-back-btn:hover,
+.itinerary-back-btn:hover {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  transform: translateX(-3px);
+  box-shadow: 0 4px 12px rgba(90, 126, 100, 0.15);
+}
+
+.view-back-btn:hover i,
+.itinerary-back-btn:hover i {
+  transform: translateX(-2px);
+}
+
+[data-theme="dark"] .view-back-btn,
+[data-theme="dark"] .itinerary-back-btn {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border);
+  color: var(--color-text-headline);
+}
+
+[data-theme="dark"] .view-back-btn i,
+[data-theme="dark"] .itinerary-back-btn i {
+  color: var(--color-primary-light);
+}
+
+[data-theme="dark"] .view-back-btn:hover,
+[data-theme="dark"] .itinerary-back-btn:hover {
+  background: rgba(141, 180, 142, 0.18);
+  border-color: var(--color-primary);
+  color: var(--color-primary-light);
+}
+
+/* ==========================================================================
+   SAVED TRIPS CARD INTERACTIONS & DELETE BUTTON
+   ========================================================================== */
+.saved-trip-card {
+  position: relative;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  cursor: pointer;
+}
+
+.saved-trip-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.saved-trip-cover {
+  position: relative;
+}
+
+.btn-delete-saved-trip {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(22, 28, 23, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-delete-saved-trip:hover {
+  background: #dc3545;
+  border-color: #dc3545;
+  color: #FFFFFF;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+/* ==========================================================================
+   BOOK HOTEL & BOOK FLIGHT BUTTONS (BELOW ESTIMATED TOTAL)
+   ========================================================================== */
+.itinerary-booking-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--color-border);
+}
+
+.btn-booking {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 700;
+  padding: 8px 12px;
+  font-size: 0.86rem;
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.btn-booking:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(90, 126, 100, 0.2);
+}
+
+@media (max-width: 480px) {
+  .itinerary-booking-actions {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .btn-booking {
+    font-size: 0.78rem;
+    padding: 8px 6px;
+    gap: 4px;
+  }
+}
+
+/* ==========================================================================
+   HOTEL & FLIGHT BOOKING MODAL
+   ========================================================================== */
+.booking-modal-dialog {
+  max-width: 480px;
+  padding: 26px 22px;
+  border-radius: var(--radius-xl);
+}
+
+.booking-modal-header {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.booking-badge-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  border: 1px solid rgba(90, 126, 100, 0.25);
+}
+
+[data-theme="dark"] .booking-badge-icon {
+  background: rgba(141, 180, 142, 0.15);
+  color: var(--color-primary-light);
+  border-color: rgba(141, 180, 142, 0.35);
+}
+
+.booking-modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-headline);
+  margin-bottom: 6px;
+}
+
+.booking-modal-desc {
+  font-size: 0.86rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.booking-trip-meta-card {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.booking-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.84rem;
+}
+
+.booking-meta-label {
+  color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.booking-meta-value {
+  color: var(--color-text-headline);
+  font-weight: 600;
+}
+
+.booking-partner-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.booking-partner-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: all var(--transition-fast);
+}
+
+.booking-partner-card:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.booking-partner-info h4 {
+  font-size: 0.92rem;
+  margin: 0 0 4px;
+  color: var(--color-text-headline);
+}
+
+.booking-partner-info p {
+  font-size: 0.78rem;
+  margin: 0 0 6px;
+  color: var(--color-text-muted);
+}
+
+.booking-rate-badge {
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  background: rgba(90, 126, 100, 0.14);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+[data-theme="dark"] .booking-rate-badge {
+  color: var(--color-primary-light);
+  background: rgba(141, 180, 142, 0.2);
+}
+
+.booking-action-footer {
+  margin-top: 4px;
+}
+
+.booking-primary-btn {
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .booking-modal-dialog {
+    padding: 20px 14px !important;
+  }
+  .booking-partner-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .booking-partner-card .btn {
+    width: 100%;
+    margin-top: 6px;
+  }
+}
