@@ -494,15 +494,203 @@ function renderSavedTripsView(state) {
         </span>
         <h3 style="font-size: 1.25rem;">${trip.title}</h3>
         <p style="font-size: 0.88rem; color: var(--color-text-muted);">${trip.dates} • ${trip.travelers}</p>
-        <div style="margin-top: auto; padding-top: 14px; display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-family: var(--font-display); font-weight: 700; color: var(--color-text-headline);">
+        <div class="saved-trip-card-footer">
+          <span class="saved-trip-card-price">
             ${formatCurrency(trip.budgetTotalUSD, state.currency)}
           </span>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="openSavedTrip('${trip.id}', event)">Open Plan</button>
+          <div class="saved-trip-card-actions">
+            <button type="button" class="btn btn-secondary btn-sm btn-edit-saved-trip" onclick="editSavedTrip('${trip.id}', event)" title="Edit trip inputs on planner page" aria-label="Edit trip parameters">
+              <i class="ph ph-pencil-simple" aria-hidden="true"></i>
+              <span>Edit Trip</span>
+            </button>
+            <button type="button" class="btn btn-primary btn-sm btn-open-saved-trip" onclick="openSavedTrip('${trip.id}', event)" title="Open trip itinerary" aria-label="Open trip itinerary">
+              <span>Open Plan</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
   `).join('');
+}
+
+function parseDatesFromTrip(trip) {
+  if (!trip) {
+    return {
+      start: new Date(2026, 10, 12),
+      end: new Date(2026, 10, 15)
+    };
+  }
+
+  // 1. If ISO date strings are stored
+  if (trip.startDate) {
+    const s = new Date(trip.startDate);
+    const e = trip.endDate ? new Date(trip.endDate) : new Date(s.getTime() + 3 * 86400000);
+    if (!isNaN(s.getTime()) && !isNaN(e.getTime())) {
+      return { start: s, end: e };
+    }
+  }
+
+  // 2. Parse from trip.dates string (e.g. "Nov 12 - Nov 15, 2026", "July 25 - 31, 2026", "August 3 - 9, 2026")
+  const raw = (trip.dates || '').replace(/[\u2013\u2014]/g, '-').trim();
+  if (raw && raw.includes('-')) {
+    const parts = raw.split('-').map(p => p.trim());
+    if (parts.length === 2) {
+      const yearMatch = raw.match(/\b(20\d\d)\b/);
+      const year = yearMatch ? parseInt(yearMatch[1], 10) : 2026;
+
+      const MONTHS = {
+        jan: 0, january: 0, feb: 1, february: 1, mar: 2, march: 2, apr: 3, april: 3,
+        may: 4, jun: 5, june: 5, jul: 6, july: 6, aug: 7, august: 7,
+        sep: 8, september: 8, oct: 9, october: 9, nov: 10, november: 10, dec: 11, december: 11
+      };
+
+      const startMatch = parts[0].match(/([a-zA-Z]+)\s*(\d{1,2})/);
+      if (startMatch) {
+        const startMonthName = startMatch[1].toLowerCase();
+        const startMonth = MONTHS[startMonthName] !== undefined ? MONTHS[startMonthName] : 10;
+        const startDay = parseInt(startMatch[2], 10);
+
+        const endMonthMatch = parts[1].match(/([a-zA-Z]+)\s*(\d{1,2})/);
+        const endDayOnlyMatch = parts[1].match(/(\d{1,2})/);
+
+        let endMonth = startMonth;
+        let endDay = startDay + 3;
+
+        if (endMonthMatch) {
+          const emName = endMonthMatch[1].toLowerCase();
+          if (MONTHS[emName] !== undefined) {
+            endMonth = MONTHS[emName];
+          }
+          endDay = parseInt(endMonthMatch[2], 10);
+        } else if (endDayOnlyMatch) {
+          endDay = parseInt(endDayOnlyMatch[1], 10);
+        }
+
+        const startDate = new Date(year, startMonth, startDay);
+        const endDate = new Date(year, endMonth, endDay);
+        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+          return { start: startDate, end: endDate };
+        }
+      }
+    }
+  }
+
+  // 3. Fallback
+  return {
+    start: new Date(2026, 10, 12),
+    end: new Date(2026, 10, 15)
+  };
+}
+
+function editSavedTrip(tripId, event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  const state = store.getState();
+  const trip = (state.savedTrips || []).find(t => t.id === tripId);
+  if (!trip) return;
+
+  // 1. Populate Destination
+  const destInput = document.getElementById('wizardDestination');
+  if (destInput) {
+    destInput.value = trip.destination || trip.title || '';
+  }
+
+  // 2. Populate Dates
+  const parsedDates = parseDatesFromTrip(trip);
+  wizardStartDate = parsedDates.start;
+  wizardEndDate = parsedDates.end;
+  overlayStartDate = new Date(wizardStartDate.getTime());
+  overlayEndDate = new Date(wizardEndDate.getTime());
+  calViewMonth = wizardStartDate.getMonth();
+  calViewYear = wizardStartDate.getFullYear();
+  overlayCalViewMonth = wizardStartDate.getMonth();
+  overlayCalViewYear = wizardStartDate.getFullYear();
+  updateWizardDatesDisplay();
+  renderWizardCalendar();
+
+  // 3. Populate Budget
+  const activeCurrency = state.currency || 'USD';
+  const cfg = (window.WAYFIND_CURRENCIES && window.WAYFIND_CURRENCIES[activeCurrency]) ? window.WAYFIND_CURRENCIES[activeCurrency] : { rate: 1.0 };
+  if (trip.budgetTotalUSD) {
+    wizardBudgetValue = Math.round(trip.budgetTotalUSD * cfg.rate);
+  } else if (trip.budgetTotalNGN && activeCurrency === 'NGN') {
+    wizardBudgetValue = trip.budgetTotalNGN;
+  } else {
+    wizardBudgetValue = 350;
+  }
+  updateBudgetUI();
+
+  // 4. Populate Companion Choice Chip
+  const companionChips = document.querySelectorAll('#fullPlannerForm .choice-chips-grid.single-select .choice-chip');
+  companionChips.forEach(c => c.classList.remove('active'));
+  const travStr = (trip.travelers || '').toLowerCase();
+  let matchedCompanion = null;
+  if (travStr.includes('solo') || travStr.includes('1 adult')) {
+    matchedCompanion = 'Solo Explorer';
+  } else if (travStr.includes('partner') || travStr.includes('couple') || travStr.includes('2 adult')) {
+    matchedCompanion = 'With Partner / Couple';
+  } else if (travStr.includes('family') || travStr.includes('kid') || travStr.includes('children')) {
+    matchedCompanion = 'Family with Kids';
+  } else if (travStr.includes('friend') || travStr.includes('group')) {
+    matchedCompanion = 'Group of Friends';
+  }
+  if (matchedCompanion) {
+    companionChips.forEach(chip => {
+      if (chip.textContent.trim().toLowerCase() === matchedCompanion.toLowerCase()) {
+        chip.classList.add('active');
+      }
+    });
+  }
+
+  // 5. Populate Interest Choice Chips
+  const interestChips = document.querySelectorAll('#fullPlannerForm .choice-chips-grid:not(.single-select) .choice-chip');
+  interestChips.forEach(c => c.classList.remove('active'));
+  const styleStr = (trip.travelStyle || trip.title || '').toLowerCase();
+  interestChips.forEach(chip => {
+    const text = chip.textContent.trim().toLowerCase();
+    if (
+      (styleStr.includes('culture') && text.includes('galleries')) ||
+      (styleStr.includes('art') && text.includes('art')) ||
+      (styleStr.includes('nature') && text.includes('nature')) ||
+      (styleStr.includes('waterfall') && text.includes('waterfalls')) ||
+      (styleStr.includes('culinary') && text.includes('culinary')) ||
+      (styleStr.includes('food') && text.includes('culinary')) ||
+      (styleStr.includes('cocktail') && text.includes('cocktails')) ||
+      (styleStr.includes('luxury') && text.includes('cocktails')) ||
+      (styleStr.includes('architecture') && text.includes('architecture')) ||
+      (styleStr.includes('skyline') && text.includes('architecture')) ||
+      (styleStr.includes('safari') && text.includes('nature')) ||
+      (styleStr.includes('dune') && text.includes('nature')) ||
+      (styleStr.includes('breeze') && text.includes('sports'))
+    ) {
+      chip.classList.add('active');
+    }
+  });
+
+  // Ensure at least one interest is active
+  const hasActiveInterest = Array.from(interestChips).some(c => c.classList.contains('active'));
+  if (!hasActiveInterest && interestChips.length > 0) {
+    interestChips[0].classList.add('active');
+  }
+
+  // 6. Sync Quick Form
+  const quickDest = document.getElementById('quickFormDestination');
+  if (quickDest) quickDest.value = trip.destination || '';
+  const quickDates = document.getElementById('quickFormDates');
+  if (quickDates) {
+    quickDates.value = `${formatShortInputDate(wizardStartDate)} - ${formatShortInputDate(wizardEndDate)}`;
+  }
+
+  // 7. Persist to input progress storage so it stays if user minimizes or reloads
+  saveInputProgress();
+
+  // 8. Navigate directly to Trip Planner input page
+  window.location.hash = 'planner';
+
+  // 9. Feedback toast
+  showToast(`Loaded ${trip.destination || trip.title} parameters — ready to edit and generate!`, 'ph-pencil-simple');
 }
 
 function openSavedTrip(tripId, event) {
@@ -1976,6 +2164,47 @@ function attachInputProgressAutoSave() {
   window.addEventListener('beforeunload', saveInputProgress);
 }
 
+function refreshPlannerFormForNewInputs() {
+  // 1. Clear Destination input
+  const destInput = document.getElementById('wizardDestination');
+  if (destInput) {
+    destInput.value = '';
+  }
+
+  // 2. Clear Travel Dates state & calendar
+  wizardStartDate = null;
+  wizardEndDate = null;
+  overlayStartDate = null;
+  overlayEndDate = null;
+  updateWizardDatesDisplay();
+  renderWizardCalendar();
+
+  // 3. Clear Budget state and reset slider/manual inputs
+  wizardBudgetValue = null;
+  updateBudgetUI();
+
+  // 4. Reset Companion Single-Select Choice Chips
+  document.querySelectorAll('#fullPlannerForm .choice-chips-grid.single-select .choice-chip').forEach(chip => {
+    chip.classList.remove('active');
+  });
+
+  // 5. Reset Travel Interests & Moods Multi-Select Choice Chips
+  document.querySelectorAll('#fullPlannerForm .choice-chips-grid:not(.single-select) .choice-chip').forEach(chip => {
+    chip.classList.remove('active');
+  });
+
+  // 6. Reset Quick Trip form inputs on landing page
+  const quickDest = document.getElementById('quickFormDestination');
+  if (quickDest) quickDest.value = '';
+  const quickDates = document.getElementById('quickFormDates');
+  if (quickDates) quickDates.value = '';
+
+  // 7. Clear saved input progress in localStorage so old inputs are not restored
+  try {
+    localStorage.removeItem(INPUT_PROGRESS_STORAGE_KEY);
+  } catch (e) {}
+}
+
 function setupPlannerForms() {
   // 1. Landing Quick Planner Form
   const quickForm = document.getElementById('quickTripForm');
@@ -2176,6 +2405,43 @@ function triggerAIGeneration() {
 
   // Synchronize trip days and dates so sticky swipeable days correspond to the exact date range
   synchronizeTripDaysForDateRange(startDate, endDate);
+
+  const trip = store.getState().currentTrip;
+  if (trip) {
+    const destInput = document.getElementById('wizardDestination');
+    const quickDest = document.getElementById('quickFormDestination');
+    const userDest = (destInput && destInput.value.trim()) ? destInput.value.trim() : (quickDest && quickDest.value.trim() ? quickDest.value.trim() : (trip.destination || 'Abuja, Nigeria'));
+    trip.destination = userDest;
+    const cityName = userDest.split(',')[0].trim();
+    trip.title = `${cityName}: Tailored Companion Itinerary`;
+    trip.startDate = startDate.toISOString();
+    trip.endDate = endDate.toISOString();
+
+    const activeCompanion = document.querySelector('#fullPlannerForm .choice-chips-grid.single-select .choice-chip.active');
+    if (activeCompanion) {
+      trip.travelers = activeCompanion.textContent.trim();
+    }
+
+    const activeInterests = Array.from(document.querySelectorAll('#fullPlannerForm .choice-chips-grid:not(.single-select) .choice-chip.active'))
+      .map(c => c.textContent.trim());
+    if (activeInterests.length > 0) {
+      trip.travelStyle = activeInterests.slice(0, 2).join(' & ');
+    }
+
+    if (wizardBudgetValue !== null && wizardBudgetValue > 0) {
+      const activeCurrency = store.getState().currency || 'USD';
+      const rate = (window.WAYFIND_CURRENCIES && window.WAYFIND_CURRENCIES[activeCurrency]) ? window.WAYFIND_CURRENCIES[activeCurrency].rate : 1.0;
+      trip.budgetTotalUSD = Math.round(wizardBudgetValue / rate);
+      trip.budgetTotalNGN = Math.round(trip.budgetTotalUSD * 850);
+    }
+    store.persistCurrentTrip();
+
+    // Update Header and Dashboard text immediately
+    const titleEl = document.getElementById('itineraryTripTitle');
+    if (titleEl) titleEl.textContent = trip.title;
+    const dashTitle = document.getElementById('dashActiveTitle');
+    if (dashTitle) dashTitle.textContent = trip.title;
+  }
 
   const diffMs = Math.abs(endDate.getTime() - startDate.getTime());
   const daysCount = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1);
@@ -2543,6 +2809,9 @@ function openSaveSuccessModal() {
   }
 
   openModal('saveSuccessModal');
+
+  // Refresh and reset Trip Planner input page for fresh new inputs
+  refreshPlannerFormForNewInputs();
 }
 
 function navigateToPlannerOrPrevious() {
@@ -4170,8 +4439,10 @@ window.navigateToPlannerOrPrevious = navigateToPlannerOrPrevious;
 // Universal Back Navigation, Saved Trips & Booking Modal Exports
 window.navigateBack = navigateBack;
 window.openSavedTrip = openSavedTrip;
+window.editSavedTrip = editSavedTrip;
 window.deleteSavedTrip = deleteSavedTrip;
 window.openBookHotelModal = openBookHotelModal;
 window.openBookFlightModal = openBookFlightModal;
 window.saveInputProgress = saveInputProgress;
 window.restoreInputProgress = restoreInputProgress;
+window.refreshPlannerFormForNewInputs = refreshPlannerFormForNewInputs;

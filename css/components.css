@@ -3578,6 +3578,103 @@ html[data-a11y-simplify="true"] * {
   box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
 }
 
+/* Saved Trips Card Action Buttons & Footer */
+.saved-trip-card-footer {
+  margin-top: auto;
+  padding-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.saved-trip-card-price {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-text-headline);
+  font-size: 1.08rem;
+  letter-spacing: -0.01em;
+}
+
+.saved-trip-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-edit-saved-trip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-body);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.btn-edit-saved-trip:hover {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(90, 126, 100, 0.15);
+}
+
+[data-theme="dark"] .btn-edit-saved-trip {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border);
+  color: var(--color-text-headline);
+}
+
+[data-theme="dark"] .btn-edit-saved-trip:hover {
+  background: rgba(141, 180, 142, 0.18);
+  border-color: var(--color-primary);
+  color: var(--color-primary-light);
+}
+
+.btn-open-saved-trip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.btn-open-saved-trip:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 480px) {
+  .saved-trip-card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .saved-trip-card-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .btn-edit-saved-trip,
+  .btn-open-saved-trip {
+    width: 100%;
+    justify-content: center;
+    padding: 7px 8px;
+    font-size: 0.8rem;
+  }
+}
+
 /* ==========================================================================
    BOOK HOTEL & BOOK FLIGHT BUTTONS (BELOW ESTIMATED TOTAL)
    ========================================================================== */
