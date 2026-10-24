@@ -786,7 +786,7 @@
           <i class="ph ph-map-trifold icon-sm" aria-hidden="true"></i> Active Itinerary
         </button>
         <button class="app-tab-btn" onclick="window.location.hash = 'saved-trips'">
-          <i class="ph ph-bookmark-simple icon-sm" aria-hidden="true"></i> My Trips
+          <i class="ph ph-bookmark-simple icon-sm" aria-hidden="true"></i> My Trips <span id="dashSavedTripsBadge" class="tab-count-badge" style="display: none; margin-left: 6px; padding: 1px 7px; font-size: 0.72rem; border-radius: var(--radius-full); background: var(--color-primary); color: #fff; font-weight: 700;">0</span>
         </button>
         <button class="app-tab-btn" onclick="window.location.hash = 'profile'">
           <i class="ph ph-gear-six icon-sm" aria-hidden="true"></i> Profile & Settings
@@ -797,49 +797,27 @@
         
         <!-- Main Column: Active Trip Card & Upcoming -->
         <div>
-          <div class="active-trip-banner">
-            <div class="active-trip-cover">
-              <img id="dashActiveCover" src="https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?auto=format&fit=crop&w=1200&q=80" alt="Active Trip Cover" />
-              <div class="active-trip-cover-overlay">
-                <div>
-                  <span class="badge badge-green" style="margin-bottom: 8px;">Active Itinerary</span>
-                  <h3 id="dashActiveTitle" style="color: #FFFFFF; font-size: 1.6rem;">Abuja: Capital Art & Nature Retreat</h3>
-                  <p id="dashActiveDates" onclick="openDateOverlay('dashboard')" style="color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" title="Click to change travel dates">
-                    <i class="ph ph-calendar-blank"></i> <span id="dashActiveDatesVal">Abuja, Nigeria • Nov 12 - 15, 2026</span> <i class="ph ph-pencil-simple icon-xs"></i>
-                  </p>
-                </div>
-                <a href="#itinerary" class="btn btn-primary btn-sm" data-route="itinerary">
-                  <span>View Details</span>
-                  <i class="ph ph-arrow-right icon-sm" aria-hidden="true"></i>
+          <div id="dashActiveTripContainer">
+            <div class="dash-empty-banner animate-fade-in">
+              <div class="dash-empty-icon">
+                <i class="ph ph-map-pin-line" aria-hidden="true"></i>
+              </div>
+              <div class="dash-empty-content">
+                <span class="badge badge-green" style="margin-bottom: 8px;">Dashboard Ready</span>
+                <h3>No Active Itinerary Saved</h3>
+                <p>You don't have an active trip saved yet. Craft your next personalized journey with AI and save it to see your live itinerary, duration, and offline companion here.</p>
+                <a href="#planner" class="btn btn-primary btn-sm" data-route="planner">
+                  <i class="ph ph-sparkle" aria-hidden="true"></i>
+                  <span>Plan Your First Trip</span>
                 </a>
               </div>
-            </div>
-
-            <div class="active-trip-details">
-              <div class="stat-pills-row">
-                <div class="stat-pill">
-                  <span><i class="ph ph-clock icon-sm" aria-hidden="true"></i> Duration:</span>
-                  <strong>4 Days / 3 Nights</strong>
-                </div>
-                <div class="stat-pill">
-                  <span><i class="ph ph-users icon-sm" aria-hidden="true"></i> Travelers:</span>
-                  <strong>2 Adults</strong>
-                </div>
-                <div class="stat-pill">
-                  <span><i class="ph ph-wallet icon-sm" aria-hidden="true"></i> Budget:</span>
-                  <strong>₦310,000 (~$365)</strong>
-                </div>
-              </div>
-              <button class="btn btn-secondary btn-sm" onclick="openQRCodeModal()">
-                <i class="ph ph-qr-code icon-sm" aria-hidden="true"></i> Show QR Code
-              </button>
             </div>
           </div>
 
           <!-- Quick Discovery Widget -->
           <div class="card-solid" style="padding: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-              <h4>Recommended Experiences Near Abuja</h4>
+              <h4 id="dashRecTitle">Recommended Experiences</h4>
               <a href="#destinations" style="font-size: 0.85rem; font-weight: 600; color: var(--color-primary);" data-route="destinations">View All</a>
             </div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
@@ -1039,6 +1017,12 @@
               <span class="choice-chip">Family with Kids</span>
               <span class="choice-chip">Group of Friends</span>
             </div>
+            <div class="custom-chip-input-row">
+              <div class="form-input-wrapper">
+                <i class="ph ph-pencil-simple form-input-icon" aria-hidden="true"></i>
+                <input type="text" id="wizardCompanionCustom" class="form-control" placeholder="Others" aria-label="Other travel companion option" />
+              </div>
+            </div>
           </div>
 
           <!-- 5. Interests & Travel Styles -->
@@ -1051,6 +1035,12 @@
               <span class="choice-chip">Aesthetic Sunset Cocktails</span>
               <span class="choice-chip">Historical Architecture</span>
               <span class="choice-chip">Lakeside Water Sports</span>
+            </div>
+            <div class="custom-chip-input-row">
+              <div class="form-input-wrapper">
+                <i class="ph ph-pencil-simple form-input-icon" aria-hidden="true"></i>
+                <input type="text" id="wizardInterestsCustom" class="form-control" placeholder="Others" aria-label="Other travel interests or moods option" />
+              </div>
             </div>
           </div>
 
@@ -1202,10 +1192,25 @@
               </div>
               <h4 style="margin: 0;">Need quick changes?</h4>
             </div>
-            <p style="font-size: 0.88rem; margin: 8px 0 14px; color: var(--color-text-muted);">Ask your AI companion to swap times, find halal or vegan food, or suggest quiet spots.</p>
-            <button class="btn btn-primary btn-sm btn-full" onclick="store.toggleChatbot()">
-              <i class="ph ph-chat-circle-dots icon-sm" aria-hidden="true"></i> <span>Open AI Companion</span>
-            </button>
+            <p style="font-size: 0.88rem; margin: 8px 0 14px; color: var(--color-text-muted);">
+              Ask your live AI companion to swap times, find food, or suggest quiet spots.
+            </p>
+            <div class="itinerary-companion-actions">
+              <button type="button" class="btn btn-primary btn-sm btn-full" onclick="openAICompanion()" style="margin-bottom: 10px;">
+                <i class="ph ph-chat-circle-dots icon-sm" aria-hidden="true"></i> <span>Open AI Companion</span>
+              </button>
+              <div class="companion-quick-prompts">
+                <button type="button" class="companion-prompt-chip" onclick="openAICompanion('Swap Day 1 afternoon activity with outdoor alternative')">
+                  <i class="ph ph-arrows-clockwise icon-xs" aria-hidden="true"></i> <span>Swap with AI Alternative</span>
+                </button>
+                <button type="button" class="companion-prompt-chip" onclick="openAICompanion('Where is the best local dining and jollof spot?')">
+                  <i class="ph ph-fork-knife icon-xs" aria-hidden="true"></i> <span>Best local dining</span>
+                </button>
+                <button type="button" class="companion-prompt-chip" onclick="openAICompanion('Check weather and packing tips for my trip dates')">
+                  <i class="ph ph-cloud-sun icon-xs" aria-hidden="true"></i> <span>Weather & Tips</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

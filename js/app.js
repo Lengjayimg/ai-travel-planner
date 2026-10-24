@@ -55,8 +55,10 @@ function initApp() {
     if (typeof updateBudgetUI === 'function') updateBudgetUI();
   });
 
-  // Initial user UI sync
+  // Initial user UI sync & dashboard/saved trips initial render
   updateUserUI(store.getState().user);
+  renderDashboardView(store.getState());
+  renderSavedTripsView(store.getState());
 
   // Handle URL hash on boot
   handleHashChange();
@@ -478,19 +480,95 @@ function swapActivityAction(activityId) {
    DASHBOARD & SAVED TRIPS VIEWS
    ========================================================================== */
 function renderDashboardView(state) {
-  const activeTrip = state.currentTrip;
-  const coverEl = document.getElementById('dashActiveCover');
-  const titleEl = document.getElementById('dashActiveTitle');
-  const datesEl = document.getElementById('dashActiveDates');
-  const datesValEl = document.getElementById('dashActiveDatesVal');
+  const container = document.getElementById('dashActiveTripContainer');
+  const userSavedTrips = state.savedTrips || [];
+  const badgeEl = document.getElementById('dashSavedTripsBadge');
+  const recTitleEl = document.getElementById('dashRecTitle');
 
-  if (coverEl) coverEl.src = activeTrip.coverImage;
-  if (titleEl) titleEl.textContent = activeTrip.title;
-  if (datesValEl) {
-    datesValEl.textContent = `${activeTrip.destination} • ${activeTrip.dates}`;
-  } else if (datesEl) {
-    datesEl.innerHTML = `<i class="ph ph-calendar-blank"></i> <span id="dashActiveDatesVal">${activeTrip.destination} • ${activeTrip.dates}</span> <i class="ph ph-pencil-simple icon-xs"></i>`;
+  // Update badge count on "My Trips" tab
+  if (badgeEl) {
+    badgeEl.textContent = userSavedTrips.length;
+    badgeEl.style.display = userSavedTrips.length > 0 ? 'inline-block' : 'none';
   }
+
+  if (!container) return;
+
+  // If user has no saved trips: Show clean empty state (Clear Default Mock Trip)
+  if (userSavedTrips.length === 0) {
+    container.innerHTML = `
+      <div class="dash-empty-banner animate-fade-in">
+        <div class="dash-empty-icon">
+          <i class="ph ph-map-pin-line" aria-hidden="true"></i>
+        </div>
+        <div class="dash-empty-content">
+          <span class="badge badge-green" style="margin-bottom: 8px;">Dashboard Ready</span>
+          <h3>No Active Itinerary Saved</h3>
+          <p>You don't have an active trip saved yet. Craft your next personalized journey with AI and save it to see your live itinerary, duration, and offline companion here.</p>
+          <a href="#planner" class="btn btn-primary btn-sm" data-route="planner">
+            <i class="ph ph-sparkle" aria-hidden="true"></i>
+            <span>Plan Your First Trip</span>
+          </a>
+        </div>
+      </div>
+    `;
+    if (recTitleEl) {
+      recTitleEl.textContent = 'Recommended Experiences';
+    }
+    return;
+  }
+
+  // If user has saved trips: Display the latest user-saved trip
+  const activeTrip = userSavedTrips[0];
+  const datesText = activeTrip.dates || (activeTrip.startDate ? `${formatShortInputDate(new Date(activeTrip.startDate))} - ${formatShortInputDate(new Date(activeTrip.endDate))}` : 'Custom Dates');
+  const destinationText = activeTrip.destination || 'Destination';
+  const durationText = activeTrip.duration || `${(activeTrip.itineraryDays && activeTrip.itineraryDays.length) ? activeTrip.itineraryDays.length : (activeTrip.days ? activeTrip.days.length : 3)} Days`;
+  const travelersText = activeTrip.travelers || '2 Adults';
+  const formattedBudget = formatCurrency(activeTrip.budgetTotalUSD, state.currency);
+
+  if (recTitleEl) {
+    recTitleEl.textContent = `Recommended in ${destinationText.split(',')[0].trim()}`;
+  }
+
+  container.innerHTML = `
+    <div class="active-trip-banner animate-fade-in">
+      <div class="active-trip-cover">
+        <img id="dashActiveCover" src="${activeTrip.coverImage || 'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?auto=format&fit=crop&w=1200&q=80'}" alt="${activeTrip.title}" />
+        <div class="active-trip-cover-overlay">
+          <div>
+            <span class="badge badge-green" style="margin-bottom: 8px;">Active Itinerary</span>
+            <h3 id="dashActiveTitle" style="color: #FFFFFF; font-size: 1.6rem;">${activeTrip.title}</h3>
+            <p id="dashActiveDates" onclick="openSavedTrip('${activeTrip.id}', event)" style="color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" title="Click to view full trip itinerary">
+              <i class="ph ph-calendar-blank"></i> <span id="dashActiveDatesVal">${destinationText} • ${datesText}</span> <i class="ph ph-arrow-right icon-xs"></i>
+            </p>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="openSavedTrip('${activeTrip.id}', event)">
+            <span>View Details</span>
+            <i class="ph ph-arrow-right icon-sm" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="active-trip-details">
+        <div class="stat-pills-row">
+          <div class="stat-pill">
+            <span><i class="ph ph-clock icon-sm" aria-hidden="true"></i> Duration:</span>
+            <strong>${durationText}</strong>
+          </div>
+          <div class="stat-pill">
+            <span><i class="ph ph-users icon-sm" aria-hidden="true"></i> Travelers:</span>
+            <strong>${travelersText}</strong>
+          </div>
+          <div class="stat-pill">
+            <span><i class="ph ph-wallet icon-sm" aria-hidden="true"></i> Budget:</span>
+            <strong>${formattedBudget}</strong>
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="openSavedTrip('${activeTrip.id}', event)">
+          <i class="ph ph-eye icon-sm" aria-hidden="true"></i> Open Itinerary
+        </button>
+      </div>
+    </div>
+  `;
 }
 
 function renderSavedTripsView(state) {
@@ -657,7 +735,8 @@ function editSavedTrip(tripId, event) {
   }
   updateBudgetUI();
 
-  // 4. Populate Companion Choice Chip
+  // 4. Populate Companion Choice Chip or Custom "Others"
+  const compCustom = document.getElementById('wizardCompanionCustom');
   const companionChips = document.querySelectorAll('#fullPlannerForm .choice-chips-grid.single-select .choice-chip');
   companionChips.forEach(c => c.classList.remove('active'));
   const travStr = (trip.travelers || '').toLowerCase();
@@ -672,14 +751,21 @@ function editSavedTrip(tripId, event) {
     matchedCompanion = 'Group of Friends';
   }
   if (matchedCompanion) {
+    if (compCustom) compCustom.value = '';
     companionChips.forEach(chip => {
       if (chip.textContent.trim().toLowerCase() === matchedCompanion.toLowerCase()) {
         chip.classList.add('active');
       }
     });
+  } else if (trip.travelers) {
+    if (compCustom) compCustom.value = trip.travelers;
+  } else {
+    if (compCustom) compCustom.value = '';
   }
 
-  // 5. Populate Interest Choice Chips
+  // 5. Populate Interest Choice Chips or Custom "Others"
+  const intCustom = document.getElementById('wizardInterestsCustom');
+  if (intCustom) intCustom.value = '';
   const interestChips = document.querySelectorAll('#fullPlannerForm .choice-chips-grid:not(.single-select) .choice-chip');
   interestChips.forEach(c => c.classList.remove('active'));
   const styleStr = (trip.travelStyle || trip.title || '').toLowerCase();
@@ -704,9 +790,11 @@ function editSavedTrip(tripId, event) {
     }
   });
 
-  // Ensure at least one interest is active
+  // Ensure at least one interest is active or custom is filled
   const hasActiveInterest = Array.from(interestChips).some(c => c.classList.contains('active'));
-  if (!hasActiveInterest && interestChips.length > 0) {
+  if (!hasActiveInterest && trip.travelStyle) {
+    if (intCustom) intCustom.value = trip.travelStyle;
+  } else if (!hasActiveInterest && interestChips.length > 0) {
     interestChips[0].classList.add('active');
   }
 
@@ -750,6 +838,7 @@ function deleteSavedTrip(tripId, event) {
   const tripTitle = trip ? trip.title : 'this trip';
   if (confirm(`Are you sure you want to remove "${tripTitle}" from your saved trips?`)) {
     store.deleteSavedTrip(tripId);
+    renderDashboardView(store.getState());
     requestAnimationFrame(() => {
       window.scrollTo({ top: currentScrollY, behavior: 'instant' });
     });
@@ -2051,6 +2140,9 @@ const INPUT_PROGRESS_STORAGE_KEY = 'wayfind_planner_input_progress';
 function saveInputProgress() {
   try {
     const destInput = document.getElementById('wizardDestination');
+    const compCustom = document.getElementById('wizardCompanionCustom');
+    const intCustom = document.getElementById('wizardInterestsCustom');
+
     const companionChips = Array.from(document.querySelectorAll('#fullPlannerForm .choice-chips-grid.single-select .choice-chip'))
       .map(c => ({ text: c.textContent.trim(), active: c.classList.contains('active') }));
     const interestChips = Array.from(document.querySelectorAll('#fullPlannerForm .choice-chips-grid:not(.single-select) .choice-chip'))
@@ -2068,7 +2160,9 @@ function saveInputProgress() {
       budgetValue: wizardBudgetValue,
       currency: (store && store.getState) ? store.getState().currency : 'USD',
       companionChips: companionChips,
+      companionCustom: compCustom ? compCustom.value : '',
       interestChips: interestChips,
+      interestsCustom: intCustom ? intCustom.value : '',
       quickTrip: {
         destination: quickDest ? quickDest.value : '',
         dates: quickDates ? quickDates.value : '',
@@ -2129,7 +2223,11 @@ function restoreInputProgress() {
       updateBudgetUI();
     }
 
-    // 5. Restore companion chips
+    // 5. Restore companion chips & custom "Others"
+    if (progress.companionCustom) {
+      const compCustom = document.getElementById('wizardCompanionCustom');
+      if (compCustom) compCustom.value = progress.companionCustom;
+    }
     if (Array.isArray(progress.companionChips) && progress.companionChips.length > 0) {
       const companionDoms = document.querySelectorAll('#fullPlannerForm .choice-chips-grid.single-select .choice-chip');
       companionDoms.forEach(chip => {
@@ -2142,7 +2240,11 @@ function restoreInputProgress() {
       });
     }
 
-    // 6. Restore interest chips
+    // 6. Restore interest chips & custom "Others"
+    if (progress.interestsCustom) {
+      const intCustom = document.getElementById('wizardInterestsCustom');
+      if (intCustom) intCustom.value = progress.interestsCustom;
+    }
     if (Array.isArray(progress.interestChips) && progress.interestChips.length > 0) {
       const interestDoms = document.querySelectorAll('#fullPlannerForm .choice-chips-grid:not(.single-select) .choice-chip');
       interestDoms.forEach(chip => {
@@ -2222,15 +2324,19 @@ function refreshPlannerFormForNewInputs() {
   wizardBudgetValue = null;
   updateBudgetUI();
 
-  // 4. Reset Companion Single-Select Choice Chips
+  // 4. Reset Companion Single-Select Choice Chips & Custom "Others" input
   document.querySelectorAll('#fullPlannerForm .choice-chips-grid.single-select .choice-chip').forEach(chip => {
     chip.classList.remove('active');
   });
+  const compCustom = document.getElementById('wizardCompanionCustom');
+  if (compCustom) compCustom.value = '';
 
-  // 5. Reset Travel Interests & Moods Multi-Select Choice Chips
+  // 5. Reset Travel Interests & Moods Multi-Select Choice Chips & Custom "Others" input
   document.querySelectorAll('#fullPlannerForm .choice-chips-grid:not(.single-select) .choice-chip').forEach(chip => {
     chip.classList.remove('active');
   });
+  const intCustom = document.getElementById('wizardInterestsCustom');
+  if (intCustom) intCustom.value = '';
 
   // 6. Reset Quick Trip form inputs on landing page
   const quickDest = document.getElementById('quickFormDestination');
@@ -2370,13 +2476,36 @@ function setupPlannerForms() {
       if (parent.classList.contains('single-select')) {
         const wasActive = chip.classList.contains('active');
         parent.querySelectorAll('.choice-chip').forEach(c => c.classList.remove('active'));
-        if (!wasActive) chip.classList.add('active');
+        if (!wasActive) {
+          chip.classList.add('active');
+          const compCustom = document.getElementById('wizardCompanionCustom');
+          if (compCustom) compCustom.value = '';
+        }
       } else {
         chip.classList.toggle('active');
       }
       if (typeof saveInputProgress === 'function') saveInputProgress();
     });
   });
+
+  // Manual "Others" Input Fields for Companion and Interests
+  const compCustomInput = document.getElementById('wizardCompanionCustom');
+  if (compCustomInput) {
+    compCustomInput.addEventListener('input', () => {
+      if (compCustomInput.value.trim().length > 0) {
+        document.querySelectorAll('#fullPlannerForm .choice-chips-grid.single-select .choice-chip')
+          .forEach(c => c.classList.remove('active'));
+      }
+      if (typeof saveInputProgress === 'function') saveInputProgress();
+    });
+  }
+
+  const intCustomInput = document.getElementById('wizardInterestsCustom');
+  if (intCustomInput) {
+    intCustomInput.addEventListener('input', () => {
+      if (typeof saveInputProgress === 'function') saveInputProgress();
+    });
+  }
 
   // 6. Restore previously saved progress if any
   restoreInputProgress();
@@ -2456,15 +2585,24 @@ function triggerAIGeneration() {
     trip.startDate = startDate.toISOString();
     trip.endDate = endDate.toISOString();
 
+    const compCustom = document.getElementById('wizardCompanionCustom');
+    const customTravelers = compCustom ? compCustom.value.trim() : '';
     const activeCompanion = document.querySelector('#fullPlannerForm .choice-chips-grid.single-select .choice-chip.active');
-    if (activeCompanion) {
+    if (customTravelers) {
+      trip.travelers = customTravelers;
+    } else if (activeCompanion) {
       trip.travelers = activeCompanion.textContent.trim();
     }
 
+    const intCustom = document.getElementById('wizardInterestsCustom');
+    const customInterest = intCustom ? intCustom.value.trim() : '';
     const activeInterests = Array.from(document.querySelectorAll('#fullPlannerForm .choice-chips-grid:not(.single-select) .choice-chip.active'))
       .map(c => c.textContent.trim());
+    if (customInterest) {
+      activeInterests.push(customInterest);
+    }
     if (activeInterests.length > 0) {
-      trip.travelStyle = activeInterests.slice(0, 2).join(' & ');
+      trip.travelStyle = activeInterests.slice(0, 3).join(' & ');
     }
 
     if (wizardBudgetValue !== null && wizardBudgetValue > 0) {
@@ -2839,6 +2977,7 @@ function copyTripLink() {
 
 function openSaveSuccessModal() {
   store.saveCurrentTrip();
+  renderDashboardView(store.getState());
 
   // Dynamic message based on current trip title and duration
   const trip = store.getState().currentTrip;
@@ -3653,6 +3792,33 @@ function setupChatbot() {
   });
 
   renderChatMessages();
+}
+
+function openAICompanion(initialPrompt) {
+  const widget = document.getElementById('aiChatbotWidget');
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendChatBtn');
+
+  if (widget) {
+    widget.classList.add('open');
+  }
+
+  if (initialPrompt && typeof initialPrompt === 'string' && initialPrompt.trim()) {
+    if (chatInput) {
+      chatInput.value = initialPrompt.trim();
+      setTimeout(() => {
+        if (sendBtn) {
+          sendBtn.click();
+        } else {
+          chatInput.focus();
+        }
+      }, 150);
+    }
+  } else if (chatInput) {
+    setTimeout(() => {
+      chatInput.focus();
+    }, 200);
+  }
 }
 
 function renderChatMessages() {
@@ -4498,3 +4664,5 @@ window.openBookFlightModal = openBookFlightModal;
 window.saveInputProgress = saveInputProgress;
 window.restoreInputProgress = restoreInputProgress;
 window.refreshPlannerFormForNewInputs = refreshPlannerFormForNewInputs;
+window.openAICompanion = openAICompanion;
+window.renderDashboardView = renderDashboardView;

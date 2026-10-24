@@ -351,6 +351,10 @@ const WAYFIND_DATA = {
   // --- Pre-configured AI Chatbot Knowledge Base & Intent Responses ---
   chatbotIntents: [
     {
+      keywords: ["swap", "alternative", "replace", "outdoor alternative", "switch activity"],
+      reply: "I can easily swap activities for you! I have curated a relaxing outdoor stroll and lakeside coffee at **Jabi Lake Park** as an active alternative for your afternoon. You can also tap the instant **'Swap'** button on any activity card to cycle through alternative ideas on the fly."
+    },
+    {
       keywords: ["jollof", "restaurant", "food", "eat", "lunch", "dinner", "dining"],
       reply: "For exceptional Nigerian cuisine in Abuja, I highly recommend **Nkoyo** in Kado (famous for charcoal-smoked catfish and party jollof) or **The Charcoal Grill** in Wuse 2. If you fancy upscale fusion with lakeside breeze, **Jabi Boat Club Restaurant** has splendid evening views!"
     },
@@ -367,8 +371,8 @@ const WAYFIND_DATA = {
       reply: "Your current 4-day Abuja itinerary estimates **₦310,000 (~$365 USD)** for two adults, covering boutique stay, private transfers, dining, and activity admissions. You can dial down lodging in the Budget Overview tab to save up to 25%."
     },
     {
-      keywords: ["weather", "rain", "sun", "hot", "season"],
-      reply: "Abuja typically enjoys warm tropical weather with sunny mornings. The dry season (November to March) offers clear blue skies and pleasant evening breezes—ideal for outdoor walking around Millennium Park and kayaking on Jabi Lake."
+      keywords: ["weather", "rain", "sun", "hot", "season", "packing", "tips", "pack"],
+      reply: "Abuja typically enjoys warm tropical weather with sunny mornings. For your trip dates, lightweight breathable cottons, sun protection, comfortable walking sandals or trainers, and a light evening layer are recommended. The dry season (November to March) offers clear blue skies—ideal for outdoor exploring!"
     }
   ],
   defaultChatbotReply: "I'm your **Wayfind AI Travel Companion**! I can adapt your itinerary in real time, swap activities, find hidden culinary spots, or check estimated budgets for your trip in Abuja or beyond. How may I assist your journey?",

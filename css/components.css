@@ -3731,6 +3731,134 @@ html[data-a11y-simplify="true"] * {
 }
 
 /* ==========================================================================
+   MANUAL "OTHERS" INPUT FIELD FOR COMPANION & INTERESTS
+   ========================================================================== */
+.custom-chip-input-row {
+  margin-top: 12px;
+}
+
+.custom-chip-input-row .form-input-wrapper {
+  max-width: 100%;
+}
+
+.custom-chip-input-row .form-control {
+  height: 44px;
+  font-size: 0.92rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  transition: all var(--transition-fast);
+}
+
+.custom-chip-input-row .form-control:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(90, 126, 100, 0.15);
+}
+
+/* ==========================================================================
+   DASHBOARD EMPTY TRIP BANNER
+   ========================================================================== */
+.dash-empty-banner {
+  background: var(--color-surface);
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 40px 32px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+  transition: all var(--transition-fast);
+}
+
+.dash-empty-icon {
+  width: 76px;
+  height: 76px;
+  min-width: 76px;
+  border-radius: 50%;
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  border: 1px solid rgba(90, 126, 100, 0.2);
+}
+
+[data-theme="dark"] .dash-empty-icon {
+  background: rgba(141, 180, 142, 0.16);
+  color: var(--color-primary-light);
+  border-color: rgba(141, 180, 142, 0.3);
+}
+
+.dash-empty-content h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-text-headline);
+  margin-bottom: 6px;
+}
+
+.dash-empty-content p {
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  margin: 0 0 18px;
+  max-width: 480px;
+}
+
+@media (max-width: 600px) {
+  .dash-empty-banner {
+    flex-direction: column;
+    text-align: center;
+    padding: 30px 20px;
+    gap: 16px;
+  }
+  .dash-empty-content p {
+    margin: 0 auto 18px;
+  }
+}
+
+/* ==========================================================================
+   ACTIVATED AI COMPANION PROMPT CHIPS (ITINERARY PAGE)
+   ========================================================================== */
+.companion-quick-prompts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.companion-prompt-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-body);
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  width: 100%;
+}
+
+.companion-prompt-chip:hover {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  transform: translateX(3px);
+  box-shadow: 0 2px 8px rgba(90, 126, 100, 0.12);
+}
+
+[data-theme="dark"] .companion-prompt-chip:hover {
+  background: rgba(141, 180, 142, 0.18);
+  border-color: var(--color-primary);
+  color: var(--color-primary-light);
+}
+
+/* ==========================================================================
    IN-PLACE SWAP & MUTATION HIGHLIGHT ANIMATIONS
    Ensures updated cards remain in-place and clearly signal changes to user.
    ========================================================================== */
