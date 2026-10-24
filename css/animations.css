@@ -215,20 +215,13 @@
     padding-right: var(--space-4);
   }
 
-  /* When logged in on mobile: remove the logo icon only (show only WAYFIND) */
-  body.user-logged-in .site-header .brand-logo .brand-icon-wrapper {
-    display: none !important;
-  }
-
-  body.user-logged-in .site-header .brand-logo .brand-name {
-    display: inline-block !important;
-  }
-
-  /* When logged out on mobile: maintain full icon logo and WAYFIND text */
+  /* When logged in or logged out on mobile: maintain full icon logo and WAYFIND text */
+  body.user-logged-in .site-header .brand-logo .brand-icon-wrapper,
   body:not(.user-logged-in) .site-header .brand-logo .brand-icon-wrapper {
     display: flex !important;
   }
 
+  body.user-logged-in .site-header .brand-logo .brand-name,
   body:not(.user-logged-in) .site-header .brand-logo .brand-name {
     display: inline-block !important;
   }

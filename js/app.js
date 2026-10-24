@@ -1606,7 +1606,6 @@ function updateBudgetUI(opts = {}) {
   const scaleMin = document.getElementById('budgetScaleMin');
   const scaleMid = document.getElementById('budgetScaleMid');
   const scaleMax = document.getElementById('budgetScaleMax');
-  const btnUnlimited = document.getElementById('btnUnlimitedBudget');
 
   if (currencySelect && currencySelect.value !== currencyCode) {
     currencySelect.value = currencyCode;
@@ -1615,23 +1614,7 @@ function updateBudgetUI(opts = {}) {
 
   if (scaleMin) scaleMin.textContent = `${cfg.symbol}0`;
   if (scaleMid) scaleMid.textContent = `${cfg.symbol}${cfg.mid.toLocaleString()}`;
-  if (scaleMax) scaleMax.textContent = `${cfg.symbol}${cfg.max.toLocaleString()}+`;
-
-  if (isWizardBudgetUnlimited) {
-    if (btnUnlimited) btnUnlimited.classList.add('active');
-    if (budgetDisplay) budgetDisplay.innerHTML = `<i class="ph ph-infinity" style="margin-right: 4px;"></i> Unlimited Budget`;
-    if (budgetInput) {
-      budgetInput.value = '';
-      budgetInput.placeholder = 'Unlimited';
-    }
-    if (budgetSlider) {
-      budgetSlider.max = cfg.max;
-      budgetSlider.value = cfg.max;
-    }
-    return;
-  } else {
-    if (btnUnlimited) btnUnlimited.classList.remove('active');
-  }
+  if (scaleMax) scaleMax.textContent = `${cfg.symbol}${cfg.max.toLocaleString()}`;
 
   if (wizardBudgetValue === null || wizardBudgetValue === undefined) {
     if (budgetDisplay) budgetDisplay.textContent = 'Select or enter budget';
@@ -1640,21 +1623,27 @@ function updateBudgetUI(opts = {}) {
       budgetInput.placeholder = `e.g. ${(cfg.rate >= 1000 ? 500000 : 500).toLocaleString()}`;
     }
     if (budgetSlider) {
+      budgetSlider.min = 0;
       budgetSlider.max = cfg.max;
       budgetSlider.step = cfg.step;
       budgetSlider.value = 0;
+      budgetSlider.style.background = 'var(--color-border)';
     }
     return;
   }
 
   const numVal = Math.max(0, wizardBudgetValue);
 
-  // Dynamic unlimited slider max
+  // Complete Point A to Point B Slider (fixed min 0 to max)
   if (budgetSlider) {
-    const targetMax = Math.max(cfg.max, Math.ceil((numVal * 1.35) / cfg.step) * cfg.step);
-    budgetSlider.max = targetMax;
+    budgetSlider.min = 0;
+    budgetSlider.max = cfg.max;
     budgetSlider.step = cfg.step;
-    budgetSlider.value = numVal;
+    budgetSlider.value = Math.min(numVal, cfg.max);
+
+    // Dynamic track fill: smoothly colors from Point A to Point B
+    const pct = Math.min(100, Math.max(0, (numVal / cfg.max) * 100));
+    budgetSlider.style.background = `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${pct}%, var(--color-border) ${pct}%, var(--color-border) 100%)`;
   }
 
   if (budgetInput && !opts.skipInput) {
@@ -1670,7 +1659,6 @@ function updateBudgetUI(opts = {}) {
 function handleBudgetStep(direction) {
   const currencyCode = store.getState().currency || 'USD';
   const cfg = getCurrencyConfig(currencyCode);
-  isWizardBudgetUnlimited = false;
 
   if (wizardBudgetValue === null || wizardBudgetValue === undefined || isNaN(wizardBudgetValue)) {
     wizardBudgetValue = direction > 0 ? cfg.step : 0;
@@ -1682,7 +1670,6 @@ function handleBudgetStep(direction) {
 }
 
 function handleBudgetManualInput(val) {
-  isWizardBudgetUnlimited = false;
   if (val === '' || val === null || isNaN(val)) {
     wizardBudgetValue = null;
   } else {
@@ -1692,19 +1679,7 @@ function handleBudgetManualInput(val) {
 }
 
 function handleBudgetSliderInput(val) {
-  isWizardBudgetUnlimited = false;
   wizardBudgetValue = Math.max(0, parseInt(val, 10) || 0);
-  updateBudgetUI();
-}
-
-function toggleUnlimitedBudget() {
-  isWizardBudgetUnlimited = !isWizardBudgetUnlimited;
-  if (isWizardBudgetUnlimited) {
-    wizardBudgetValue = null;
-  } else {
-    const cfg = getCurrencyConfig(store.getState().currency);
-    wizardBudgetValue = cfg.mid;
-  }
   updateBudgetUI();
 }
 
@@ -1715,7 +1690,7 @@ function handleWizardCurrencyChange(newCurrency) {
   const oldRate = window.WAYFIND_CURRENCIES[oldCurrency]?.rate || 1.0;
   const newRate = window.WAYFIND_CURRENCIES[newCurrency]?.rate || 1.0;
 
-  if (wizardBudgetValue !== null && !isWizardBudgetUnlimited) {
+  if (wizardBudgetValue !== null) {
     const usdEquivalent = wizardBudgetValue / oldRate;
     wizardBudgetValue = Math.round(usdEquivalent * newRate);
   }
@@ -1808,21 +1783,10 @@ function setupPlannerForms() {
     }
   });
 
-  // 4. Budget Controls: Stepper Arrows, Manual Input, Slider & Unlimited Pill
+  // 4. Budget Controls: Stepper Arrows with Press & Hold, Manual Input, and Point A to B Slider
   const stepUpBtn = document.getElementById('budgetStepUp');
   const stepDownBtn = document.getElementById('budgetStepDown');
-  if (stepUpBtn) {
-    stepUpBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      handleBudgetStep(1);
-    });
-  }
-  if (stepDownBtn) {
-    stepDownBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      handleBudgetStep(-1);
-    });
-  }
+  setupBudgetStepperHold(stepUpBtn, stepDownBtn);
 
   const budgetInput = document.getElementById('wizardBudgetInput');
   if (budgetInput) {
@@ -1844,14 +1808,6 @@ function setupPlannerForms() {
   if (budgetSlider) {
     budgetSlider.addEventListener('input', (e) => {
       handleBudgetSliderInput(e.target.value);
-    });
-  }
-
-  const unlimitedBtn = document.getElementById('btnUnlimitedBudget');
-  if (unlimitedBtn) {
-    unlimitedBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      toggleUnlimitedBudget();
     });
   }
 
@@ -1882,6 +1838,53 @@ function setupPlannerForms() {
   updateBudgetUI();
 }
 
+function setupBudgetStepperHold(stepUpBtn, stepDownBtn) {
+  function attachHold(btn, direction) {
+    if (!btn) return;
+    let holdTimeout = null;
+    let holdInterval = null;
+    let isHolding = false;
+
+    function start(e) {
+      if (e.type === 'mousedown' && e.button !== 0) return;
+      e.preventDefault();
+      isHolding = true;
+      handleBudgetStep(direction);
+
+      holdTimeout = setTimeout(() => {
+        if (!isHolding) return;
+        holdInterval = setInterval(() => {
+          if (!isHolding) {
+            clearInterval(holdInterval);
+            return;
+          }
+          handleBudgetStep(direction);
+        }, 80);
+      }, 350);
+    }
+
+    function stop() {
+      isHolding = false;
+      if (holdTimeout) clearTimeout(holdTimeout);
+      if (holdInterval) clearInterval(holdInterval);
+      holdTimeout = null;
+      holdInterval = null;
+    }
+
+    btn.addEventListener('mousedown', start);
+    btn.addEventListener('touchstart', start, { passive: false });
+
+    btn.addEventListener('mouseup', stop);
+    btn.addEventListener('mouseleave', stop);
+    btn.addEventListener('touchend', stop);
+    btn.addEventListener('touchcancel', stop);
+    window.addEventListener('mouseup', stop);
+  }
+
+  attachHold(stepUpBtn, 1);
+  attachHold(stepDownBtn, -1);
+}
+
 function triggerAIGeneration() {
   // Determine start & end dates from planner wizard or fallback
   const startDate = wizardStartDate || new Date(2026, 10, 12);
@@ -1890,17 +1893,37 @@ function triggerAIGeneration() {
   // Synchronize trip days and dates so sticky swipeable days correspond to the exact date range
   synchronizeTripDaysForDateRange(startDate, endDate);
 
-  const diffMs = endDate.getTime() - startDate.getTime();
+  const diffMs = Math.abs(endDate.getTime() - startDate.getTime());
   const daysCount = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1);
+
+  // Reset step tracker states & sync step 4 text with exact number of days
+  for (let i = 1; i <= 4; i++) {
+    const sEl = document.getElementById(`genStep${i}`);
+    if (sEl) {
+      sEl.classList.remove('done', 'active');
+      const icon = sEl.querySelector('.gen-step-icon');
+      if (icon) icon.textContent = i;
+    }
+  }
+  const step1 = document.getElementById('genStep1');
+  if (step1) step1.classList.add('active');
+
+  const step4El = document.getElementById('genStep4');
+  if (step4El) {
+    const span = step4El.querySelector('span');
+    if (span) {
+      span.textContent = `Finalizing custom ${daysCount} days travel companion file`;
+    }
+  }
 
   // Navigate to 'generating' state
   store.setView('generating');
   
   const steps = [
-    { text: "Analyzing travel preferences and companion needs...", delay: 600 },
-    { text: "Optimizing scenic routes across Abuja & Niger State...", delay: 1300 },
-    { text: "Balancing curated dining, admission fees, and lodging...", delay: 1900 },
-    { text: `Assembling custom ${daysCount}-day itinerary...`, delay: 2400 }
+    { delay: 600 },
+    { delay: 1300 },
+    { delay: 1900 },
+    { delay: 2400 }
   ];
 
   steps.forEach((s, idx) => {
@@ -2210,6 +2233,36 @@ function copyTripLink() {
       showToast("Link: " + textToCopy, "ph-copy");
     }
   });
+}
+
+function openSaveSuccessModal() {
+  store.saveCurrentTrip();
+
+  // Dynamic message based on current trip title and duration
+  const trip = store.getState().currentTrip;
+  const msgEl = document.getElementById('saveSuccessMessage');
+  if (msgEl && trip) {
+    const destName = trip.destination ? trip.destination.split(',')[0] : 'Abuja';
+    const durStr = trip.duration || (trip.days ? `${trip.days.length} Days` : 'plan');
+    msgEl.innerHTML = `Your <strong>${trip.title || `${destName} ${durStr}`}</strong> has been synchronized to your account and is available anytime under <strong>'My Trips'</strong>, even when offline.`;
+  }
+
+  // Trigger/restart checkmark motion animation
+  const modal = document.getElementById('saveSuccessModal');
+  if (modal) {
+    const checkBadge = modal.querySelector('.success-icon-badge');
+    if (checkBadge) {
+      checkBadge.classList.remove('play-check-motion');
+      void checkBadge.offsetWidth; // Force DOM reflow to re-trigger CSS keyframes
+      checkBadge.classList.add('play-check-motion');
+    }
+  }
+
+  openModal('saveSuccessModal');
+}
+
+function navigateToPlannerOrPrevious() {
+  window.location.hash = 'planner';
 }
 
 /* ==========================================================================
@@ -3649,3 +3702,5 @@ window.shareOnWhatsApp = shareOnWhatsApp;
 window.shareOnTelegram = shareOnTelegram;
 window.shareOnX = shareOnX;
 window.shareViaBluetooth = shareViaBluetooth;
+window.openSaveSuccessModal = openSaveSuccessModal;
+window.navigateToPlannerOrPrevious = navigateToPlannerOrPrevious;
