@@ -317,12 +317,16 @@ function renderItineraryView(state) {
 
   if (!daysNav || !timelineFeed) return;
 
-  // Update Trip Title and Date Badges in Header
+  // Update Trip Title, Date Badges, and Travelers in Header
   const titleEl = document.getElementById('itineraryTripTitle');
   if (titleEl && trip.title) titleEl.textContent = trip.title;
   const datesEl = document.getElementById('itineraryDatesText');
   if (datesEl && trip.dates) {
     datesEl.textContent = `${trip.dates} (${trip.duration || `${trip.days.length} Days`})`;
+  }
+  const travelersEl = document.getElementById('itineraryTravelersText');
+  if (travelersEl && trip.travelers) {
+    travelersEl.textContent = trip.travelers;
   }
 
   // Ensure activeDayIndex is within bounds of current trip days
@@ -2686,6 +2690,8 @@ function triggerAIGeneration() {
     if (titleEl) titleEl.textContent = trip.title;
     const dashTitle = document.getElementById('dashActiveTitle');
     if (dashTitle) dashTitle.textContent = trip.title;
+    const travelersEl = document.getElementById('itineraryTravelersText');
+    if (travelersEl && trip.travelers) travelersEl.textContent = trip.travelers;
   }
 
   const diffMs = Math.abs(endDate.getTime() - startDate.getTime());
@@ -3581,7 +3587,7 @@ function generatePrintablePDF(trip) {
         </div>
         <div class="summary">
           <h2 style="margin: 0 0 6px; font-size: 16px;">${trip.title || 'Curated Itinerary'}</h2>
-          <p style="margin: 0 0 4px; font-size: 13px; color: #555;">Destination: ${trip.destination || 'Abuja, Nigeria'} | Dates: ${trip.dates || ''}</p>
+          <p style="margin: 0 0 4px; font-size: 13px; color: #555;">Destination: ${trip.destination || 'Abuja, Nigeria'} | Dates: ${trip.dates || ''} | Travelers: ${trip.travelers || '2 Adults'}</p>
           <p style="margin: 0; font-size: 13px; font-weight: bold; color: #2d4130;">Estimated Budget: NGN ${(trip.budgetTotalNGN || 310000).toLocaleString()}</p>
         </div>
         ${daysHtml}
