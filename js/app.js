@@ -385,7 +385,7 @@ function renderItineraryView(state) {
 
   // 1. Render Days Tab Bar (Always corresponds to trip.days count and dates)
   daysNav.innerHTML = trip.days.map((day, idx) => `
-    <button class="day-tab-btn ${idx === state.activeDayIndex ? 'active' : ''}" onclick="selectDayIndex(${idx})" role="tab" aria-selected="${idx === state.activeDayIndex ? 'true' : 'false'}" title="${day.title || ''}">
+    <button type="button" class="day-tab-btn ${idx === state.activeDayIndex ? 'active' : ''}" data-day-index="${idx}" onclick="selectDayIndex(${idx})" role="tab" aria-selected="${idx === state.activeDayIndex ? 'true' : 'false'}" title="${day.title || ''}">
       Day ${day.dayNumber}: ${day.date.split(',')[0]}
     </button>
   `).join('');
@@ -489,12 +489,18 @@ function renderItineraryView(state) {
   }
 }
 
+let isDaysNavDragging = false;
+
 function selectDayIndex(idx, transitionDirection = null) {
+  if (isDaysNavDragging) return;
+  const targetIdx = parseInt(idx, 10);
+  if (isNaN(targetIdx)) return;
+
   const currentScrollY = window.scrollY || document.documentElement.scrollTop;
   const oldIdx = store.getState().activeDayIndex || 0;
-  const direction = transitionDirection || (idx > oldIdx ? 'right' : (idx < oldIdx ? 'left' : null));
+  const direction = transitionDirection || (targetIdx > oldIdx ? 'right' : (targetIdx < oldIdx ? 'left' : null));
 
-  store.setDayIndex(idx);
+  store.setDayIndex(targetIdx);
   requestAnimationFrame(() => {
     window.scrollTo({ top: currentScrollY, behavior: 'instant' });
 
@@ -514,7 +520,7 @@ function selectDayIndex(idx, transitionDirection = null) {
   setTimeout(() => {
     const daysNav = document.getElementById('itineraryDaysNav');
     if (daysNav) {
-      const activeBtn = daysNav.querySelectorAll('.day-tab-btn')[idx];
+      const activeBtn = daysNav.querySelectorAll('.day-tab-btn')[targetIdx];
       if (activeBtn) {
         activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
       }
@@ -611,6 +617,22 @@ function setupItineraryDaysSwipe() {
   let lastTime = 0;
   let momentumAnimId = null;
 
+  // Delegated click handler on daysNav for rock-solid button selection
+  daysNav.addEventListener('click', (e) => {
+    if (isDaysNavDragging) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    const btn = e.target.closest('.day-tab-btn');
+    if (btn) {
+      const idxAttr = btn.getAttribute('data-day-index');
+      if (idxAttr !== null && idxAttr !== undefined) {
+        selectDayIndex(parseInt(idxAttr, 10));
+      }
+    }
+  });
+
   // 1. Mousedown on Days Nav
   daysNav.addEventListener('mousedown', (e) => {
     if (e.button !== 0) return; // Only main left click
@@ -625,8 +647,7 @@ function setupItineraryDaysSwipe() {
     scrollStart = daysNav.scrollLeft;
     lastTime = Date.now();
     velocity = 0;
-
-    daysNav.classList.add('is-dragging');
+    // NOTE: DO NOT add is-dragging on mousedown! Only add it once actual dragging movement occurs!
   });
 
   // 2. Mousemove on Window
@@ -636,8 +657,11 @@ function setupItineraryDaysSwipe() {
     const currentX = e.pageX;
     dragDistance = currentX - startX;
 
-    if (!hasDragged && Math.abs(dragDistance) > 5) {
+    // Use a clean 14px threshold before treating mouse movement as a drag gesture
+    if (!hasDragged && Math.abs(dragDistance) >= 14) {
       hasDragged = true;
+      isDaysNavDragging = true;
+      daysNav.classList.add('is-dragging');
       document.body.classList.add('is-dragging-days');
     }
 
@@ -665,21 +689,15 @@ function setupItineraryDaysSwipe() {
     document.body.classList.remove('is-dragging-days');
 
     if (hasDragged) {
-      // Intercept child button click event so dragging does not click the tab
-      const cancelClick = (evt) => {
-        evt.stopPropagation();
-        evt.preventDefault();
-        window.removeEventListener('click', cancelClick, true);
-      };
-      window.addEventListener('click', cancelClick, true);
+      // Keep isDaysNavDragging true for 120ms so any click event right after mouseup is suppressed
       setTimeout(() => {
-        window.removeEventListener('click', cancelClick, true);
-      }, 70);
+        isDaysNavDragging = false;
+      }, 120);
 
       const canScroll = daysNav.scrollWidth > daysNav.clientWidth + 5;
 
-      // If the tabs fit without overflow, dragging left/right acts as a swipe to change days
-      if (!canScroll && Math.abs(dragDistance) > 40) {
+      // If tabs do not overflow, horizontal drag acts as a day switch swipe
+      if (!canScroll && Math.abs(dragDistance) >= 40) {
         if (dragDistance < -40) {
           navigateToNextDay();
         } else if (dragDistance > 40) {
@@ -699,6 +717,8 @@ function setupItineraryDaysSwipe() {
         };
         momentumAnimId = requestAnimationFrame(momentumStep);
       }
+    } else {
+      isDaysNavDragging = false;
     }
   };
 

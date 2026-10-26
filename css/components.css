@@ -1090,7 +1090,6 @@
 
 .days-tab-nav.is-dragging .day-tab-btn {
   cursor: grabbing !important;
-  pointer-events: none;
 }
 
 body.is-dragging-days {
