@@ -1052,6 +1052,10 @@
   border-bottom: 1px solid var(--color-border);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
   transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
 }
 
 [data-theme="dark"] .days-sticky-container {
@@ -1071,8 +1075,28 @@
   scroll-behavior: smooth;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  padding: 4px 0;
+  padding: 4px 6px;
   touch-action: pan-x pan-y;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  flex: 1 1 auto;
+}
+
+.days-tab-nav.is-dragging {
+  cursor: grabbing !important;
+  scroll-behavior: auto !important;
+}
+
+.days-tab-nav.is-dragging .day-tab-btn {
+  cursor: grabbing !important;
+  pointer-events: none;
+}
+
+body.is-dragging-days {
+  cursor: grabbing !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 
 .days-tab-nav::-webkit-scrollbar {
@@ -1097,6 +1121,50 @@
   align-items: center;
   justify-content: center;
   user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Desktop Days Navigation Scroll Arrow Buttons */
+.days-nav-arrow {
+  display: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-headline);
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  z-index: 2;
+  margin: 0 2px;
+}
+
+.days-nav-arrow:hover:not(.disabled) {
+  background: var(--color-primary);
+  color: #FFFFFF;
+  border-color: var(--color-primary);
+  transform: scale(1.08);
+}
+
+.days-nav-arrow:active:not(.disabled) {
+  transform: scale(0.96);
+}
+
+.days-nav-arrow.disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}
+
+@media (min-width: 769px) {
+  .days-nav-arrow {
+    display: inline-flex;
+  }
 }
 
 .day-tab-btn:hover {
@@ -1116,6 +1184,61 @@
   background: var(--color-primary);
   color: #121713;
   border-color: var(--color-primary);
+}
+
+.itinerary-main-col {
+  touch-action: pan-y;
+}
+
+/* Itinerary Timeline Swipe & Day Transition Animations */
+@keyframes slideInFromRight {
+  0% {
+    opacity: 0.25;
+    transform: translateX(45px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  0% {
+    opacity: 0.25;
+    transform: translateX(-45px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.timeline-feed.slide-in-right {
+  animation: slideInFromRight 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.timeline-feed.slide-in-left {
+  animation: slideInFromLeft 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes timelineBounceEdgeLeft {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(18px); }
+  60% { transform: translateX(-4px); }
+}
+
+@keyframes timelineBounceEdgeRight {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(-18px); }
+  60% { transform: translateX(4px); }
+}
+
+.timeline-feed.bounce-left {
+  animation: timelineBounceEdgeLeft 0.32s ease-out;
+}
+
+.timeline-feed.bounce-right {
+  animation: timelineBounceEdgeRight 0.32s ease-out;
 }
 
 .timeline-feed {

@@ -52,6 +52,15 @@ function initApp() {
   // 9. Setup Accessibility Menu & Interactions
   setupA11yMenus();
 
+  // 9b. Setup Swipeable Itinerary Days & Timeline Dragging
+  setupItineraryDaysSwipe();
+  setupItineraryTimelineSwipe();
+  window.addEventListener('resize', () => {
+    if (typeof updateDaysNavArrows === 'function') {
+      updateDaysNavArrows();
+    }
+  });
+
   // 10. Subscribe UI re-renderers to State Changes
   store.subscribe((state) => {
     renderCurrentView(state);
@@ -473,14 +482,34 @@ function renderItineraryView(state) {
       </div>
     `;
   }
+
+  // Synchronize desktop scroll arrows for days navigation bar
+  if (typeof updateDaysNavArrows === 'function') {
+    requestAnimationFrame(() => updateDaysNavArrows());
+  }
 }
 
-function selectDayIndex(idx) {
+function selectDayIndex(idx, transitionDirection = null) {
   const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+  const oldIdx = store.getState().activeDayIndex || 0;
+  const direction = transitionDirection || (idx > oldIdx ? 'right' : (idx < oldIdx ? 'left' : null));
+
   store.setDayIndex(idx);
   requestAnimationFrame(() => {
     window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+
+    // Animate timeline transition
+    const timelineFeed = document.getElementById('itineraryTimelineFeed');
+    if (timelineFeed && direction) {
+      timelineFeed.classList.remove('slide-in-right', 'slide-in-left');
+      void timelineFeed.offsetWidth; // Force DOM reflow
+      timelineFeed.classList.add(direction === 'right' ? 'slide-in-right' : 'slide-in-left');
+      setTimeout(() => {
+        timelineFeed.classList.remove('slide-in-right', 'slide-in-left');
+      }, 350);
+    }
   });
+
   // Auto-scroll the active tab into view horizontally in the swipeable days bar
   setTimeout(() => {
     const daysNav = document.getElementById('itineraryDaysNav');
@@ -489,8 +518,297 @@ function selectDayIndex(idx) {
       if (activeBtn) {
         activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
       }
+      if (typeof updateDaysNavArrows === 'function') {
+        updateDaysNavArrows();
+      }
     }
   }, 40);
+}
+
+function scrollDaysNav(amount) {
+  const daysNav = document.getElementById('itineraryDaysNav');
+  if (!daysNav) return;
+  daysNav.scrollBy({ left: amount, behavior: 'smooth' });
+  setTimeout(() => {
+    updateDaysNavArrows();
+  }, 280);
+}
+
+function updateDaysNavArrows() {
+  const daysNav = document.getElementById('itineraryDaysNav');
+  const leftArrow = document.getElementById('daysNavArrowLeft');
+  const rightArrow = document.getElementById('daysNavArrowRight');
+  if (!daysNav || !leftArrow || !rightArrow) return;
+
+  const hasOverflow = daysNav.scrollWidth > daysNav.clientWidth + 4;
+  if (!hasOverflow) {
+    leftArrow.style.display = 'none';
+    rightArrow.style.display = 'none';
+    return;
+  }
+
+  leftArrow.style.display = 'inline-flex';
+  rightArrow.style.display = 'inline-flex';
+
+  const atStart = daysNav.scrollLeft <= 4;
+  const atEnd = daysNav.scrollLeft + daysNav.clientWidth >= daysNav.scrollWidth - 6;
+
+  leftArrow.classList.toggle('disabled', atStart);
+  rightArrow.classList.toggle('disabled', atEnd);
+}
+
+function navigateToNextDay() {
+  const state = store.getState();
+  const trip = state.currentTrip;
+  if (!trip || !trip.days || trip.days.length <= 1) return;
+  const currentIdx = state.activeDayIndex || 0;
+  if (currentIdx < trip.days.length - 1) {
+    selectDayIndex(currentIdx + 1, 'right');
+  } else {
+    const timelineFeed = document.getElementById('itineraryTimelineFeed');
+    if (timelineFeed) {
+      timelineFeed.classList.remove('bounce-right');
+      void timelineFeed.offsetWidth;
+      timelineFeed.classList.add('bounce-right');
+      setTimeout(() => timelineFeed.classList.remove('bounce-right'), 350);
+    }
+  }
+}
+
+function navigateToPrevDay() {
+  const state = store.getState();
+  const trip = state.currentTrip;
+  if (!trip || !trip.days || trip.days.length <= 1) return;
+  const currentIdx = state.activeDayIndex || 0;
+  if (currentIdx > 0) {
+    selectDayIndex(currentIdx - 1, 'left');
+  } else {
+    const timelineFeed = document.getElementById('itineraryTimelineFeed');
+    if (timelineFeed) {
+      timelineFeed.classList.remove('bounce-left');
+      void timelineFeed.offsetWidth;
+      timelineFeed.classList.add('bounce-left');
+      setTimeout(() => timelineFeed.classList.remove('bounce-left'), 350);
+    }
+  }
+}
+
+/* ==========================================================================
+   DESKTOP MOUSE SWIPE & DRAG ENGINES FOR ITINERARY DAYS & TIMELINE
+   ========================================================================== */
+function setupItineraryDaysSwipe() {
+  const daysNav = document.getElementById('itineraryDaysNav');
+  if (!daysNav || daysNav.dataset.swipeBound === 'true') return;
+  daysNav.dataset.swipeBound = 'true';
+
+  let isDown = false;
+  let startX = 0;
+  let scrollStart = 0;
+  let hasDragged = false;
+  let dragDistance = 0;
+  let velocity = 0;
+  let lastX = 0;
+  let lastTime = 0;
+  let momentumAnimId = null;
+
+  // 1. Mousedown on Days Nav
+  daysNav.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return; // Only main left click
+
+    if (momentumAnimId) cancelAnimationFrame(momentumAnimId);
+
+    isDown = true;
+    hasDragged = false;
+    dragDistance = 0;
+    startX = e.pageX;
+    lastX = e.pageX;
+    scrollStart = daysNav.scrollLeft;
+    lastTime = Date.now();
+    velocity = 0;
+
+    daysNav.classList.add('is-dragging');
+  });
+
+  // 2. Mousemove on Window
+  window.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+
+    const currentX = e.pageX;
+    dragDistance = currentX - startX;
+
+    if (!hasDragged && Math.abs(dragDistance) > 5) {
+      hasDragged = true;
+      document.body.classList.add('is-dragging-days');
+    }
+
+    if (hasDragged) {
+      e.preventDefault();
+
+      const now = Date.now();
+      const dt = Math.max(1, now - lastTime);
+      const dx = currentX - lastX;
+      velocity = dx / dt;
+      lastX = currentX;
+      lastTime = now;
+
+      // Scroll 1:1 with mouse drag
+      daysNav.scrollLeft = scrollStart - dragDistance;
+      updateDaysNavArrows();
+    }
+  }, { passive: false });
+
+  // 3. Mouseup on Window
+  const endDrag = () => {
+    if (!isDown) return;
+    isDown = false;
+    daysNav.classList.remove('is-dragging');
+    document.body.classList.remove('is-dragging-days');
+
+    if (hasDragged) {
+      // Intercept child button click event so dragging does not click the tab
+      const cancelClick = (evt) => {
+        evt.stopPropagation();
+        evt.preventDefault();
+        window.removeEventListener('click', cancelClick, true);
+      };
+      window.addEventListener('click', cancelClick, true);
+      setTimeout(() => {
+        window.removeEventListener('click', cancelClick, true);
+      }, 70);
+
+      const canScroll = daysNav.scrollWidth > daysNav.clientWidth + 5;
+
+      // If the tabs fit without overflow, dragging left/right acts as a swipe to change days
+      if (!canScroll && Math.abs(dragDistance) > 40) {
+        if (dragDistance < -40) {
+          navigateToNextDay();
+        } else if (dragDistance > 40) {
+          navigateToPrevDay();
+        }
+      } else if (canScroll && Math.abs(velocity) > 0.25) {
+        // Momentum scrolling
+        let currentVel = velocity * 16;
+        const decay = 0.92;
+
+        const momentumStep = () => {
+          if (Math.abs(currentVel) < 0.5) return;
+          daysNav.scrollLeft -= currentVel;
+          currentVel *= decay;
+          updateDaysNavArrows();
+          momentumAnimId = requestAnimationFrame(momentumStep);
+        };
+        momentumAnimId = requestAnimationFrame(momentumStep);
+      }
+    }
+  };
+
+  window.addEventListener('mouseup', endDrag);
+  window.addEventListener('mouseleave', endDrag);
+
+  // 4. Mouse wheel horizontal scrolling on desktop
+  daysNav.addEventListener('wheel', (e) => {
+    if (e.deltaY !== 0 && !e.shiftKey) {
+      if (daysNav.scrollWidth > daysNav.clientWidth) {
+        e.preventDefault();
+        daysNav.scrollLeft += e.deltaY;
+        updateDaysNavArrows();
+      }
+    }
+  }, { passive: false });
+
+  daysNav.addEventListener('scroll', () => {
+    updateDaysNavArrows();
+  }, { passive: true });
+}
+
+function setupItineraryTimelineSwipe() {
+  const mainCol = document.querySelector('.itinerary-main-col');
+  const timelineFeed = document.getElementById('itineraryTimelineFeed');
+  if (!mainCol || !timelineFeed) return;
+
+  if (mainCol.dataset.swipeBound === 'true') return;
+  mainCol.dataset.swipeBound = 'true';
+
+  let isDown = false;
+  let startX = 0;
+  let startY = 0;
+  let hasMoved = false;
+  let deltaX = 0;
+  let deltaY = 0;
+
+  const handleStart = (clientX, clientY, target) => {
+    // Avoid initiating swipe on interactive elements (buttons, links, inputs, selects)
+    if (target.closest('button, a, input, select, textarea, .activity-icon-btn, .badge')) {
+      return false;
+    }
+    isDown = true;
+    hasMoved = false;
+    startX = clientX;
+    startY = clientY;
+    deltaX = 0;
+    deltaY = 0;
+    return true;
+  };
+
+  const handleMove = (clientX, clientY, e) => {
+    if (!isDown) return;
+    deltaX = clientX - startX;
+    deltaY = clientY - startY;
+
+    // Detect horizontal drag (ignore vertical scrolls)
+    if (Math.abs(deltaX) > 12 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+      hasMoved = true;
+      if (e.cancelable) e.preventDefault();
+      // Subtle visual elastic feedback while dragging
+      const clampedOffset = Math.max(-35, Math.min(35, deltaX * 0.2));
+      timelineFeed.style.transform = `translateX(${clampedOffset}px)`;
+      timelineFeed.style.transition = 'none';
+    }
+  };
+
+  const handleEnd = () => {
+    if (!isDown) return;
+    isDown = false;
+
+    // Reset visual drag offset smoothly
+    timelineFeed.style.transition = 'transform 0.22s ease-out';
+    timelineFeed.style.transform = '';
+
+    if (hasMoved && Math.abs(deltaX) > 45) {
+      if (deltaX < -45) {
+        navigateToNextDay();
+      } else if (deltaX > 45) {
+        navigateToPrevDay();
+      }
+    }
+  };
+
+  // Mouse drag listeners for desktop
+  mainCol.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    handleStart(e.clientX, e.clientY, e.target);
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    handleMove(e.clientX, e.clientY, e);
+  }, { passive: false });
+
+  window.addEventListener('mouseup', handleEnd);
+
+  // Touch swipe listeners for mobile/tablet
+  mainCol.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    handleStart(t.clientX, t.clientY, e.target);
+  }, { passive: true });
+
+  mainCol.addEventListener('touchmove', (e) => {
+    if (!isDown) return;
+    const t = e.touches[0];
+    handleMove(t.clientX, t.clientY, e);
+  }, { passive: false });
+
+  mainCol.addEventListener('touchend', handleEnd, { passive: true });
 }
 
 function deleteActivityAction(activityId) {
@@ -4878,3 +5196,10 @@ window.restoreInputProgress = restoreInputProgress;
 window.refreshPlannerFormForNewInputs = refreshPlannerFormForNewInputs;
 window.openAICompanion = openAICompanion;
 window.renderDashboardView = renderDashboardView;
+
+// Itinerary Days Navigation & Swipe Exports
+window.selectDayIndex = selectDayIndex;
+window.scrollDaysNav = scrollDaysNav;
+window.updateDaysNavArrows = updateDaysNavArrows;
+window.navigateToNextDay = navigateToNextDay;
+window.navigateToPrevDay = navigateToPrevDay;

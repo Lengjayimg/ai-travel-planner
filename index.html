@@ -1165,9 +1165,15 @@
 
       <!-- Sticky Days Navigation Bar (Fixed at top when scrolling, swipeable left & right) -->
       <div class="days-sticky-container" id="itineraryDaysStickyContainer">
+        <button type="button" class="days-nav-arrow days-nav-arrow-left" id="daysNavArrowLeft" aria-label="Scroll days left" onclick="scrollDaysNav(-220)" title="Scroll days left">
+          <i class="ph ph-caret-left" aria-hidden="true"></i>
+        </button>
         <div class="days-tab-nav" id="itineraryDaysNav" role="tablist" aria-label="Trip days navigation">
           <!-- Rendered by JS -->
         </div>
+        <button type="button" class="days-nav-arrow days-nav-arrow-right" id="daysNavArrowRight" aria-label="Scroll days right" onclick="scrollDaysNav(220)" title="Scroll days right">
+          <i class="ph ph-caret-right" aria-hidden="true"></i>
+        </button>
       </div>
 
       <!-- Itinerary Layout Grid -->
