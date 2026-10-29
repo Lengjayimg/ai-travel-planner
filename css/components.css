@@ -1461,9 +1461,9 @@ body.is-dragging-days {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(18, 23, 19, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(18, 23, 19, 0.50);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   z-index: 200;
   display: flex;
   align-items: center;
@@ -1472,6 +1472,10 @@ body.is-dragging-days {
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition-normal);
+}
+
+[data-theme="dark"] .modal-backdrop {
+  background: rgba(0, 0, 0, 0.60);
 }
 
 .modal-backdrop.active {
@@ -3418,11 +3422,15 @@ html[data-a11y-simplify="true"] * {
 .mobile-nav-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(18, 23, 19, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(18, 23, 19, 0.50);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   opacity: 0;
   transition: opacity var(--transition-normal);
+}
+
+[data-theme="dark"] .mobile-nav-backdrop {
+  background: rgba(0, 0, 0, 0.60);
 }
 
 .mobile-nav-drawer.open .mobile-nav-backdrop {
@@ -4317,7 +4325,13 @@ html[data-a11y-simplify="true"] * {
 
 #sessionTimeoutModal.modal-backdrop {
   z-index: 3600 !important;
-  background: rgba(18, 23, 19, 0.72) !important;
+  background: rgba(18, 23, 19, 0.60) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+[data-theme="dark"] #sessionTimeoutModal.modal-backdrop {
+  background: rgba(0, 0, 0, 0.70) !important;
 }
 
 .session-timeout-dialog {

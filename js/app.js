@@ -79,6 +79,78 @@ function initApp() {
   // Handle URL hash on boot
   handleHashChange();
   window.addEventListener('hashchange', handleHashChange);
+
+  // Showcase Snapshot / Demo Helper (Non-intrusive query parameter support)
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const snap = urlParams.get('snap');
+    if (snap === 'planner') {
+      store.setView('planner');
+      const card = document.querySelector('.planner-wizard-card');
+      if (card) {
+        card.style.zoom = '0.59';
+      }
+      const backRow = document.querySelector('[data-view="planner"] .page-top-back-row');
+      if (backRow) backRow.style.display = 'none';
+      const headerBar = document.querySelector('[data-view="planner"] .app-header-bar');
+      if (headerBar) headerBar.style.marginBottom = '12px';
+      const destInput = document.getElementById('wizardDestination');
+      if (destInput) destInput.value = 'Cape Town, South Africa';
+      const startInput = document.getElementById('wizardStartDate');
+      const endInput = document.getElementById('wizardEndDate');
+      if (startInput) startInput.value = 'Dec 10, 2026';
+      if (endInput) endInput.value = 'Dec 17, 2026';
+      const datesStatus = document.getElementById('wizardDatesStatus');
+      if (datesStatus) {
+        datesStatus.innerHTML = '<div style="color: var(--color-primary-dark); font-weight: 600; display: flex; align-items: center; gap: 8px;"><i class="ph ph-calendar-check icon-sm"></i> <span>Dec 10, 2026 – Dec 17, 2026 (7 Days / 6 Nights)</span></div>';
+      }
+      const budgetSlider = document.getElementById('wizardBudgetRange');
+      const budgetDisplay = document.getElementById('wizardBudgetDisplay');
+      if (budgetSlider) budgetSlider.value = 1850000;
+      if (budgetDisplay) budgetDisplay.value = '1,850,000';
+      document.querySelectorAll('.companion-chip').forEach(chip => {
+        if (chip.textContent.trim().toLowerCase().includes('partner') || chip.textContent.trim().toLowerCase().includes('couple')) {
+          chip.classList.add('selected');
+        }
+      });
+      document.querySelectorAll('.interest-pill').forEach(pill => {
+        const txt = pill.textContent.trim().toLowerCase();
+        if (txt.includes('nature') || txt.includes('culture') || txt.includes('food')) {
+          pill.classList.add('selected');
+        }
+      });
+      setTimeout(() => {
+        document.querySelectorAll('.toast, .toast-notification').forEach(t => t.remove());
+      }, 50);
+    } else if (snap === 'itinerary') {
+      store.setView('itinerary');
+    } else if (snap === 'companion') {
+      store.setView('itinerary');
+      const widget = document.getElementById('aiChatbotWidget');
+      if (widget) widget.classList.add('open');
+      const stream = document.getElementById('chatbotMessagesStream');
+      if (stream) {
+        stream.innerHTML = `
+          <div class="chat-bubble chat-bubble-ai animate-fade-in">
+            <div>Welcome! I'm your <strong>Wayfind AI Companion</strong>. I've tailored your 4-day itinerary. How can I assist you?</div>
+            <span class="chat-time">2:30 PM</span>
+          </div>
+          <div class="chat-bubble chat-bubble-user animate-fade-in">
+            <div>Can you swap Nike Art Gallery to Saturday?</div>
+            <span class="chat-time">2:32 PM</span>
+          </div>
+          <div class="chat-bubble chat-bubble-ai animate-fade-in">
+            <div>Done! Moved to Saturday 2:00 PM. Your daily budget and route have been updated.</div>
+            <span class="chat-time">2:32 PM</span>
+          </div>
+        `;
+      }
+    } else if (snap === 'dashboard') {
+      store.setView('dashboard');
+    }
+  } catch (e) {
+    console.warn('Snapshot parameter handling error:', e);
+  }
 }
 
 /* ==========================================================================
@@ -4339,6 +4411,7 @@ function formatMarkdownBasic(text) {
    TOAST NOTIFICATION HELPER
    ========================================================================== */
 function showToast(msg, iconClass = 'ph-check-circle') {
+  if (window.location.search && window.location.search.includes('snap=')) return;
   let toast = document.getElementById('wayfindToast');
   if (!toast) {
     toast = document.createElement('div');
